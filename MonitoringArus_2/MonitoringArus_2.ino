@@ -14,6 +14,8 @@
   Projek ini menguunakan ESP8266 sebagai micro controller karena memiliki fitur SerialSoftware,
   sehingga komunikasi UART bisa digunakan sebanyak mungkin selama address-nya berbeda dan daya
   dari ESP8266 kuat.
+
+  Proses koneksi WiFi tidak disarakn menggunakan Library MultiWiFiESP8266.h, kecuali Micon yang digunakan ESP32
 */
 
 // == Deklarasikan semua Library yang digunakan ==
