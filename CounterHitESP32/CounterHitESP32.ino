@@ -1,6 +1,11 @@
 /*
-  V.1.0.1
+  V.0.0.2
   Update Terakhir : 18-12-2023
+  Last Change Log {
+    1. Fix algoritma pada saat alat kehilangan daya (listrik, dicabut, error, hard reset)
+    2. Perbaikan tampilan menu
+    3. Penambahan penjelasan baris program 
+  }
 
   PENTING = Harus menggunakan Dual Core Micro Controller
   Komponen:
@@ -13,6 +18,10 @@
 
   Program ini berfungsi untuk melakukan penghitungan barang pada conveyor.
   Penjelasan program terdapat pada comment baris pada program.
+
+  Semua fungsi Serial.print() pada program ini sebenarnya bisa dihapus/di-comment,
+  masih dipertahankan untuk fungsi debuging. Akan di-comment/dihapus pada saat final
+  program sudah tercapai untuk menghemat rosource pada ESP32.
 */
 
 // == Deklarasi semua Library yang digunakan ==
@@ -42,7 +51,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 // == WiFi Config ==
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
-   ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
+ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
 */
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB1";
@@ -93,6 +102,7 @@ int counterValueDB;
 String postData;
 
 // == Product/Menu Related Section ==
+// Add Menu Here
 bool menuSelect;
 int menu = 1;
 String productSelected;
@@ -176,7 +186,9 @@ void sendLogData() {
 }
 
 void getLogData() {
-  /*
+  /* Untung mendapatkan data terakhir dari DB, 
+  saat ini tidak digunakan karena sudah menggunakan SD Card
+  Kode dibawah mohon untuk tidak dihapus.
   */
   HTTPClient http;
   String getData = "http://192.168.15.221/counter_hit_api/getDataLastCounter.php?kode_product=" + productSelected;
@@ -262,8 +274,8 @@ void updateMenu() {
       break;
     case 1:
       lcd.clear();
-      lcd.setCursor(3, 0);
-      lcd.print("==PILIH MENU==");
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
       lcd.setCursor(0, 1);
       lcd.print(">" + nameProductOne);
       lcd.setCursor(1, 2);
@@ -275,9 +287,9 @@ void updateMenu() {
       break;
     case 2:
       lcd.clear();
-      lcd.setCursor(3, 0);
-      lcd.print("==PILIH MENU==");
-      lcd.setCursor(1, 1);
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==")
+        lcd.setCursor(1, 1);
       lcd.print(nameProductOne);
       lcd.setCursor(0, 2);
       lcd.print(">" + nameProductTwo);
@@ -473,7 +485,7 @@ void loop() {
     now = rtc.now();
     logName = "/logCounter_" + productSelected + '_' + dateFormat + ".txt";
 
-    // Saat pertama kali alat dihidupkan, cek counter terakhir pada File Log
+    // Saat pertama kali alat dihidupkan, cek counter terakhir pada File Log, gunakan log itu
     int tryUpdateStatusSD = 0;
     while (readStatusSD == false && tryUpdateStatusSD <= 20) {
       readLastLineSDCard(logName);
@@ -481,7 +493,7 @@ void loop() {
       tryUpdateStatusSD++;
     }
 
-    // Jika tidak terdapat Data Log, buat data dummy
+    // Jika tidak terdapat Data Log, buat data dummy (supaya tidak error pada saat insert log)
     if (insertLastLineSDCardStatus == false) {
       File myFile = SD.open(logName, FILE_WRITE);
       myFile.println("0,0,0,0");
@@ -495,6 +507,10 @@ void loop() {
     lcd.setCursor(12, 3);
     lcd.print(timeFormat);
 
+    /* Untung mendapatkan data terakhir dari DB, 
+    saat ini tidak digunakan karena sudah menggunakan SD Card
+    Kode dibawah mohon untuk tidak dihapus.
+    */
     // Get Data Here
     // if (counter == 0) {
     //   getLogData();
@@ -503,7 +519,9 @@ void loop() {
     //   }
     // }
 
-    // Reset Counter Here
+    /* Jika dibutuhkan, baris program dibawah memungkinkan otomatis reset nilai counter
+    Jika ingin mereset alat, panggis fungsi ResetESP().
+    */
     // if ((hour == 7 && minute == 50 && second == 0) || (hour == 19 && minute == 50 && second == 0)) {
     //   counter = 0;
     //   delay(1000);
@@ -513,7 +531,9 @@ void loop() {
     //   delay(100);
     // }
 
-    // Save Data Here
+    /* Simpan data SD
+      Data akan disimpan setiap kali nilai counter bertambah
+    */
     logData = productSelected + ',' + String(counter) + ',' + dateTime + ',' + ip_Address;
     newCounter = counter;
     if (oldCounter != newCounter) {
@@ -526,6 +546,10 @@ void loop() {
     lcd.setCursor(1, 1);
     lcd.print(nameProductSelected);
 
+    /*Pengiriman data ke DB dilakukan setiap 15 detik
+    Jika dirasa terlalu sering, ganti value second sesuai keperluan
+    Misal, if ((second == 0 || second == 30) && !sendStatus) --> Akan mengirim data setiap detik 0 dan 30
+    */
     if ((second == 15 || second == 30 || second == 45 || second == 0) && !sendStatus) {
       if (!SD.begin()) {
         postData = "kode_product=" + productSelected + "&counter=" + String(counter) + "&date=" + dateTime + "&ip_address=" + ip_Address;
