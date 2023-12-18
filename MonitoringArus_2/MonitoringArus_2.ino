@@ -1,8 +1,30 @@
+/*
+  V 0.0.1 Beta
+  Update Terakhir : 18-12-2023
+  Last Change Log {
+    1. 
+  }
+
+  Komponen:
+  1. NodeMCU ESP8266 V.3
+  2. PZEM-004T V 3.0
+  3. LED @2 (Beda Warna)
+
+  Program ini berfungsi menghitung intrumen listrik pada kabel.
+  Projek ini menguunakan ESP8266 sebagai micro controller karena memiliki fitur SerialSoftware,
+  sehingga komunikasi UART bisa digunakan sebanyak mungkin selama address-nya berbeda dan daya
+  dari ESP8266 kuat.
+*/
+
+// == Deklarasikan semua Library yang digunakan ==
 #include <PZEM004Tv30.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <SoftwareSerial.h>
 
+// Digunakan pin 12 dan 13 (6, 7) sebagai pin UART (RX, TX)
+// Pin TX dari Pzem dihubungkan ke pin RX (6) ESP8266
+// Pin RX dari Pzem dihubungkan ke pin TX (7) ESP8266
 #define PZEM_RX_PIN 12
 #define PZEM_TX_PIN 13
 
@@ -14,7 +36,10 @@
 float pzem12Power, pzem12Energy, pzem12Voltage, pzem12Current;
 float pzem13Power, pzem13Energy, pzem13Voltage, pzem13Current;
 
+// Inisialisasi SoftwareSerial untuk komunikasi UART
 SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
+// 0x12/0x13 adalah alamat dari setiap sensor PZEM yang digunakan
+// Untuk merubah alamat ini jalankan program "ChangeAdressPzem004T"
 PZEM004Tv30 pzem12(pzemSWSerial, 0x12);
 PZEM004Tv30 pzem13(pzemSWSerial, 0x13);
 

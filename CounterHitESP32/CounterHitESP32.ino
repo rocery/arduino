@@ -1,5 +1,5 @@
 /*
-  V.0.0.2
+  V 0.0.2 beta
   Update Terakhir : 18-12-2023
   Last Change Log {
     1. Fix algoritma pada saat alat kehilangan daya (listrik, dicabut, error, hard reset)
