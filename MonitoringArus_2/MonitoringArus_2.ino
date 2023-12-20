@@ -10,8 +10,8 @@
   2. PZEM-004T V 3.0
   3. LED @2 (Beda Warna)
 
-  Program ini berfungsi menghitung intrumen listrik pada kabel.
-  Projek ini menguunakan ESP8266 sebagai micro controller karena memiliki fitur SerialSoftware,
+  Program ini berfungsi menghitung instrumen listrik pada kabel.
+  Projek ini mengunakan ESP8266 sebagai micro controller karena memiliki fitur SerialSoftware,
   sehingga komunikasi UART bisa digunakan sebanyak mungkin selama address-nya berbeda dan daya
   dari ESP8266 kuat.
 

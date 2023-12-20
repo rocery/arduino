@@ -1,10 +1,11 @@
 /*
-  V 0.0.2 beta
-  Update Terakhir : 18-12-2023
+  V 0.0.3 beta
+  Update Terakhir : 20-12-2023
   Last Change Log {
     1. Fix algoritma pada saat alat kehilangan daya (listrik, dicabut, error, hard reset)
     2. Perbaikan tampilan menu
     3. Penambahan penjelasan baris program 
+    4. Penambahan fungsi update RTC (belum diimplementasikan)
   }
 
   PENTING = Harus menggunakan Dual Core Micro Controller
@@ -21,7 +22,10 @@
 
   Semua fungsi Serial.print() pada program ini sebenarnya bisa dihapus/di-comment,
   masih dipertahankan untuk fungsi debuging. Akan di-comment/dihapus pada saat final
-  program sudah tercapai untuk menghemat rosource pada ESP32.
+  program sudah tercapai demi menghemat rosource pada ESP32.
+
+  Module RTC pada program ini beleum digunakan, program ini masih memanfaatkan waktu dari
+  server NTP, direkomendasikan menggunakan RTC bilamana terjadi gangguan WiFi.
 */
 
 // == Deklarasi semua Library yang digunakan ==
@@ -78,15 +82,15 @@ const char* ntpServer = "pool.ntp.org";
 const long gmtOffsetSec = 7 * 3600;  // Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
 const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat;
-int year;
-int month;
-int day;
-int hour;
-int minute;
-int second;
+int year, rtcYear;
+int month, rtcMonth;
+int day, rtcDay;
+int hour, rtcHour;
+int minute, rtcMinute;
+int second, rtcSecond;
 RTC_DS3231 rtc;
 DateTime now;
-bool ntpStatus;
+bool ntpStatus, statusUpdateRTC;
 
 // == Counter ==
 int counter;
@@ -288,8 +292,8 @@ void updateMenu() {
     case 2:
       lcd.clear();
       lcd.setCursor(2, 0);
-      lcd.print("==PILIH PRODUK==")
-        lcd.setCursor(1, 1);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(1, 1);
       lcd.print(nameProductOne);
       lcd.setCursor(0, 2);
       lcd.print(">" + nameProductTwo);
@@ -404,12 +408,29 @@ void deleteLog(String path) {
   }
 }
 
+void updateRTC() {
+  /* Baris program ini digunakan untuk melakukan update waktu pada RTC,
+    akan digunakan pada final produk untuk menanggulangi masalah pada
+    koneksi NTP jika WiFi tidak terkoneksi internet.
+    Mohon tidak dihapus/dirubah.
+  */
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  rtc.adjust(DateTime(year, month, day, hour, minute, second));
+
+  if (now.year() != 1990) {
+    statusUpdateRTC = true;
+  } else if (now.year() == 1990) {
+    statusUpdateRTC = false;
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   sendStatus = false;
   getStatus = false;
   menuSelect = false;
   readStatusSD = false;
+  statusUpdateRTC = false;
 
   pinMode(upButton, INPUT);
   pinMode(downButton, INPUT);
@@ -424,6 +445,8 @@ void setup() {
   // SD Card
   if (!SD.begin()) {
     Serial.println("Card Mount Failed");
+    lcd.setCursor(0, 0);
+    lcd.print("Card Mount Failed");
     return;
   } else if (SD.begin()) {
     Serial.println("Card Mounted");
@@ -446,13 +469,22 @@ void setup() {
   // NTP-RTC
   configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
   rtc.begin();
-  getLocalTime();
+  int tryNTP = 0;
+  while (ntpStatus == false && tryNTP <= 20) {
+    getLocalTime();
+    tryNTP++;
+    delay(50);
+  }
+  now = rtc.now();
   lcd.setCursor(0, 2);
   lcd.print("Getting Date/Time");
-  delay(1000);
-  lcd.clear();
 
-  selectMenu();
+  // Adjust RTC berdasarkan NTP
+  // updateRTC();
+
+  delay(1000);
+  lcd.clear();   // Clear LCD sebelum memilih menu
+  selectMenu();  // Tampilkan pilihan product yang bisa dipilih
 
   xTaskCreatePinnedToCore(
     counterHit, /* Fungsi untuk mengimplementasikan tugas */
@@ -520,7 +552,7 @@ void loop() {
     // }
 
     /* Jika dibutuhkan, baris program dibawah memungkinkan otomatis reset nilai counter
-    Jika ingin mereset alat, panggis fungsi ResetESP().
+    Jika ingin mereset alat, panggil fungsi ResetESP().
     */
     // if ((hour == 7 && minute == 50 && second == 0) || (hour == 19 && minute == 50 && second == 0)) {
     //   counter = 0;
@@ -546,9 +578,9 @@ void loop() {
     lcd.setCursor(1, 1);
     lcd.print(nameProductSelected);
 
-    /*Pengiriman data ke DB dilakukan setiap 15 detik
-    Jika dirasa terlalu sering, ganti value second sesuai keperluan
-    Misal, if ((second == 0 || second == 30) && !sendStatus) --> Akan mengirim data setiap detik 0 dan 30
+    /* Pengiriman data ke DB dilakukan setiap 15 detik
+      Jika dirasa terlalu sering, ganti value second sesuai keperluan
+      Misal, if ((second == 0 || second == 30) && !sendStatus) --> Akan mengirim data setiap detik 0 dan 30
     */
     if ((second == 15 || second == 30 || second == 45 || second == 0) && !sendStatus) {
       if (!SD.begin()) {
