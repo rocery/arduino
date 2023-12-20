@@ -42,14 +42,13 @@ void setup() {
 //
 void loop() {
   // Temperature
-  suhu = lm75a.getTemperature() - 1;
+  suhu = lm75a.getTemperature();
   Serial.print(F("Temperature in Celsius: "));
   Serial.print(suhu);
   Serial.println(F(" *C"));
 
-  // lm75a.shutdown();
-  // delay(5000);
-  // lm75a.wakeup();
-  // delay(1000);
-  delay(500);
+  lm75a.shutdown();
+  delay(200);
+  lm75a.wakeup();
+  delay(200);
 }
