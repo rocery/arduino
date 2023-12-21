@@ -180,11 +180,9 @@ void sendLogData() {
 
   if (httpResponseCode > 0) {
     String response = http.getString();
-    Serial.println(httpResponseCode);
     Serial.println(response);
   } else {
-    Serial.print("Error on sending POST: ");
-    Serial.println(httpResponseCode);
+    Serial.print("Error on sending POST");
   }
   http.end();
 }
@@ -205,8 +203,7 @@ void getLogData() {
     counterFromDB = myArray["counter"];
     counterValueDB = atoi(counterFromDB);
   } else {
-    Serial.print("Error code: ");
-    Serial.println(httpCode);
+    Serial.print("Error get log");
   }
   http.end();
 }
@@ -223,7 +220,6 @@ void resetESP() {
     // Get Data from SD
     readLastLineSDCard(logName);
     postData = "kode_product=" + productSelectedSD + "&counter=" + counterSD + "&date=" + dateTimeSD + "&ip_address=" + ipAddressSD;
-    delay(1000);
 
     // Send Data to DB
     sendLogData();
