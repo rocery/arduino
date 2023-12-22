@@ -1,5 +1,5 @@
 /*
-  V 0.0.3 beta
+  V 0.0.3 Beta
   Update Terakhir : 20-12-2023
   Last Change Log {
     1. Fix algoritma pada saat alat kehilangan daya (listrik, dicabut, error, hard reset)
@@ -522,7 +522,7 @@ void loop() {
     }
 
     // Jika tidak terdapat Data Log, buat data dummy (supaya tidak error pada saat insert log)
-    if (insertLastLineSDCardStatus == false) {
+    if (insertLastLineSDCardStatus == false && SD.begin()) {
       File myFile = SD.open(logName, FILE_WRITE);
       myFile.println("0,0,0,0");
       myFile.close();
