@@ -1,11 +1,12 @@
 /*
-  V 0.0.3 Beta
-  Update Terakhir : 20-12-2023
+  V 0.0.4 Beta
+  Update Terakhir : 23-12-2023
   Last Change Log {
     1. Fix algoritma pada saat alat kehilangan daya (listrik, dicabut, error, hard reset)
     2. Perbaikan tampilan menu
     3. Penambahan penjelasan baris program 
     4. Penambahan fungsi update RTC (belum diimplementasikan)
+    5. Penambahan update reset ke DB pada resetESP() 
   }
 
   PENTING = Harus menggunakan Dual Core Micro Controller
@@ -225,6 +226,11 @@ void resetESP() {
     sendLogData();
     lcd.setCursor(1, 1);
     lcd.print("Send Update to DB");
+    delay(1000);
+
+    // Send Reset Status to DB
+    postData = "kode_product=" + String(0) + "&counter=" + String(0) + "&date=" + String(0) + "&ip_address=" + String(0);
+    sendLogData();
 
     // Delete Data from SD
     lcd.setCursor(1, 2);
