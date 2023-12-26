@@ -1,5 +1,5 @@
 /*
-  V 0.0.5 Beta
+  V. 0.0.6 Beta
   Update Terakhir : 26-12-2023
   Last Change Log {
     1. Fix algoritma pada saat alat kehilangan daya (listrik, dicabut, error, hard reset)
@@ -9,6 +9,7 @@
     5. Penambahan update reset ke DB pada resetESP()
     6. Menghilangkan delay pada saat reset
     7. Mengubah nama Log menjadi = logCounter_ + Kode Produk + .txt
+    8. Menambah fungsi resetESP() pada pilihan produk jika WiFi gagal terkoneksi
   }
 
   PENTING = Harus menggunakan Dual Core Micro Controller
@@ -250,6 +251,7 @@ void resetESP() {
 void selectMenu() {
   updateMenu();
   while (menuSelect == false) {
+    resetESP();
     if (digitalRead(downButton)) {
       menu++;
       updateMenu();
@@ -590,6 +592,8 @@ void loop() {
     */
     if ((second == 15 || second == 30 || second == 45 || second == 0) && !sendStatus) {
       if (!SD.begin()) {
+        // Jika gagal membaca SD Card, maka data yang dikirim adalah data real time
+        // Jika alat mati, maka data tidak disimpan
         postData = "kode_product=" + productSelected + "&counter=" + String(counter) + "&date=" + dateTime + "&ip_address=" + ip_Address;
       } else if (SD.begin()) {
         readLastLineSDCard(logName);
@@ -599,7 +603,7 @@ void loop() {
       }
       sendLogData();
       sendStatus = true;
-    } else if ((second == 1 || second == 25 || second == 40 || second == 55) && sendStatus) {
+    } else if ((second == 1 || second == 28 || second == 43 || second == 58) && sendStatus) {
       sendStatus = false;
       lcd.clear();
     }
