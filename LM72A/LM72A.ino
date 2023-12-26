@@ -48,7 +48,7 @@ void loop() {
   Serial.println(F(" *C"));
 
   lm75a.shutdown();
-  delay(500);
+  delay(2000);
   lm75a.wakeup();
-  delay(500);
+  delay(2000);
 }

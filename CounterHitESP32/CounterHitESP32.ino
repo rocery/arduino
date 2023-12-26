@@ -1,12 +1,14 @@
 /*
-  V 0.0.4 Beta
-  Update Terakhir : 23-12-2023
+  V 0.0.5 Beta
+  Update Terakhir : 26-12-2023
   Last Change Log {
     1. Fix algoritma pada saat alat kehilangan daya (listrik, dicabut, error, hard reset)
     2. Perbaikan tampilan menu
     3. Penambahan penjelasan baris program 
     4. Penambahan fungsi update RTC (belum diimplementasikan)
-    5. Penambahan update reset ke DB pada resetESP() 
+    5. Penambahan update reset ke DB pada resetESP()
+    6. Menghilangkan delay pada saat reset
+    7. Mengubah nama Log menjadi = logCounter_ + Kode Produk + .txt
   }
 
   PENTING = Harus menggunakan Dual Core Micro Controller
@@ -216,7 +218,6 @@ void resetESP() {
     insertLastLineSDCard(logName, logData);
     lcd.setCursor(1, 0);
     lcd.print("Loading...");
-    delay(1000);
 
     // Get Data from SD
     readLastLineSDCard(logName);
@@ -461,13 +462,16 @@ void setup() {
   wifiMulti.addAP(ssid_c, password_c);
   wifiMulti.addAP(ssid_d, password_d);
   wifiMulti.addAP(ssid_it, password_it);
+
   if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
     Serial.println("STA Failed to configure");
   }
+
   wifiMulti.run();
   lcd.setCursor(0, 1);
   lcd.print("Connecting to WiFi");
   delay(1000);
+
   // NTP-RTC
   configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
   rtc.begin();
@@ -517,7 +521,7 @@ void loop() {
     getLocalTime();
     ip_Address = WiFi.localIP().toString();
     now = rtc.now();
-    logName = "/logCounter_" + productSelected + '_' + dateFormat + ".txt";
+    logName = "/logCounter_" + productSelected + ".txt";
 
     // Saat pertama kali alat dihidupkan, cek counter terakhir pada File Log, gunakan log itu
     int tryUpdateStatusSD = 0;
