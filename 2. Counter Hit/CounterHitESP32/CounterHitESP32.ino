@@ -1,5 +1,6 @@
 /*
-  V. 0.0.7 Beta
+  V. 0.0.8 Beta
+  Belum dicoba secara langsung
   Update Terakhir : 08-01-2024
   Last Change Log {
     Desember 2023
@@ -12,20 +13,23 @@
     7. Mengubah nama Log menjadi = logCounter_ + Kode Produk + .txt
     8. Menambah fungsi resetESP() pada pilihan produk jika WiFi gagal terkoneksi
 
-    Januari 2023
+    Januari 2024
     1. Implementasi update RTC
     2. Perbaikan program jika tidak ada WiFi
-    3. 
+    3. Penambahan keterangan pin yang digunakan
   }
 
   PENTING = Harus menggunakan Dual Core Micro Controller
   Komponen:
   1. Micro Controller : ESP32
-  2. LCD I2C 20x4
-  3. DS3231
-  4. IR Sensor E18-D80NK
-  5. Module SD Card + SD Card (FAT32 1-16 GB)
-  6. Tacticle Button 1x1 cm @3 atau 4
+  2. LCD I2C 20x4                               (3.3v, GND, I2C (22 = SCL, 21 = SDA))
+  3. DS3231                                     (3.3v, GND, I2C (22 = SCL, 21 = SDA))
+  4. IR Sensor E18-D80NK                        (5v/Vin, GND, 26)
+  5. Module SD Card + SD Card (FAT32 1-16 GB)   (3.3v, GND, SPI(Mosi 23, Miso 19, CLK 18, CS 5))
+  6. Tacticle Button 1x1 cm @3                  (3.3v, GND, 34, 35, 25)
+  -- Belum diimplementasikan --
+  7. Active Buzzer 3-5 v                        (3.3v, 26)
+  8. Fan 5V                                     (5v/Vin, GND)
 
   Program ini berfungsi untuk melakukan penghitungan barang pada conveyor.
   Penjelasan program terdapat pada comment baris pada program.
