@@ -1,7 +1,8 @@
 /*
-  V. 0.0.6 Beta
-  Update Terakhir : 26-12-2023
+  V. 0.0.7 Beta
+  Update Terakhir : 08-01-2024
   Last Change Log {
+    Desember 2023
     1. Fix algoritma pada saat alat kehilangan daya (listrik, dicabut, error, hard reset)
     2. Perbaikan tampilan menu
     3. Penambahan penjelasan baris program 
@@ -10,6 +11,11 @@
     6. Menghilangkan delay pada saat reset
     7. Mengubah nama Log menjadi = logCounter_ + Kode Produk + .txt
     8. Menambah fungsi resetESP() pada pilihan produk jika WiFi gagal terkoneksi
+
+    Januari 2023
+    1. Implementasi update RTC
+    2. Perbaikan program jika tidak ada WiFi
+    3. 
   }
 
   PENTING = Harus menggunakan Dual Core Micro Controller
@@ -117,11 +123,11 @@ String productSelected;
 String nameProductSelected;
 String productCodeOne = "P-0722-00239";
 String productCodeTwo = "P-0922-00257";
-String productCodeThree = "3";
+String productCodeThree = "Test Mode";
 String productCodeFour = "4";
 String nameProductOne = "Tic Tic Bwg 2000";
 String nameProductTwo = "Tic Tic Bwg 5000";
-String nameProductThree = "FF 10000";
+String nameProductThree = "Test Mode";
 String nameProductFour = "d";
 
 // == SD Card ==
@@ -154,22 +160,39 @@ void getLocalTime() {
     ntpStatus = false;
   } else {
     ntpStatus = true;
-  }
-  char timeStringBuff[50];
-  strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
-  dateTime = String(timeStringBuff);
 
-  // Save time data to variabel
-  year = timeinfo.tm_year + 1900;
-  month = timeinfo.tm_mon + 1;
-  day = timeinfo.tm_mday;
-  hour = timeinfo.tm_hour;
-  minute = timeinfo.tm_min;
-  second = timeinfo.tm_sec;
-  // YYYY-MM-DD
-  dateFormat = String(year) + '-' + String(month) + '-' + String(day);
-  // hh:mm:ss
-  timeFormat = String(hour) + ':' + String(minute) + ':' + String(second);
+    char timeStringBuff[50];
+    strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    dateTime = String(timeStringBuff);
+
+    // Save time data to variabel
+    year = timeinfo.tm_year + 1900;
+    month = timeinfo.tm_mon + 1;
+    day = timeinfo.tm_mday;
+    hour = timeinfo.tm_hour;
+    minute = timeinfo.tm_min;
+    second = timeinfo.tm_sec;
+    // YYYY-MM-DD
+    dateFormat = String(year) + '-' + String(month) + '-' + String(day);
+    // hh:mm:ss
+    timeFormat = String(hour) + ':' + String(minute) + ':' + String(second);
+  }
+}
+
+void updateRTC() {
+  /* Baris program ini digunakan untuk melakukan update waktu pada RTC,
+    akan digunakan pada final produk untuk menanggulangi masalah pada
+    koneksi NTP jika WiFi tidak terkoneksi internet.
+    Mohon tidak dihapus/dirubah.
+  */
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  rtc.adjust(DateTime(year, month, day, hour, minute, second));
+
+  if (now.year() != 1990) {
+    statusUpdateRTC = true;
+  } else if (now.year() == 1990) {
+    statusUpdateRTC = false;
+  }
 }
 
 void sendLogData() {
@@ -309,15 +332,15 @@ void updateMenu() {
       break;
     case 3:
       menu = 2;
-      //      lcd.clear();
-      //      lcd.setCursor(1, 0);
-      //      lcd.print("Pilih Menu :");
-      //      lcd.setCursor(1, 1);
-      //      lcd.print(nameProductOne);
-      //      lcd.setCursor(1, 2);
-      //      lcd.print(nameProductTwo);
-      //      lcd.setCursor(1, 3);
-      //      lcd.print("> " + nameProductThree);
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(1, 1);
+      lcd.print(nameProductOne);
+      lcd.setCursor(1, 2);
+      lcd.print(nameProductTwo);
+      lcd.setCursor(1, 3);
+      lcd.print(">" + nameProductThree);
       break;
       //    case 4:
       //      menu = 3;
@@ -339,12 +362,12 @@ void menuSelected() {
       delay(1000);
       lcd.clear();
       break;
-      //    case 3:
-      //      productSelected = productCodeThree;
-      //      nameProductSelected = nameProductThree;
-      //      delay(1000);
-      //      lcd.clear();
-      //      break;
+    case 3:
+      productSelected = productCodeThree;
+      nameProductSelected = nameProductThree;
+      delay(1000);
+      lcd.clear();
+      break;
       //    case 4:
       //      productSelected = productCodeFour;
       //      nameProductSelected = nameProductFour;
@@ -413,22 +436,6 @@ void deleteLog(String path) {
   }
 }
 
-void updateRTC() {
-  /* Baris program ini digunakan untuk melakukan update waktu pada RTC,
-    akan digunakan pada final produk untuk menanggulangi masalah pada
-    koneksi NTP jika WiFi tidak terkoneksi internet.
-    Mohon tidak dihapus/dirubah.
-  */
-  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-  rtc.adjust(DateTime(year, month, day, hour, minute, second));
-
-  if (now.year() != 1990) {
-    statusUpdateRTC = true;
-  } else if (now.year() == 1990) {
-    statusUpdateRTC = false;
-  }
-}
-
 void setup() {
   Serial.begin(115200);
   sendStatus = false;
@@ -482,15 +489,25 @@ void setup() {
     getLocalTime();
     tryNTP++;
     delay(50);
+    lcd.setCursor(0, 2);
+    lcd.print("Getting Date/Time");
   }
   now = rtc.now();
-  lcd.setCursor(0, 2);
-  lcd.print("Getting Date/Time");
+
 
   // Adjust RTC berdasarkan NTP
-  // updateRTC();
+  if (ntpStatus == true) {
+    updateRTC();
+    if (statusUpdateRTC == true) {
+      rtcYear = now.year();
+      rtcMonth = now.month();
+      rtcDay = now.day();
+      rtcHour = now.hour();
+      rtcMinute = now.minute();
+      rtcSecond = now.second();
+    }
+  }
 
-  delay(1000);
   lcd.clear();   // Clear LCD sebelum memilih menu
   selectMenu();  // Tampilkan pilihan product yang bisa dipilih
 
@@ -506,109 +523,146 @@ void setup() {
 }
 
 void loop() {
-  if (wifiMulti.run() != WL_CONNECTED) {
+  // Print Counter Hit
+  lcd.setCursor(1, 2);
+  lcd.print("Total : ");
+  lcd.setCursor(9, 2);
+  lcd.print(counter);
+
+  // Print Produk
+  lcd.setCursor(1, 0);
+  lcd.print(productSelected);
+  lcd.setCursor(1, 1);
+  lcd.print(nameProductSelected);
+
+  /* Jika WiFi status WiFi tidak terkoneksi,
+  coba ulang 5 kali
+  */
+  int tryWiFi = 0;
+  while (wifiMulti.run() != WL_CONNECTED && tryWiFi <= 5) {
     Serial.println("WiFi not connected!");
+    lcd.setCursor(1, 2);
+    lcd.print("Try WiFi: " + String(tryWiFi));
     lcd.setCursor(1, 3);
     lcd.print("WiFi DC");
-    delay(1000);
+    delay(200);
     wifiMulti.run();
-  } else {
-    int tryNTP = 0;
-    while (ntpStatus == false && tryNTP <= 20) {
-      getLocalTime();
-      tryNTP++;
-      delay(50);
-    }
+  }
 
+  // Mencoba koneksi ke server NTP
+  int tryNTP = 0;
+  while (ntpStatus == false && tryNTP <= 20) {
     getLocalTime();
-    ip_Address = WiFi.localIP().toString();
-    now = rtc.now();
-    logName = "/logCounter_" + productSelected + ".txt";
+    tryNTP++;
+    delay(50);
+  }
+  getLocalTime();
 
-    // Saat pertama kali alat dihidupkan, cek counter terakhir pada File Log, gunakan log itu
-    int tryUpdateStatusSD = 0;
-    while (readStatusSD == false && tryUpdateStatusSD <= 20) {
-      readLastLineSDCard(logName);
-      counter = counterSD.toInt();
-      tryUpdateStatusSD++;
+  // Set RTC berdasarkan NTP
+  now = rtc.now();
+  if (ntpStatus == true) {
+    updateRTC();
+    if (statusUpdateRTC == true) {
+      rtcYear = now.year();
+      rtcMonth = now.month();
+      rtcDay = now.day();
+      rtcHour = now.hour();
+      rtcMinute = now.minute();
+      rtcSecond = now.second();
     }
+    // Jika NTP gagal (Tidak ada koneksi WiFi)
+  } else if (ntpStatus == false) {
+    rtcYear = now.year();
+    rtcMonth = now.month();
+    rtcDay = now.day();
+    rtcHour = now.hour();
+    rtcMinute = now.minute();
+    rtcSecond = now.second();
+    dateFormat = String(rtcYear) + '-' + String(rtcMonth) + '-' + String(rtcDay);
+    timeFormat = String(rtcHour) + ':' + String(rtcMinute) + ':' + String(rtcSecond);
+    dateTime = dateFormat + ' ' + timeFormat;
+  }
 
-    // Jika tidak terdapat Data Log, buat data dummy (supaya tidak error pada saat insert log)
-    if (insertLastLineSDCardStatus == false && SD.begin()) {
-      File myFile = SD.open(logName, FILE_WRITE);
-      myFile.println("0,0,0,0");
-      myFile.close();
-    }
+  // Print Waktu hh:mm:ss
+  lcd.setCursor(12, 3);
+  lcd.print(timeFormat);
 
-    lcd.setCursor(1, 2);
-    lcd.print("Total : ");
-    lcd.setCursor(9, 2);
-    lcd.print(counter);
-    lcd.setCursor(12, 3);
-    lcd.print(timeFormat);
+  ip_Address = WiFi.localIP().toString();
+  logName = "/logCounter_" + productSelected + ".txt";
 
-    /* Untung mendapatkan data terakhir dari DB, 
+  // Saat pertama kali alat dihidupkan, cek counter terakhir pada File Log, gunakan log itu
+  int tryUpdateStatusSD = 0;
+  while (readStatusSD == false && tryUpdateStatusSD <= 20) {
+    readLastLineSDCard(logName);
+    counter = counterSD.toInt();
+    tryUpdateStatusSD++;
+  }
+
+  // Jika tidak terdapat Data Log, buat data dummy (supaya tidak error pada saat insert log)
+  if (insertLastLineSDCardStatus == false && SD.begin()) {
+    File myFile = SD.open(logName, FILE_WRITE);
+    myFile.println("0,0,0,0");
+    myFile.close();
+  }
+
+
+  /* Untung mendapatkan data terakhir dari DB, 
     saat ini tidak digunakan karena sudah menggunakan SD Card
     Kode dibawah mohon untuk tidak dihapus.
     */
-    // Get Data Here
-    // if (counter == 0) {
-    //   getLogData();
-    //   if (counterValueDB != 0) {
-    //     counter = counterValueDB;
-    //   }
-    // }
+  // Get Data Here
+  // if (counter == 0) {
+  //   getLogData();
+  //   if (counterValueDB != 0) {
+  //     counter = counterValueDB;
+  //   }
+  // }
 
-    /* Jika dibutuhkan, baris program dibawah memungkinkan otomatis reset nilai counter
+  /* Jika dibutuhkan, baris program dibawah memungkinkan otomatis reset nilai counter
     Jika ingin mereset alat, panggil fungsi ResetESP().
     */
-    // if ((hour == 7 && minute == 50 && second == 0) || (hour == 19 && minute == 50 && second == 0)) {
-    //   counter = 0;
-    //   delay(1000);
-    //   sendLogData();
-    //   delay(1000);
-    //   lcd.clear();
-    //   delay(100);
-    // }
+  // if ((hour == 7 && minute == 50 && second == 0) || (hour == 19 && minute == 50 && second == 0)) {
+  //   counter = 0;
+  //   delay(1000);
+  //   sendLogData();
+  //   delay(1000);
+  //   lcd.clear();
+  //   delay(100);
+  // }
 
-    /* Simpan data SD
+  /* Simpan data SD
       Data akan disimpan setiap kali nilai counter bertambah
     */
-    logData = productSelected + ',' + String(counter) + ',' + dateTime + ',' + ip_Address;
-    newCounter = counter;
-    if (oldCounter != newCounter) {
-      insertLastLineSDCard(logName, logData);
-      oldCounter = newCounter;
-    }
+  logData = productSelected + ',' + String(counter) + ',' + dateTime + ',' + ip_Address;
+  newCounter = counter;
+  if (oldCounter != newCounter) {
+    insertLastLineSDCard(logName, logData);
+    oldCounter = newCounter;
+  }
 
-    lcd.setCursor(1, 0);
-    lcd.print(productSelected);
-    lcd.setCursor(1, 1);
-    lcd.print(nameProductSelected);
-
-    /* Pengiriman data ke DB dilakukan setiap 15 detik
+  /* Pengiriman data ke DB dilakukan setiap 15 detik
       Jika dirasa terlalu sering, ganti value second sesuai keperluan
       Misal, if ((second == 0 || second == 30) && !sendStatus) --> Akan mengirim data setiap detik 0 dan 30
     */
-    if ((second == 15 || second == 30 || second == 45 || second == 0) && !sendStatus) {
-      if (!SD.begin()) {
-        // Jika gagal membaca SD Card, maka data yang dikirim adalah data real time
-        // Jika alat mati, maka data tidak disimpan
-        postData = "kode_product=" + productSelected + "&counter=" + String(counter) + "&date=" + dateTime + "&ip_address=" + ip_Address;
-      } else if (SD.begin()) {
-        readLastLineSDCard(logName);
-        postData = "kode_product=" + productSelectedSD + "&counter=" + counterSD + "&date=" + dateTimeSD + "&ip_address=" + ipAddressSD;
-        lcd.setCursor(9, 3);
-        lcd.print("SD");
-      }
-      sendLogData();
-      sendStatus = true;
-    } else if ((second == 1 || second == 28 || second == 43 || second == 58) && sendStatus) {
-      sendStatus = false;
-      lcd.clear();
+  if ((second == 15 || second == 30 || second == 45 || second == 0) && !sendStatus) {
+    if (!SD.begin()) {
+      // Jika gagal membaca SD Card, maka data yang dikirim adalah data real time
+      // Jika alat mati, maka data tidak disimpan
+      postData = "kode_product=" + productSelected + "&counter=" + String(counter) + "&date=" + dateTime + "&ip_address=" + ip_Address;
+    } else if (SD.begin()) {
+      readLastLineSDCard(logName);
+      postData = "kode_product=" + productSelectedSD + "&counter=" + counterSD + "&date=" + dateTimeSD + "&ip_address=" + ipAddressSD;
+      lcd.setCursor(9, 3);
+      lcd.print("SD");
     }
-    lcd.setCursor(1, 3);
-    lcd.print("WiFi OK");
+    sendLogData();
+    sendStatus = true;
+  } else if ((second == 1 || second == 28 || second == 43 || second == 58) && sendStatus) {
+    sendStatus = false;
+    lcd.clear();
   }
+  lcd.setCursor(1, 3);
+  lcd.print("WiFi OK");
+
   resetESP();
 }
