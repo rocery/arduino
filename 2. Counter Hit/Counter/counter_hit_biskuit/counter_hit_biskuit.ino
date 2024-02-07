@@ -17,6 +17,7 @@
     2. Perbaikan program jika tidak ada WiFi
     3. Penambahan keterangan pin yang digunakan
     4. Fix bug ketika mencoba ulang koneksi ke WiFi
+    5. Penambahan kode produk
   }
 
   PENTING = Harus menggunakan Dual Core Micro Controller
@@ -107,10 +108,8 @@ DateTime now;
 bool ntpStatus, statusUpdateRTC;
 
 // == Counter ==
-int counter;
 TaskHandle_t Task1;
-int newCounter;
-int oldCounter;
+int counter,newCounter; oldCounter;
 
 // == Data Send/Get ==
 bool sendStatus, getStatus;
@@ -123,14 +122,21 @@ String postData;
 bool menuSelect;
 int menu = 1;
 String productSelected, nameProductSelected;
-String productCodeOne = "P-0722-00239";
-String productCodeTwo = "P-0922-00257";
-String productCodeThree = "Test Mode_128";
-String productCodeFour = "4";
-String nameProductOne = "Tic Tic Bwg 2000";
-String nameProductTwo = "Tic Tic Bwg 5000";
-String nameProductThree = "Test Mode_128";
-String nameProductFour = "d";
+String productCodeOne = "P-0722-00250";
+String productCodeTwo = "P-0722-00251";
+String productCodeThree = "P-1023-00282";
+String productCodeFour = "P-1023-00283";
+String productCodeFive = "P-1122-00260";
+String productCodeSix = "P-1222-00263";
+String productCodeSeven = "Test Mode_218";
+
+String nameProductOne = "IN GORIORIO VAN 2";
+String nameProductTwo = "IN GORIORIO COK 2";
+String nameProductThree = "NO GORIORIO VAN 2";
+String nameProductFour = "NO GORIORIO COK 2";
+String nameProductFive = "NO GORIORIO VAN 4";
+String nameProductSix = "NO GORIORIO COK 2";
+String nameProductSeven = "Test Mode_218";
 
 // == SD Card ==
 String line, logName, logData;
@@ -315,8 +321,6 @@ void updateMenu() {
       lcd.print(nameProductTwo);
       lcd.setCursor(1, 3);
       lcd.print("WiFi : " + WiFi.SSID());
-      //      lcd.setCursor(1, 3);
-      //      lcd.print(nameProductThree);
       break;
     case 2:
       lcd.clear();
@@ -328,8 +332,6 @@ void updateMenu() {
       lcd.print(">" + nameProductTwo);
       lcd.setCursor(1, 3);
       lcd.print("WiFi : " + WiFi.SSID());
-      //      lcd.setCursor(1, 3);
-      //      lcd.print(nameProductThree);
       break;
     case 3:
       lcd.clear();
@@ -343,7 +345,51 @@ void updateMenu() {
       lcd.print(">" + nameProductThree);
       break;
     case 4:
-      menu = 3;
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(1, 1);
+      lcd.print(">" + nameProductFour);
+      lcd.setCursor(1, 2);
+      lcd.print(nameProductFive);
+      lcd.setCursor(0, 3);
+      lcd.print(nameProductSix);
+      break;
+    case 5:
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(1, 1);
+      lcd.print(nameProductFour);
+      lcd.setCursor(1, 2);
+      lcd.print(">" + nameProductFive);
+      lcd.setCursor(0, 3);
+      lcd.print(nameProductSix);
+      break;
+    case 6:
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(1, 1);
+      lcd.print(nameProductFour);
+      lcd.setCursor(1, 2);
+      lcd.print(nameProductFive);
+      lcd.setCursor(0, 3);
+      lcd.print(">" + nameProductSix);
+      break;
+    case 7:
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(1, 1);
+      lcd.print(nameProductFive);
+      lcd.setCursor(1, 2);
+      lcd.print(nameProductSix);
+      lcd.setCursor(0, 3);
+      lcd.print(">" + nameProductSeven);
+      break;
+    case 8:
+      menu = 7;
       break;
   }
 }
@@ -368,12 +414,30 @@ void menuSelected() {
       delay(1000);
       lcd.clear();
       break;
-      //    case 4:
-      //      productSelected = productCodeFour;
-      //      nameProductSelected = nameProductFour;
-      //      delay(1000);
-      //      lcd.clear();
-      //      break;
+    case 4:
+      productSelected = productCodeFour;
+      nameProductSelected = nameProductFour;
+      delay(1000);
+      lcd.clear();
+      break;
+    case 5:
+      productSelected = productCodeFive;
+      nameProductSelected = nameProductFive;
+      delay(1000);
+      lcd.clear();
+      break;
+    case 6:
+      productSelected = productCodeSix;
+      nameProductSelected = nameProductSix;
+      delay(1000);
+      lcd.clear();
+      break;
+    case 7:
+      productSelected = productCodeSeven;
+      nameProductSelected = nameProductSeven;
+      delay(1000);
+      lcd.clear();
+      break;
   }
 }
 
@@ -567,27 +631,17 @@ void loop() {
   lcd.print(nameProductSelected);
 
   /* Jika WiFi status WiFi tidak terkoneksi,
-     coba ulang 2 kali
+     coba ulang koneksi
   */
-  int tryWiFi = 0;
-  while (wifiMulti.run() != WL_CONNECTED && tryWiFi < 2) {
-    Serial.println("WiFi not connected!");
-    // lcd.setCursor(1, 2);
-    // lcd.print("Try WiFi: " + String(tryWiFi));
+  if (wifiMulti.run() == WL_CONNECTED) {
     lcd.setCursor(1, 3);
-    lcd.print("Try " + String(tryWiFi));
-    wifiMulti.run();
-    tryWiFi++;
-  }
-
-  // Mencoba koneksi ke server NTP
-  int tryNTP = 0;
-  while (ntpStatus == false && tryNTP < 2) {
+    lcd.print(WiFi.SSID());
     getLocalTime();
-    tryNTP++;
-    delay(50);
+  } else if (wifiMulti.run() != WL_CONNECTED) {
+    lcd.setCursor(1, 3);
+    lcd.print("WiFi DC");
+    wifiMulti.run();
   }
-  getLocalTime();
 
   // Set RTC berdasarkan NTP
   now = rtc.now();
@@ -675,8 +729,6 @@ void loop() {
   } else if ((second == 20 || second == 48) && sendStatus) {
     sendStatus = false;
   }
-  lcd.setCursor(1, 3);
-  lcd.print(WiFi.SSID());
 
   resetESP();
 }
