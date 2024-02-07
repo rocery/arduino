@@ -565,10 +565,13 @@ void loop() {
   lcd.print(nameProductSelected);
 
   /* Jika WiFi status WiFi tidak terkoneksi,
-     coba ulang 2 kali
+     coba ulang koneksi
   */
-  if (wifiMulti.run() != WL_CONNECTED) {
-    Serial.println("WiFi not connected!");
+  if (wifiMulti.run() == WL_CONNECTED) {
+    lcd.setCursor(1, 3);
+    lcd.print(WiFi.SSID());
+    getLocalTime();
+  } else if (wifiMulti.run() != WL_CONNECTED) {
     lcd.setCursor(1, 3);
     lcd.print("WiFi DC");
     wifiMulti.run();
@@ -669,8 +672,6 @@ void loop() {
   } else if ((second == 20 || second == 48) && sendStatus) {
     sendStatus = false;
   }
-  lcd.setCursor(1, 3);
-  lcd.print(WiFi.SSID());
 
   resetESP();
 }
