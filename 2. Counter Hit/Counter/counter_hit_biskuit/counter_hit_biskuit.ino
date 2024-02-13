@@ -1,24 +1,6 @@
 /*
-  V. 0.1.2
-  Update Terakhir : 07-02-2024
-  Last Change Log {
-    Desember 2023
-    1. Fix algoritma pada saat alat kehilangan daya (listrik, dicabut, error, hard reset)
-    2. Perbaikan tampilan menu
-    3. Penambahan penjelasan baris program 
-    4. Penambahan fungsi update RTC (belum diimplementasikan)
-    5. Penambahan update reset ke DB pada resetESP()
-    6. Menghilangkan delay pada saat reset
-    7. Mengubah nama Log menjadi = logCounter_ + Kode Produk + .txt
-    8. Menambah fungsi resetESP() pada pilihan produk jika WiFi gagal terkoneksi
-
-    Januari 2024
-    1. Implementasi update RTC
-    2. Perbaikan program jika tidak ada WiFi
-    3. Penambahan keterangan pin yang digunakan
-    4. Fix bug ketika mencoba ulang koneksi ke WiFi
-    5. Penambahan kode produk
-  }
+  V. 1.0.4
+  Update Terakhir : 13-02-2024
 
   PENTING = Harus menggunakan Dual Core Micro Controller
   Komponen:
