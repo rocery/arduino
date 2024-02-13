@@ -109,7 +109,7 @@ bool ntpStatus, statusUpdateRTC;
 
 // == Counter ==
 TaskHandle_t Task1;
-int counter,newCounter; oldCounter;
+int counter, newCounter, oldCounter;
 
 // == Data Send/Get ==
 bool sendStatus, getStatus;
@@ -348,11 +348,11 @@ void updateMenu() {
       lcd.clear();
       lcd.setCursor(2, 0);
       lcd.print("==PILIH PRODUK==");
-      lcd.setCursor(1, 1);
+      lcd.setCursor(0, 1);
       lcd.print(">" + nameProductFour);
       lcd.setCursor(1, 2);
       lcd.print(nameProductFive);
-      lcd.setCursor(0, 3);
+      lcd.setCursor(1, 3);
       lcd.print(nameProductSix);
       break;
     case 5:
@@ -361,9 +361,9 @@ void updateMenu() {
       lcd.print("==PILIH PRODUK==");
       lcd.setCursor(1, 1);
       lcd.print(nameProductFour);
-      lcd.setCursor(1, 2);
+      lcd.setCursor(0, 2);
       lcd.print(">" + nameProductFive);
-      lcd.setCursor(0, 3);
+      lcd.setCursor(1, 3);
       lcd.print(nameProductSix);
       break;
     case 6:
@@ -620,7 +620,7 @@ void setup() {
 void loop() {
   // Print Counter Hit
   lcd.setCursor(1, 2);
-  lcd.print("Total : ");
+  lcd.print("TOTAL : ");
   lcd.setCursor(9, 2);
   lcd.print(counter);
 
