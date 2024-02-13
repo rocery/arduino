@@ -73,14 +73,14 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
 */
 WiFiMulti wifiMulti;
-const char* ssid_a = "STTB1";
-const char* password_a = "Si4nt4r321";
+const char* ssid_d = "STTB1";
+const char* password_d = "Si4nt4r321";
 const char* ssid_b = "MT1";
 const char* password_b = "siantar321";
 const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
-const char* ssid_d = "Djoksen";
-const char* password_d = "Welive99";
+const char* ssid_a = "STTB8";
+const char* password_a = "siantar123";
 const char* ssid_it = "STTB5";
 const char* password_it = "siantar123";
 
@@ -135,7 +135,7 @@ String nameProductTwo = "IN GORIORIO COK 2";
 String nameProductThree = "NO GORIORIO VAN 2";
 String nameProductFour = "NO GORIORIO COK 2";
 String nameProductFive = "NO GORIORIO VAN 4";
-String nameProductSix = "NO GORIORIO COK 2";
+String nameProductSix = "NO GORIORIO COK 4";
 String nameProductSeven = "Test Mode_218";
 
 // == SD Card ==
