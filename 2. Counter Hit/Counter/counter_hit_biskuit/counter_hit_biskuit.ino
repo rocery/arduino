@@ -240,7 +240,6 @@ void resetESP() {
     sendLogData();
     lcd.setCursor(1, 1);
     lcd.print("Send Update to DB");
-    delay(500);
 
     // Send Reset Status to DB
     postData = "kode_product=" + String(0) + "&counter=" + String(0) + "&date=" + String(0) + "&ip_address=" + String(0);
@@ -249,12 +248,10 @@ void resetESP() {
     // Delete Data from SD
     lcd.setCursor(1, 2);
     lcd.print("Deleting Log in SD");
-    delay(500);
     deleteLog(logName);
 
     lcd.setCursor(1, 3);
     lcd.print("Resetting...");
-    delay(500);
 
     ESP.restart();
   }

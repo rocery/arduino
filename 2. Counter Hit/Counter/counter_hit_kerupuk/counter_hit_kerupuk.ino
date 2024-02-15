@@ -1,24 +1,6 @@
 /*
-  V. 0.1.3
-  Update Terakhir : 07-02-2024
-  Last Change Log {
-    Desember 2023
-    1. Fix algoritma pada saat alat kehilangan daya (listrik, dicabut, error, hard reset)
-    2. Perbaikan tampilan menu
-    3. Penambahan penjelasan baris program 
-    4. Penambahan fungsi update RTC (belum diimplementasikan)
-    5. Penambahan update reset ke DB pada resetESP()
-    6. Menghilangkan delay pada saat reset
-    7. Mengubah nama Log menjadi = logCounter_ + Kode Produk + .txt
-    8. Menambah fungsi resetESP() pada pilihan produk jika WiFi gagal terkoneksi
-
-    Januari 2024
-    1. Implementasi update RTC
-    2. Perbaikan program jika tidak ada WiFi
-    3. Penambahan keterangan pin yang digunakan
-    4. Fix bug ketika mencoba ulang koneksi ke WiFi
-    5. Penggantian jenis sensor menjadi laser dan LDR
-  }
+  V. 0.1.4
+  Update Terakhir : 15-02-2024
 
   PENTING = Harus menggunakan Dual Core Micro Controller
   Komponen:
@@ -250,21 +232,18 @@ void resetESP() {
     sendLogData();
     lcd.setCursor(1, 1);
     lcd.print("Send Update to DB");
-    delay(500);
 
     // Send Reset Status to DB
-    postData = "kode_product=" + String(0) + "&counter=" + String(0) + "&date=" + String(0) + "&ip_address=" + String(0);
+    postData = "kode_product=" + String(staticIP) + "&counter=" + String(0) + "&date=" + String(0) + "&ip_address=" + String(0);
     sendLogData();
 
     // Delete Data from SD
     lcd.setCursor(1, 2);
     lcd.print("Deleting Log in SD");
-    delay(500);
     deleteLog(logName);
 
     lcd.setCursor(1, 3);
     lcd.print("Resetting...");
-    delay(500);
 
     ESP.restart();
   }
@@ -576,15 +555,6 @@ void loop() {
     lcd.print("WiFi DC");
     wifiMulti.run();
   }
-
-  // Mencoba koneksi ke server NTP
-  int tryNTP = 0;
-  while (ntpStatus == false && tryNTP < 2) {
-    getLocalTime();
-    tryNTP++;
-    delay(50);
-  }
-  getLocalTime();
 
   // Set RTC berdasarkan NTP
   now = rtc.now();
