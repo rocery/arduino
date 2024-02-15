@@ -242,7 +242,7 @@ void resetESP() {
     lcd.print("Send Update to DB");
 
     // Send Reset Status to DB
-    postData = "kode_product=" + String(0) + "&counter=" + String(0) + "&date=" + String(0) + "&ip_address=" + String(0);
+    postData = "kode_product=" + String(staticIP) + "&counter=" + String(0) + "&date=" + String(0) + "&ip_address=" + String(0);
     sendLogData();
 
     // Delete Data from SD
