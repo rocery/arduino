@@ -1,15 +1,6 @@
 /*
-  V. 0.1.1
-  Update Terakhir : 19-01-2024
-  Last Change Log {
-    2024
-    - Januari
-    1. Program utama MAX 7765
-    2. Tambah fungsi WiFi
-    3. Tambah fungsi sendData
-    4. Penambahan fungsi debug
-    5. Penambahan metode averaging suhu
-  }
+  V. 1.0.1
+  Update Terakhir : 16-02-2024
 
   Komponen:
   1. Micro Controller : ESP32
@@ -104,7 +95,7 @@ const char* ssid_it = "STTB5";
 const char* password_it = "siantar123";
 
 // Set IP to Static
-IPAddress staticIP(192, 168, 15, 213);
+IPAddress staticIP(192, 168, 15, 217);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
@@ -285,6 +276,7 @@ void loop() {
     lcd.setCursor(1, 3);
     lcd.print("WiFi DC");
     wifiMulti.run();
+
   }
 
   ip_Address = WiFi.localIP().toString();
@@ -310,5 +302,5 @@ void loop() {
     }
   }
 
-  debugSerial();
+  // debugSerial();
 }

@@ -37,6 +37,8 @@
 #include <RTClib.h>
 #include "time.h"
 
+String ESPName = "Counter Hit - Kerupuk";
+
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
    Total kolom 20
    Total baris 4 */
@@ -234,7 +236,7 @@ void resetESP() {
     lcd.print("Send Update to DB");
 
     // Send Reset Status to DB
-    postData = "kode_product=" + String(staticIP) + "&counter=" + String(0) + "&date=" + String(0) + "&ip_address=" + String(0);
+    postData = "kode_product=" + ESPName + "&counter=" + String(0) + "&date=" + String(0) + "&ip_address=" + ip_Address;
     sendLogData();
 
     // Delete Data from SD
