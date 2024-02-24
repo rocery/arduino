@@ -37,7 +37,7 @@
 #include <RTClib.h>
 #include "time.h"
 
-String ESPName = "Counter Hit - Biskuit";
+String ESPName = "Ctr-Biskuit";
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
    Total kolom 20
