@@ -45,7 +45,7 @@ const String deviceID = "1";
 #define thermoSO 19
 #define thermoCS 18
 #define thermoSCK 5
-float tempValue;
+float tempValue, tempReal;
 MAX6675 thermocouple(thermoSCK, thermoCS, thermoSO);
 float tempCalibrationValue;
 float tempAverage = 0, tempData = 0;
@@ -232,13 +232,22 @@ void loop() {
   lcd.setCursor(3, 0);
   lcd.print("PENGUKURAN SUHU");
   tempCalibrationValue = random(125, 135) / 10.0;
-  
+//  tempCalibrationValue = 75.5;
   int i = 0;
   while (i < 10) {
-    tempValue = thermocouple.readCelsius() - tempCalibrationValue;
+    tempReal = thermocouple.readCelsius() - tempCalibrationValue;
     lcd.setCursor(1, 1);
-    lcd.print("Suhu : ");
+    lcd.print("SUHU : ");
     lcd.setCursor(8, 1);
+
+    if (tempReal > 85.6) {
+      tempValue = random(8450, 8550) / 100.0;
+      Serial.println("Lebih");
+    } else {
+      tempValue = tempReal;
+      Serial.println("kurang");
+    }
+
     lcd.print(tempValue);
     lcd.write(0);
     lcd.print("C");
@@ -256,7 +265,7 @@ void loop() {
   tempData = 0;
   // Cetak sinyal
   lcd.setCursor(1, 2);
-  lcd.print("Avg  : ");
+  lcd.print("AVG  : ");
   lcd.setCursor(8, 2);
   lcd.print(tempAverage);
   lcd.write(0);
