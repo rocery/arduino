@@ -95,7 +95,7 @@ const char* ssid_it = "STTB5";
 const char* password_it = "siantar123";
 
 // Set IP to Static
-IPAddress staticIP(192, 168, 15, 217);
+IPAddress staticIP(192, 168, 15, 224);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
