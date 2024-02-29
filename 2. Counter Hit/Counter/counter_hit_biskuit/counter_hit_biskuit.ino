@@ -106,21 +106,13 @@ String postData;
 bool menuSelect;
 int menu = 1;
 String productSelected, nameProductSelected;
-String productCodeOne = "P-0722-00250";
-String productCodeTwo = "P-0722-00251";
-String productCodeThree = "P-1023-00282";
-String productCodeFour = "P-1023-00283";
-String productCodeFive = "P-1122-00260";
-String productCodeSix = "P-1222-00263";
-String productCodeSeven = "Test Mode_218";
-
-String nameProductOne = "IN GORIORIO VAN 2";
-String nameProductTwo = "IN GORIORIO COK 2";
-String nameProductThree = "NO GORIORIO VAN 2";
-String nameProductFour = "NO GORIORIO COK 2";
-String nameProductFive = "NO GORIORIO VAN 4";
-String nameProductSix = "NO GORIORIO COK 4";
-String nameProductSeven = "Test Mode_218";
+String productCodeOne = "P-0722-00250", nameProductOne = "IN GORIORIO VAN 2";
+String productCodeTwo = "P-0722-00251", nameProductTwo = "IN GORIORIO COK 2";
+String productCodeThree = "P-1023-00282", nameProductThree = "NO GORIORIO VAN 2";
+String productCodeFour = "P-1023-00283", nameProductFour = "NO GORIORIO COK 2";
+String productCodeFive = "P-1122-00260", nameProductFive = "NO GORIORIO VAN 4";
+String productCodeSix = "P-1222-00263", nameProductSix = "NO GORIORIO COK 4";
+String productCodeSeven = "Test Mode_218", nameProductSeven = "Test Mode_218";
 
 // == SD Card ==
 String line, logName, logData;

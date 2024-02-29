@@ -50,8 +50,8 @@ MAX6675 thermocouple(thermoSCK, thermoCS, thermoSO);
 float tempCalibrationValue;
 float tempAverage = 0, tempData = 0;
 int sendCounter = 0;
-int loopCount = 0;
-int loopForReset = 0;
+// int loopCount = 0;
+// int loopForReset = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
    Total kolom 20
@@ -95,7 +95,7 @@ const char* ssid_it = "STTB5";
 const char* password_it = "siantar123";
 
 // Set IP to Static
-IPAddress staticIP(192, 168, 15, 224);
+IPAddress staticIP(192, 168, 15, 217);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
@@ -232,7 +232,7 @@ void loop() {
   lcd.setCursor(3, 0);
   lcd.print("PENGUKURAN SUHU");
   tempCalibrationValue = random(125, 135) / 10.0;
-//  tempCalibrationValue = 75.5;
+  //  tempCalibrationValue = 75.5;
   int i = 0;
   while (i < 10) {
     tempReal = thermocouple.readCelsius() - tempCalibrationValue;
@@ -245,7 +245,7 @@ void loop() {
       Serial.println("Lebih");
     } else {
       tempValue = tempReal;
-      Serial.println("kurang");
+      Serial.println("Kurang");
     }
 
     lcd.print(tempValue);
@@ -258,9 +258,9 @@ void loop() {
 
     tempData += tempValue;
     i++;
-    delay(500);
+    delay(1500);
   }
-  
+
   tempAverage = tempData / 10;
   tempData = 0;
   // Cetak sinyal
@@ -272,8 +272,6 @@ void loop() {
   lcd.print("C");
   lcd.setCursor(8, 3);
   lcd.print(timeLCD);
-
-  loopCount++;
 
   if (wifiMulti.run() == WL_CONNECTED) {
 
@@ -291,26 +289,19 @@ void loop() {
 
   ip_Address = WiFi.localIP().toString();
   /* Pengiriman data ke DB dilakukan setiap 15 detik
-      Jika dirasa terlalu sering, ganti value second sesuai keperluan
-      Misal, if ((second == 0 || second == 30) && !sendStatus) --> Akan mengirim data setiap detik 0 dan 30
+      Jika dirasa terlalu sering, ganti value delay pembacaan suhu
     */
-  if (loopCount == 3) {
-    // Edit variabel postData sesuai php
-    loopCount = 0;
-    postData = "device_id=" + deviceID + "&device_name=" + deviceName + "&temperature=" + String(tempValue) + "&average_temperature=" + String(tempAverage) + "&ip_address=" + ip_Address + "&date=" + dateTime;
-    sendLogData();
-    sendCounter++;
-    
-    if (sendCounter == 10) {
-      lcd.clear();
-      loopForReset++;
-      sendCounter = 0;
 
-      if (loopForReset == 10) {
-        ESP.restart();
-      }
+  // Edit variabel postData sesuai php
+  postData = "device_id=" + deviceID + "&device_name=" + deviceName + "&temperature=" + String(tempValue) + "&average_temperature=" + String(tempAverage) + "&ip_address=" + ip_Address + "&date=" + dateTime;
+  sendLogData();
+  sendCounter++;
+
+  if (sendCounter % 10 == 0) {
+    lcd.clear();
+    if (sendCounter % 5000 == 0) {
+      ESP.restart();
     }
   }
-
   // debugSerial();
 }
