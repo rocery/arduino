@@ -103,7 +103,7 @@ IPAddress secondaryDNS(8, 8, 4, 4);  //optional
 String ip_Address;
 
 // == Data Send/Get ==
-String postData, api;
+String postData, postData2, api;
 bool sendStatus;
 
 // == Get NTP/RTC ==
@@ -116,6 +116,27 @@ bool ntpStatus;
 
 void sendLogData() {
   /* Mengirim data ke local server
+     Ganti isi variabel api sesuai dengan form php
+  */
+  api = "http://192.168.15.221/temperature_api/saveTemperature.php";
+  HTTPClient http;
+  http.begin(api);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  Serial.println(postData);
+  int httpResponseCode = http.POST(postData);
+  String response = http.getString();
+  if (httpResponseCode > 0) {
+    Serial.println(response);
+  } else {
+    Serial.println("Error on sending POST");
+    Serial.println(response);
+    Serial.println(httpResponseCode);
+  }
+  http.end();
+}
+
+void sendLogData2() {
+/* Mengirim data ke local server
      Ganti isi variabel api sesuai dengan form php
   */
   api = "http://192.168.15.221/temperature_api/saveTemperature.php";
@@ -243,7 +264,7 @@ void loop() {
     if (tempReal > 85.6) {
       tempValue = random(8450, 8550) / 100.0;
       Serial.println("Lebih");
-    } else {
+    } else if () {
       tempValue = tempReal;
       Serial.println("Kurang");
     }
