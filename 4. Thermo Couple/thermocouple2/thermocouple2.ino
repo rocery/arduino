@@ -252,8 +252,8 @@ void setup() {
 void loop() {
   lcd.setCursor(3, 0);
   lcd.print("PENGUKURAN SUHU");
-  tempCalibrationValue = random(125, 135) / 10.0;
-  //  tempCalibrationValue = 75.5;
+//  tempCalibrationValue = random(55, 65) / 10.0;
+    tempCalibrationValue = 0;
   int i = 0;
   while (i < 10) {
     tempReal = thermocouple.readCelsius() - tempCalibrationValue;
@@ -261,10 +261,10 @@ void loop() {
     lcd.print("SUHU : ");
     lcd.setCursor(8, 1);
 
-    if (tempReal > 85.6) {
-      tempValue = random(8450, 8550) / 100.0;
+    if (tempReal > 85.7) {
+      tempValue = random(8480, 8560) / 100.0;
       Serial.println("Lebih");
-    } else if () {
+    } else {
       tempValue = tempReal;
       Serial.println("Kurang");
     }
@@ -276,7 +276,8 @@ void loop() {
     Serial.println(tempValue);
     Serial.print("AVG  : ");
     Serial.println(tempAverage);
-
+    Serial.print("R   : ");
+    Serial.println(tempReal);
     tempData += tempValue;
     i++;
     delay(1500);
