@@ -319,7 +319,14 @@ void loop() {
   sendLogData();
   sendCounter++;
 
-  if (sendCounter % 10 == 0) {
+  if (minute % 15 == 0 && !sendStatus) {
+    sendLogData();
+    sendStatus = true;
+  } else if (minute % 15 == 1 && sendStatus) {
+    sendStatus = false;
+  }
+
+  if (sendCounter % 10 == 0) {  
     lcd.clear();
     if (sendCounter % 5000 == 0) {
       ESP.restart();
