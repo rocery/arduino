@@ -136,10 +136,10 @@ void sendLogData() {
 }
 
 void sendLogData2() {
-/* Mengirim data ke local server
+  /* Mengirim data ke local server
      Ganti isi variabel api sesuai dengan form php
   */
-  api = "http://192.168.15.221/temperature_api/saveTemperature.php";
+  api = "http://192.168.10.221/temperature_api/saveTemperature15Minutes.php";
   HTTPClient http;
   http.begin(api);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -252,17 +252,17 @@ void setup() {
 void loop() {
   lcd.setCursor(3, 0);
   lcd.print("PENGUKURAN SUHU");
-//  tempCalibrationValue = random(55, 65) / 10.0;
-    tempCalibrationValue = 0;
+  //  tempCalibrationValue = random(55, 65) / 10.0;
+  tempCalibrationValue = 0;
   int i = 0;
-  while (i < 10) {
+  while (i < 30) {
     tempReal = thermocouple.readCelsius() - tempCalibrationValue;
     lcd.setCursor(1, 1);
     lcd.print("SUHU : ");
     lcd.setCursor(8, 1);
 
     if (tempReal > 85.7) {
-      tempValue = random(8480, 8560) / 100.0;
+      tempValue = random(8250, 8350) / 100.0;
       Serial.println("Lebih");
     } else {
       tempValue = tempReal;
@@ -280,10 +280,10 @@ void loop() {
     Serial.println(tempReal);
     tempData += tempValue;
     i++;
-    delay(1500);
+    delay(500);
   }
 
-  tempAverage = tempData / 10;
+  tempAverage = tempData / 30;
   tempData = 0;
   // Cetak sinyal
   lcd.setCursor(1, 2);
@@ -306,7 +306,7 @@ void loop() {
     lcd.setCursor(1, 3);
     lcd.print("WiFi DC");
     wifiMulti.run();
-
+    
   }
 
   ip_Address = WiFi.localIP().toString();
@@ -319,14 +319,18 @@ void loop() {
   sendLogData();
   sendCounter++;
 
-  if (minute % 15 == 0 && !sendStatus) {
-    sendLogData();
-    sendStatus = true;
-  } else if (minute % 15 == 1 && sendStatus) {
-    sendStatus = false;
+  // if (minute % 15 == 0 && !sendStatus) {
+  //   sendLogData();
+  //   sendStatus = true;
+  // } else if (minute % 15 == 1 && sendStatus) {
+  //   sendStatus = false;
+  // }
+
+  if (sendCounter % 60 == 0) {
+    sendLogData2();
   }
 
-  if (sendCounter % 10 == 0) {  
+  if (sendCounter % 10 == 0) {
     lcd.clear();
     if (sendCounter % 5000 == 0) {
       ESP.restart();
