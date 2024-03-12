@@ -1,6 +1,6 @@
 /*
-  V 0.0.1 Beta
-  Update Terakhir : 18-12-2023
+  V 0.9.1
+  Update Terakhir : 07-03-2024
   Last Change Log {
     1. 
   }
@@ -27,7 +27,7 @@
 // Digunakan pin 12 dan 13 (6, 7) sebagai pin UART (RX, TX)
 // Pin TX dari Pzem dihubungkan ke pin RX (6) ESP8266
 // Pin RX dari Pzem dihubungkan ke pin TX (7) ESP8266
-#define PZEM_RX_PIN 12
+#define PZEM_RX_PIN 12  
 #define PZEM_TX_PIN 13
 
 // Pada ESP8266 pin dibawah tidak bisa digunakan, gunakan pin SLC-SDA

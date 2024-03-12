@@ -64,8 +64,8 @@ const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
 const char* ssid_d = "Djoksen";
 const char* password_d = "Welive99";
-const char* ssid_it = "STTB5";
-const char* password_it = "siantar123";
+const char* ssid_it = "Tester_ITB";
+const char* password_it = "Si4nt4r321";
 
 // Set IP to Static
 IPAddress staticIP(192, 168, 15, 213);
@@ -124,10 +124,10 @@ void counterHit(void* parameter) {
   for (;;) {
     // Deklarasi mode pin sensor
     pinMode(ldrPin, INPUT_PULLUP);
-    static int lastLDRState = LOW;
+    static int lastLDRState = HIGH;
     // Membaca output Sensor
     int ldrState = digitalRead(ldrPin);
-    if (ldrState == HIGH && lastLDRState == LOW) {
+    if (ldrState == LOW && lastLDRState == HIGH) {
       counter++;
     }
     lastLDRState = ldrState;
@@ -462,7 +462,7 @@ void setup() {
 
   if (wifiMulti.run() != WL_CONNECTED) {
     lcd.setCursor(0, 1);
-    lcd.print("WiFi Connected");
+    lcd.print("WiFi Disconnected");
 
     int tryNTP = 0;
     while (ntpStatus == false && tryNTP <= 5) {
