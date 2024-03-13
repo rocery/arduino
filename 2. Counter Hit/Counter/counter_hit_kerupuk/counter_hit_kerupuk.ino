@@ -49,7 +49,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define downButton 34
 #define selectButton 32
 
-#define ldrPin 2
+#define sensorPin 13
 
 // == WiFi Config ==
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
@@ -123,10 +123,10 @@ bool statusSD, readStatusSD, insertLastLineSDCardStatus;
 void counterHit(void* parameter) {
   for (;;) {
     // Deklarasi mode pin sensor
-    pinMode(ldrPin, INPUT_PULLUP);
+    pinMode(sensorPin, INPUT_PULLUP);
     static int lastLDRState = HIGH;
     // Membaca output Sensor
-    int ldrState = digitalRead(ldrPin);
+    int ldrState = digitalRead(sensorPin);
     if (ldrState == LOW && lastLDRState == HIGH) {
       counter++;
     }

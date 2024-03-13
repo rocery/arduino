@@ -27,33 +27,28 @@
 // Digunakan pin 12 dan 13 (6, 7) sebagai pin UART (RX, TX)
 // Pin TX dari Pzem dihubungkan ke pin RX (6) ESP8266
 // Pin RX dari Pzem dihubungkan ke pin TX (7) ESP8266
-#define PZEM_RX_PIN 12  
+#define PZEM_RX_PIN 12
 #define PZEM_TX_PIN 13
-
-// Pada ESP8266 pin dibawah tidak bisa digunakan, gunakan pin SLC-SDA
-// #define ledPzem12 2
-// #define ledPzem13 0
+#define ledPin 2
 
 // == Initialization PZEM ==
-float pzem12Power, pzem12Energy, pzem12Voltage, pzem12Current;
-float pzem13Power, pzem13Energy, pzem13Voltage, pzem13Current;
+float pzem14Power, pzem14Energy, pzem14Voltage, pzem14Current;
 
 // Inisialisasi SoftwareSerial untuk komunikasi UART
 SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
 // 0x12/0x13 adalah alamat dari setiap sensor PZEM yang digunakan
 // Untuk merubah alamat ini jalankan program "ChangeAdressPzem004T"
-PZEM004Tv30 pzem12(pzemSWSerial, 0x12);
-PZEM004Tv30 pzem13(pzemSWSerial, 0x13);
+PZEM004Tv30 pzem14(pzemSWSerial, 0x14);
 
 const char* ssid_1 = "STTB5";
 const char* password_1 = "siantar123";
-const char* ssid_2 = "STTB1";
+const char* ssid_2 = "Tester_ITB";
 const char* password_2 = "Si4nt4r321";
 const char* ssid_3 = "MT3";
 const char* password_3 = "siantar321";
 
 // Set your Static IP address
-IPAddress staticIP(192, 168, 15, 215);
+IPAddress staticIP(192, 168, 15, 211);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
@@ -62,8 +57,7 @@ IPAddress secondaryDNS(8, 8, 4, 4);  //optional
 String postData;
 String ip_address;
 
-String pzem12Chanel = "Conv. Stuffle Mie";
-String pzem13Chanel = "Conv. Stuffle Biskuit";
+String pzem14Chanel = "Molding Line 1 - Biskuit";
 
 void sendData(float Voltage, String deviceName, String IP) {
   HTTPClient http;     // http object of clas HTTPClient
@@ -71,7 +65,7 @@ void sendData(float Voltage, String deviceName, String IP) {
 
   postData = "voltage=" + String(Voltage) + "&device_name=" + deviceName + "&ip_address=" + String(IP);
 
-  http.begin(wclient, "http://192.168.15.221/arduino_api/saveStatus.php");  // Connect to host where MySQL databse is hosted
+  http.begin(wclient, "http://192.168.15.221/molding_api/saveStatus.php");  // Connect to host where MySQL databse is hosted
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");      //Specify content-type header
 
   int httpCode = http.POST(postData);  // Send POST request to php file and store server response code in variable named httpCode
@@ -97,7 +91,7 @@ void sendLogData(float Power, float Energy, float Voltase, float Current, String
 
   postData = "power=" + String(Power) + "&energy=" + String(Energy) + "&voltage=" + String(Voltase) + "&current=" + String(Current) + "&ip_address=" + String(IP);
 
-  http.begin(wclient, "http://192.168.15.221/arduino_api/createFile.php");  // Connect to host where MySQL databse is hosted
+  http.begin(wclient, "http://192.168.15.221/molding_api/createFile.php");  // Connect to host where MySQL databse is hosted
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");      //Specify content-type header
 
   int httpCode = http.POST(postData);  // Send POST request to php file and store server response code in variable named httpCode
@@ -216,6 +210,7 @@ void connectToWiFi() {
 void setup() {
   Serial.begin(115200);
   pzemSWSerial.begin(9600);
+  pinMode(ledPin, OUTPUT);
 
   //  if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
   //    Serial.println("STA Failed to configure");
@@ -235,17 +230,17 @@ void setup() {
 }
 
 void loop() {
-  pzem12Power = pzem12.power();
-  pzem12Energy = pzem12.energy();
-  pzem12Voltage = pzem12.voltage();
-  pzem12Current = pzem12.current();
+  pzem14Power = pzem14.power();
+  pzem14Energy = pzem14.energy();
+  pzem14Voltage = pzem14.voltage();
+  pzem14Current = pzem14.current();
   delay(100);
 
-  pzem13Power = pzem13.power();
-  pzem13Energy = pzem13.energy();
-  pzem13Voltage = pzem13.voltage();
-  pzem13Current = pzem13.current();
-  delay(100);
+  if (pzem14Voltage > 0) {
+    digitalWrite(ledPin, HIGH);
+  } else {
+    digitalWrite(ledPin, LOW);
+  }
 
   // if (isnan(pzem12Power)) {
   //   digitalWrite(ledPzem12, LOW);
@@ -261,19 +256,12 @@ void loop() {
 
   ip_address = WiFi.localIP().toString();
 
-  readElectricalCurrent(pzem12Power, pzem12Energy, pzem12Voltage, pzem12Current);
-  delay(100);
-  readElectricalCurrent(pzem13Power, pzem13Energy, pzem13Voltage, pzem13Current);
+  readElectricalCurrent(pzem14Power, pzem14Energy, pzem14Voltage, pzem14Current);
   delay(100);
   Serial.println(ip_address);
 
-  // Data Pzem 12
-  sendLogData(pzem12Power, pzem12Energy, pzem12Voltage, pzem12Current, ip_address);
-  sendData(pzem12Voltage, pzem12Chanel, ip_address);
-  delay(1000);
-
-  // Data Pzem 13
-  sendLogData(pzem13Power, pzem13Energy, pzem13Voltage, pzem13Current, ip_address);
-  sendData(pzem13Voltage, pzem13Chanel, ip_address);
-  delay(14000);
+  // Data Pzem 14
+  sendLogData(pzem14Power, pzem14Energy, pzem14Voltage, pzem14Current, ip_address);
+  sendData(pzem14Voltage, pzem14Chanel, ip_address);
+  delay(15000);
 }
