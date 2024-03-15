@@ -1,5 +1,5 @@
 /*
-  V 0.0.1 Beta
+  V 1.0.0
   Update Terakhir : 18-12-2023
   Last Change Log {
     1. 
