@@ -1,0 +1,9 @@
+
+1. 192.168.15.211 - ESP8266 - IoT-211-Downtime_Molding_1
+2. 192.168.15.212
+3. 192.168.15.213 - ESP32 - IoT-213-Counter_Kerupuk
+4. 192.168.15.214
+5. 192.168.15.215 - ESP8266	- IoT-215-Stuffle_Mie_Biskuit
+6. 192.168.15.216 - ESP8266 - IoT-216-Kerupuk-Gudang_Jadi
+7. 192.168.15.217 - ESP32 - IoT-217-Suhu_Oven_30
+8. 192.168.15.218 - ESP32 - IoT-218-Counter_Biskuit
