@@ -36,6 +36,8 @@
 #include <Wire.h>
 
 const String deviceName = "Suhu Oven 30 - Kerupuk";
+const String api_sendLogData = "http://192.168.15.221/temperature_api/saveTemperature.php";
+const String api_sendLogData2 = "http://192.168.15.221/temperature_api/saveTemperature15Minutes.php";;
 const String deviceID = "1";
 
 /* Set pin MAX6675 pada pin SPI.
@@ -118,9 +120,8 @@ void sendLogData() {
   /* Mengirim data ke local server
      Ganti isi variabel api sesuai dengan form php
   */
-  api = "http://192.168.15.221/temperature_api/saveTemperature.php";
   HTTPClient http;
-  http.begin(api);
+  http.begin(api_sendLogData);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   Serial.println(postData);
   int httpResponseCode = http.POST(postData);
@@ -139,9 +140,8 @@ void sendLogData2() {
   /* Mengirim data ke local server
      Ganti isi variabel api sesuai dengan form php
   */
-  api = "http://192.168.10.221/temperature_api/saveTemperature15Minutes.php";
   HTTPClient http;
-  http.begin(api);
+  http.begin(api_sendLogData2);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   Serial.println(postData);
   int httpResponseCode = http.POST(postData);
