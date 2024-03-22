@@ -10,7 +10,7 @@ info : sastranuralamsyah@gmail.com
 7. 192.168.15.217 - ESP32 - IoT-217-Suhu_Oven_30
 8. 192.168.15.218 - ESP32 - IoT-218-Counter_Biskuit
 
-##Used IP:
+## Used IP:
 - 223	= Server (Tidak Boleh diganti)
 - 10	= Admin (C-010-IT)
 - 243	= Test Address
@@ -22,7 +22,7 @@ info : sastranuralamsyah@gmail.com
 - 217	= IoT-217-BM0466
 - 218	= IoT-218-BM0466
 
-##Aturan Penamaan ID/Host Name/Device Name pada Alat IoT
+## Aturan Penamaan ID/Host Name/Device Name pada Alat IoT
 - IoT-
 - 3 digit akhir Ip Address
 - Kode Lokasi
@@ -36,7 +36,7 @@ info : sastranuralamsyah@gmail.com
 - Jenis Micon
   - 32 ESP32
   - 66 ESP8266
-Contoh:
+### Contoh:
 - IoT-211-BM0466 = Produksi Biskuit/Mie - Downtime Alat - 8266 - Molding Line 1 Biskuit
 - IoT-213-KR0132 = Produksi Kerupuk - Counter - ESP32 - Tic-Tic CBP 2000
 - IoT-215-BM0366 = Produksi Biskuit/Mie - Monitoring Operasional Conveyor - 8266 - Stuffle Mie dan Biskuit
