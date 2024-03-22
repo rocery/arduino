@@ -1,9 +1,9 @@
-// --------------------------------------
-// i2c_scanner
-//
-// Modified from https://playground.arduino.cc/Main/I2cScanner/
-// --------------------------------------
-
+/*
+  Program ini bertujuan mencari address I2C pada sensor atau komponen yang ada.
+  Sambungkan VCC GND SCL SDA secara benar.
+  address ini nantinya bisa digunakan untuk melakukan pembacaan sensor/output.
+  Program ini bisa digunakan pada seluruh board yang didukung oleh Arduino IDE.
+*/
 #include <Wire.h>
 
 // Set I2C bus to use: Wire, Wire1, etc.
@@ -14,7 +14,7 @@ void setup() {
 
   Serial.begin(115200);
   while (!Serial)
-     delay(10);
+    delay(10);
   Serial.println("\nI2C Scanner");
 }
 
@@ -26,36 +26,32 @@ void loop() {
   Serial.println("Scanning...");
 
   nDevices = 0;
-  for(address = 1; address < 127; address++ ) 
-  {
+  for (address = 1; address < 127; address++) {
     // The i2c_scanner uses the return value of
     // the Write.endTransmisstion to see if
     // a device did acknowledge to the address.
     WIRE.beginTransmission(address);
     error = WIRE.endTransmission();
 
-    if (error == 0)
-    {
+    if (error == 0) {
       Serial.print("I2C device found at address 0x");
-      if (address<16) 
+      if (address < 16)
         Serial.print("0");
-      Serial.print(address,HEX);
+      Serial.print(address, HEX);
       Serial.println("  !");
 
       nDevices++;
-    }
-    else if (error==4) 
-    {
+    } else if (error == 4) {
       Serial.print("Unknown error at address 0x");
-      if (address<16) 
+      if (address < 16)
         Serial.print("0");
-      Serial.println(address,HEX);
-    }    
+      Serial.println(address, HEX);
+    }
   }
   if (nDevices == 0)
     Serial.println("No I2C devices found\n");
   else
     Serial.println("done\n");
 
-  delay(5000);           // wait 5 seconds for next scan
+  delay(5000);  // wait 5 seconds for next scan
 }
