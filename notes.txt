@@ -7,3 +7,14 @@
 6. 192.168.15.216 - ESP8266 - IoT-216-Kerupuk-Gudang_Jadi
 7. 192.168.15.217 - ESP32 - IoT-217-Suhu_Oven_30
 8. 192.168.15.218 - ESP32 - IoT-218-Counter_Biskuit
+
+
+
+
+IP Segment 7
+
+223 = Server (Tidak Boleh diganti)
+10  = Admin (C-010-IT)
+243 = Test Address
+
+
