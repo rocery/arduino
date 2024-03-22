@@ -11,6 +11,7 @@ info : sastranuralamsyah@gmail.com
 8. 192.168.15.218 - ESP32 - IoT-218-Counter_Biskuit
 
 ## Used IP:
+```
 - 223	= Server (Tidak Boleh diganti)
 - 10	= Admin (C-010-IT)
 - 243	= Test Address
@@ -21,8 +22,10 @@ info : sastranuralamsyah@gmail.com
 - 216	= IoT-216-BM0466
 - 217	= IoT-217-BM0466
 - 218	= IoT-218-BM0466
+```
 
 ## Aturan Penamaan ID/Host Name/Device Name pada Alat IoT
+```
 - IoT-
 - 3 digit akhir Ip Address
 - Kode Lokasi
@@ -43,4 +46,4 @@ info : sastranuralamsyah@gmail.com
 - IoT-216-KR0366 = Produksi Kerupuk - Monitoring Operasional Conveyor - 8266 - Stuffle Kerupuk-Gudang Jadi
 - IoT-217-KR0232 = Produksi Kerupuk - Suhu - ESP32 - Oven 30
 - IoT-218-BM0132 = Produksi Biskuit/Mie - Counter - ESP32 - Goriorio Isi 2
-
+```
