@@ -1,6 +1,6 @@
 # Projek IoT STTB
 info : sastranuralamsyah@gmail.com
-
+```
 1. 192.168.15.211 - ESP8266 - IoT-211-Downtime_Molding_1
 2. 192.168.15.212
 3. 192.168.15.213 - ESP32 - IoT-213-Counter_Kerupuk
@@ -9,13 +9,14 @@ info : sastranuralamsyah@gmail.com
 6. 192.168.15.216 - ESP8266 - IoT-216-Kerupuk-Gudang_Jadi
 7. 192.168.15.217 - ESP32 - IoT-217-Suhu_Oven_30
 8. 192.168.15.218 - ESP32 - IoT-218-Counter_Biskuit
+```
 
 ## Used IP:
 ```
 - 223	= Server (Tidak Boleh diganti)
 - 10	= Admin (C-010-IT)
 - 243	= Test Address
-- 1		= Reserved IP
+- 1	= Reserved IP
 - 211	= IoT-211-BM0466
 - 213	= IoT-213-BM0466
 - 215	= IoT-215-BM0466
