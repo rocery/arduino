@@ -18,11 +18,11 @@ info : sastranuralamsyah@gmail.com
 - 243	= Test Address
 - 1	= Reserved IP
 - 211	= IoT-211-BM0466
-- 213	= IoT-213-BM0466
-- 215	= IoT-215-BM0466
-- 216	= IoT-216-BM0466
-- 217	= IoT-217-BM0466
-- 218	= IoT-218-BM0466
+- 213	= IoT-213-KR0132
+- 215	= IoT-215-BM0366
+- 216	= IoT-216-KR0366
+- 217	= IoT-217-KR0232
+- 218	= IoT-218-BM0132
 ```
 
 ## Aturan Penamaan ID/Host Name/Device Name pada Alat IoT
