@@ -1,6 +1,7 @@
 /*
+  =========IoT-216-KR0366=========
   V 1.0.0
-  Update Terakhir : 15-03-2024
+  Update Terakhir : 25-03-2024
   Catatan {
     1. Pzem mempunyai address default, jadi hanya bisa menggunakan 1 sensor.
   }
@@ -26,7 +27,7 @@ PZEM004Tv30 pzem(12, 13);  // 12=D6 (Rx), 13=D7 (Tx)
 
 // Define variable
 float Power, Energy, Voltase, Current;
-const char* ssid = "STTB1";
+const char* ssid = "Tester_ITB";
 const char* password = "Si4nt4r321";
 
 const char* ssid2 = "STTB4";
@@ -36,7 +37,7 @@ const char* ssid3 = "MT1";
 const char* password3 = "siantar321";
 
 // Set your Static IP address
-IPAddress local_IP(192, 168, 15, 216);
+IPAddress local_IP(192, 168, 7, 216);
 // Set your Gateway IP address
 IPAddress gateway(192, 168, 15, 250);
 
@@ -114,7 +115,7 @@ void sendData(float Voltage, String deviceName, String IP) {
 
   postData = "voltage=" + String(Voltage) + "&device_name=" + deviceName + "&ip_address=" + String(IP);
 
-  http.begin(wclient, "http://192.168.15.221/arduino_api/saveStatus.php");  // Connect to host where MySQL databse is hosted
+  http.begin(wclient, "http://192.168.7.223/arduino_api/saveStatus.php");  // Connect to host where MySQL databse is hosted
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");      //Specify content-type header
 
   int httpCode = http.POST(postData);  // Send POST request to php file and store server response code in variable named httpCode
@@ -140,7 +141,7 @@ void sendLogData(float Power, float Energy, float Voltase, float Current, String
 
   postData = "power=" + String(Power) + "&energy=" + String(Energy) + "&voltage=" + String(Voltase) + "&current=" + String(Current) + "&ip_address=" + String(IP);
 
-  http.begin(wclient, "http://192.168.15.221/arduino_api/createFile.php");  // Connect to host where MySQL databse is hosted
+  http.begin(wclient, "http://192.168.7.223/arduino_api/createFile.php");  // Connect to host where MySQL databse is hosted
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");      //Specify content-type header
 
   int httpCode = http.POST(postData);  // Send POST request to php file and store server response code in variable named httpCode

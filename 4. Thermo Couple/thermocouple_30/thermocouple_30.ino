@@ -36,8 +36,8 @@
 #include <Wire.h>
 
 const String deviceName = "Suhu Oven 30 - Kerupuk";
-const String api_sendLogData = "http://192.168.15.221/temperature_api/saveTemperature.php";
-const String api_sendLogData2 = "http://192.168.15.221/temperature_api/saveTemperature15Minutes.php";;
+const String api_sendLogData = "http://192.168.7.223/temperature_api/saveTemperature.php";
+const String api_sendLogData2 = "http://192.168.7.223/temperature_api/saveTemperature15Minutes.php";;
 const String deviceID = "1";
 
 /* Set pin MAX6675 pada pin SPI.
@@ -93,13 +93,13 @@ const char* ssid_c = "MT1";
 const char* password_c = "siantar321";
 const char* ssid_d = "Djoksen";
 const char* password_d = "Welive99";
-const char* ssid_it = "STTB5";
-const char* password_it = "siantar123";
+const char* ssid_it = "Tester_ITB";
+const char* password_it = "Si4nt4r321";
 
 // Set IP to Static
-IPAddress staticIP(192, 168, 15, 217);
+IPAddress staticIP(192, 168, 7, 217);
 IPAddress gateway(192, 168, 15, 250);
-IPAddress subnet(255, 255, 255, 0);
+IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
 IPAddress secondaryDNS(8, 8, 4, 4);  //optional
 String ip_Address;
