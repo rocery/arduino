@@ -1,4 +1,5 @@
 /*
+  =======IoT-217-KR0232=======
   V. 1.0.1
   Update Terakhir : 16-02-2024
 
@@ -34,11 +35,12 @@
 #include <HTTPClient.h>
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
+// #include <ESPping.h>
 
-const String deviceName = "Suhu Oven 30 - Kerupuk";
+const String deviceName = "Test Server 223 Segment 7";
 const String api_sendLogData = "http://192.168.7.223/temperature_api/saveTemperature.php";
-const String api_sendLogData2 = "http://192.168.7.223/temperature_api/saveTemperature15Minutes.php";;
-const String deviceID = "1";
+const String api_sendLogData2 = "http://192.168.7.223/temperature_api/saveTemperature15Minutes.php";
+const String deviceID = "30";
 
 /* Set pin MAX6675 pada pin SPI.
   Jika thermocouple yang digunakan lebih dari 1,
@@ -109,7 +111,7 @@ String postData, postData2, api;
 bool sendStatus;
 
 // == Get NTP/RTC ==
-const char* ntpServer = "pool.ntp.org";
+const char* ntpServer = "192.168.7.223";
 const long gmtOffsetSec = 7 * 3600;  // Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
 const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat, timeLCD;
@@ -238,6 +240,8 @@ void setup() {
   // NTP
   configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
   if (wifiMulti.run() == WL_CONNECTED) {
+    lcd.setCursor(0, 1);
+    lcd.print("WiFi Connected     ");
     int tryNTP = 0;
     while (ntpStatus == false && tryNTP < 2) {
       getLocalTime();
@@ -299,6 +303,7 @@ void loop() {
 
     lcd.setCursor(1, 3);
     lcd.print(WiFi.SSID());
+    Serial.println(WiFi.SSID());
     getLocalTime();
 
   } else if (wifiMulti.run() != WL_CONNECTED) {
@@ -306,8 +311,14 @@ void loop() {
     lcd.setCursor(1, 3);
     lcd.print("WiFi DC");
     wifiMulti.run();
-    
   }
+
+  // bool ret = Ping.ping("192.168.7.223");
+  // if (!ret) {
+  //   Serial.println("!Ping");
+  // } else {
+  //   Serial.println("Ping");
+  // }
 
   ip_Address = WiFi.localIP().toString();
   /* Pengiriman data ke DB dilakukan setiap 15 detik
