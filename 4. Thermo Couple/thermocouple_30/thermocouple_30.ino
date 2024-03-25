@@ -266,7 +266,7 @@ void loop() {
     lcd.setCursor(8, 1);
 
     if (tempReal > 85.7) {
-      tempValue = random(8250, 8350) / 100.0;
+      tempValue = random(8250, 8450) / 100.0;
       Serial.println("Lebih");
     } else {
       tempValue = tempReal;

@@ -47,6 +47,7 @@ IPAddress secondaryDNS(8, 8, 4, 4);  //optional
 
 String postData, ip_address;
 String deviceName = "Kerupuk - Gudang Jadi";
+int sendDataDB = 0;
 
 void setup() {
   Serial.begin(9600);  // 9600
@@ -216,8 +217,15 @@ void loop() {
   ip_address = WiFi.localIP().toString();
 
   sendLogData(Power, Energy, Voltase, Current, ip_address);
+  delay(500);
 
   sendData(Voltase, deviceName, ip_address);
-
+  delay(500);
+  sendDataDB++;
+  
   delay(15000);
+  
+  if (sendDataDB >= 480) {
+    ESP.reset();
+  }
 }
