@@ -53,14 +53,15 @@ const char* ssid_3 = "MT3";
 const char* password_3 = "siantar321";
 
 // Set your Static IP address
-IPAddress staticIP(192, 168, 15, 215);
+IPAddress staticIP(192, 168, 7, 215);
 IPAddress gateway(192, 168, 15, 250);
-IPAddress subnet(255, 255, 255, 0);
+IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
 IPAddress secondaryDNS(8, 8, 4, 4);  //optional
 
 String postData;
 String ip_address;
+int sendDataDB = 0;
 
 String pzem12Chanel = "Conv. Stuffle Mie";
 String pzem13Chanel = "Conv. Stuffle Biskuit";
@@ -71,7 +72,7 @@ void sendData(float Voltage, String deviceName, String IP) {
 
   postData = "voltage=" + String(Voltage) + "&device_name=" + deviceName + "&ip_address=" + String(IP);
 
-  http.begin(wclient, "http://192.168.15.221/arduino_api/saveStatus.php");  // Connect to host where MySQL databse is hosted
+  http.begin(wclient, "http://192.168.7.223/arduino_api/saveStatus.php");  // Connect to host where MySQL databse is hosted
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");      //Specify content-type header
 
   int httpCode = http.POST(postData);  // Send POST request to php file and store server response code in variable named httpCode
@@ -97,7 +98,7 @@ void sendLogData(float Power, float Energy, float Voltase, float Current, String
 
   postData = "power=" + String(Power) + "&energy=" + String(Energy) + "&voltage=" + String(Voltase) + "&current=" + String(Current) + "&ip_address=" + String(IP);
 
-  http.begin(wclient, "http://192.168.15.221/arduino_api/createFile.php");  // Connect to host where MySQL databse is hosted
+  http.begin(wclient, "http://192.168.7.223/arduino_api/createFile.php");  // Connect to host where MySQL databse is hosted
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");      //Specify content-type header
 
   int httpCode = http.POST(postData);  // Send POST request to php file and store server response code in variable named httpCode
@@ -275,5 +276,13 @@ void loop() {
   // Data Pzem 13
   sendLogData(pzem13Power, pzem13Energy, pzem13Voltage, pzem13Current, ip_address);
   sendData(pzem13Voltage, pzem13Chanel, ip_address);
+  
+  sendDataDB++;
+  Serial.println(ip_address);
+  Serial.println(sendDataDB++);
+  if (sendDataDB >= 1000) {
+    ESP.reset();
+  }
+
   delay(14000);
 }

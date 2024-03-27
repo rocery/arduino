@@ -59,7 +59,7 @@ ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
 WiFiMulti wifiMulti;
 const char* ssid_d = "STTB1";
 const char* password_d = "Si4nt4r321";
-const char* ssid_b = "MT1";
+const char* ssid_b = "MT4";
 const char* password_b = "siantar321";
 const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
@@ -518,7 +518,7 @@ void setup() {
   configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
   rtc.begin();
 
-  if (wifiMulti.run() != WL_CONNECTED) {
+  if (wifiMulti.run() == WL_CONNECTED) {
     lcd.setCursor(0, 1);
     lcd.print("WiFi Connected");
 
@@ -536,6 +536,7 @@ void setup() {
     lcd.print("WiFi Disconnected");
     lcd.setCursor(0, 2);
     lcd.print("Date/Time Error");
+    delay(5000);
   }
   now = rtc.now();
 

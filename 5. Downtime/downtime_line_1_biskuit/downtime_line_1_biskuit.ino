@@ -40,22 +40,23 @@ SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
 // Untuk merubah alamat ini jalankan program "ChangeAdressPzem004T"
 PZEM004Tv30 pzem14(pzemSWSerial, 0x14);
 
-const char* ssid_1 = "STTB5";
-const char* password_1 = "siantar123";
+const char* ssid_1 = "STTB1";
+const char* password_1 = "Si4nt4r321";
 const char* ssid_2 = "Tester_ITB";
 const char* password_2 = "Si4nt4r321";
 const char* ssid_3 = "MT3";
 const char* password_3 = "siantar321";
 
 // Set your Static IP address
-IPAddress staticIP(192, 168, 15, 211);
+IPAddress staticIP(192, 168, 7, 211);
 IPAddress gateway(192, 168, 15, 250);
-IPAddress subnet(255, 255, 255, 0);
+IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
 IPAddress secondaryDNS(8, 8, 4, 4);  //optional
 
 String postData;
 String ip_address;
+int sendDataDB = 0;
 
 String pzem14Chanel = "Molding Line 1 - Biskuit";
 
@@ -65,7 +66,7 @@ void sendData(float Voltage, String deviceName, String IP) {
 
   postData = "voltage=" + String(Voltage) + "&device_name=" + deviceName + "&ip_address=" + String(IP);
 
-  http.begin(wclient, "http://192.168.15.221/molding_api/saveStatus.php");  // Connect to host where MySQL databse is hosted
+  http.begin(wclient, "http://192.168.7.223/molding_api/saveStatus.php");  // Connect to host where MySQL databse is hosted
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");      //Specify content-type header
 
   int httpCode = http.POST(postData);  // Send POST request to php file and store server response code in variable named httpCode
@@ -91,7 +92,7 @@ void sendLogData(float Power, float Energy, float Voltase, float Current, String
 
   postData = "power=" + String(Power) + "&energy=" + String(Energy) + "&voltage=" + String(Voltase) + "&current=" + String(Current) + "&ip_address=" + String(IP);
 
-  http.begin(wclient, "http://192.168.15.221/molding_api/createFile.php");  // Connect to host where MySQL databse is hosted
+  http.begin(wclient, "http://192.168.7.223/molding_api/createFile.php");  // Connect to host where MySQL databse is hosted
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");      //Specify content-type header
 
   int httpCode = http.POST(postData);  // Send POST request to php file and store server response code in variable named httpCode
@@ -263,5 +264,10 @@ void loop() {
   // Data Pzem 14
   sendLogData(pzem14Power, pzem14Energy, pzem14Voltage, pzem14Current, ip_address);
   sendData(pzem14Voltage, pzem14Chanel, ip_address);
+  sendDataDB++;
+
   delay(15000);
+  if (sendDataDB >= 480) {
+    ESP.reset();
+  }
 }
