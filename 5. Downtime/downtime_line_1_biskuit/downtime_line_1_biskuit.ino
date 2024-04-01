@@ -25,8 +25,8 @@
 #include <SoftwareSerial.h>
 
 // Digunakan pin 12 dan 13 (6, 7) sebagai pin UART (RX, TX)
-// Pin TX dari Pzem dihubungkan ke pin RX (6) ESP8266
-// Pin RX dari Pzem dihubungkan ke pin TX (7) ESP8266
+// Pin TX dari Pzem dihubungkan ke pin (6) ESP8266
+// Pin RX dari Pzem dihubungkan ke pin (7) ESP8266
 #define PZEM_RX_PIN 12
 #define PZEM_TX_PIN 13
 #define ledPin 2

@@ -437,12 +437,13 @@ void setup() {
     Serial.println("Card Mount Failed");
     lcd.setCursor(0, 0);
     lcd.print("Card Mount Failed");
-    return;
   } else if (SD.begin()) {
     Serial.println("Card Mounted");
     lcd.setCursor(0, 0);
     lcd.print("SD Card Mounted");
   }
+
+  Serial.println("Try Connect to WiFi");
 
   wifiMulti.addAP(ssid_a, password_a);
   wifiMulti.addAP(ssid_b, password_b);
@@ -452,6 +453,8 @@ void setup() {
 
   if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
     Serial.println("STA Failed to configure");
+  } else {
+    Serial.println("STA OKE");
   }
 
   wifiMulti.run();
@@ -460,9 +463,9 @@ void setup() {
   configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
   rtc.begin();
 
-  if (wifiMulti.run() != WL_CONNECTED) {
+  if (wifiMulti.run() == WL_CONNECTED) {
     lcd.setCursor(0, 1);
-    lcd.print("WiFi Disconnected");
+    lcd.print("WiFi Connected");
 
     int tryNTP = 0;
     while (ntpStatus == false && tryNTP <= 5) {
@@ -495,6 +498,8 @@ void setup() {
   }
 
   lcd.clear();   // Clear LCD sebelum memilih menu
+  Serial.println("Select Menu");
+  Serial.println(WiFi.localIP());
   selectMenu();  // Tampilkan pilihan product yang bisa dipilih
   logName = "/logCounter_" + productSelected + ".txt";
 

@@ -11,8 +11,9 @@
 
 #include <PZEM004Tv30.h>
 #include <SoftwareSerial.h>
-// #define PZEM_RX_PIN 13 // To TX Pzem
-// #define PZEM_TX_PIN 12 // To RX Pzem
+// Digunakan pin 12 dan 13 (6, 7) sebagai pin UART (RX, TX)
+// Pin TX dari Pzem dihubungkan ke pin (6) ESP8266
+// Pin RX dari Pzem dihubungkan ke pin (7) ESP8266
 
 
 PZEM004Tv30 pzem(12, 13);
@@ -31,7 +32,7 @@ void setup() {
 
 void loop() {
   pzem.setAddress(SET_ADDRESS);
-  Serial.println("Custom address:    0x");
+  Serial.print("Custom address: 0x");
   Serial.println(pzem.readAddress(), HEX);
   delay(1000);
   float Energy = pzem.voltage();
