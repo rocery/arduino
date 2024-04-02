@@ -59,7 +59,7 @@ bool ntpStatus;
 bool sendStatus, getStatus;
 const char* counterFromDB;
 int counterValueDB;
-String postData, api;
+String postData, api = "http://192.168.7.223/barometer_api/save_tekanan.php";
 
 void getLocalTime() {
   /* Fungsi bertujuan menerima update waktu
@@ -88,8 +88,26 @@ void getLocalTime() {
   }
 }
 
+void sendLogData() {
+  /* Mengirim data ke local server
+  Ganti isi variabel api sesuai dengan form php
+  */
+  HTTPClient http;
+  http.begin(api);
+  http.addHeader("Content-Tyoe", "application/x-www-form-urlencoded");
+  int httpResponseCode = http.POST(postData);
+
+  if (httpResponseCode > 0) {
+    String response = http.getString();
+    Serial.println(response);
+  } else {
+    Serial.print("ERROR ON SENFING POST");
+  }
+  http.end();
+}
+
 void setup() {
-  // put your setup code here, to run once:
+  
 }
 
 void loop() {
