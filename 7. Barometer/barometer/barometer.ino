@@ -1,5 +1,5 @@
 /*
-  V. 0.0.1
+  V. 0.0.1 Alfa
   Update Terakhir : 02-04-2024
 
   Komponen:
@@ -19,7 +19,7 @@
 #include <TM1637Display.h>
 
 String ESPName = "Barometer | Teknik-Kerupuk";
-String deviceID = "";
+String deviceID = "IoT-251-TK0532";
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
 Total kolom 16
@@ -107,7 +107,56 @@ void sendLogData() {
 }
 
 void setup() {
-  
+  Serial.begin(115200);
+  sendStatus = false;
+  getStatus = false;
+  ntpStatus = false;
+
+  // LCD
+  lcd.init();
+  lcd.clear();
+  lcd.backlight();
+
+  Serial.println("Try Connect to WiFi");
+  lcd.setCursor(0, 1);
+  lcd.print("Connecting..")
+  wifiMulti.addAP(ssid_a, password_a);
+  wifiMulti.addAP(ssid_b, password_b);
+  wifiMulti.addAP(ssid_c, password_c);
+
+  if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    Serial.println("STA Failed to configure");
+  } else {
+    Serial.println("STA Success");
+  }
+
+  wifiMulti.run();
+
+  // NTP
+  configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
+
+  if (wifiMulti.run() != WL_CONNECTED) {
+    lcd.clear();
+    lcd.setCursor(0, 1);
+    lcd.print("WiFi Fail");
+    lcd.setCursor(0, 2);
+    lcd.print("Date/Time Error");
+    delay(3000);
+  } else {
+    lcd.setCursor(0, 1);
+    lcd.print("WiFi Connected");
+
+    int tryNTP = 0;
+    while (ntpStatus == false && tryNTP <= 2) {
+      getLocalTime();
+      tryNTP++;
+      delay(50);
+      lcd.setCursor(0, 2);
+      lcd.print("Getting Time");
+    }
+  }
+
+  lcd.clear();
 }
 
 void loop() {

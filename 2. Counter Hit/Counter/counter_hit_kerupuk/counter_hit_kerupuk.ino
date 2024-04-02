@@ -461,17 +461,7 @@ void setup() {
   rtc.begin();
 
   if (wifiMulti.run() == WL_CONNECTED) {
-    lcd.setCursor(0, 1);
-    lcd.print("WiFi Connected");
-
-    int tryNTP = 0;
-    while (ntpStatus == false && tryNTP <= 5) {
-      getLocalTime();
-      tryNTP++;
-      delay(50);
-      lcd.setCursor(0, 2);
-      lcd.print("Getting Date/Time");
-    }
+    
 
   } else {
     lcd.setCursor(0, 1);

@@ -9,6 +9,11 @@ info : sastranuralamsyah@gmail.com
 6. 192.168.15.216 - ESP8266 - IoT-216-Kerupuk-Gudang_Jadi
 7. 192.168.15.217 - ESP32 - IoT-217-Suhu_Oven_30
 8. 192.168.15.218 - ESP32 - IoT-218-Counter_Biskuit
+
+192.168.7.251 - ESP32 - IoT-251-TK0532 - Pipa Angin Teknik - Kerupuk
+192.168.7.252 - ESP32 - IoT-252-TK0532 - Pipa Angin Teknik - Biskuit
+192.168.7.253 - ESP32 - IoT-253-KR0532 - Pipa Angin Kerupuk - Teknik
+192.168.7.254 - ESP32 - IoT-254-BM0532 - Pipa Angin Biskuit - Teknik
 ```
 
 ## Used IP:
@@ -32,11 +37,13 @@ info : sastranuralamsyah@gmail.com
 - Kode Lokasi
   - KR Produksi Kerupuk
   - BM Produksi Biskuit/Mie
+  - TK Teknik
 - Fungsi alat
   - 01 Counter
   - 02 Suhu
   - 03 Monitoring Operasional Conveyor
   - 04 Downtime Alat
+  - 05 Barometer
 - Jenis Micon
   - 32 ESP32
   - 66 ESP8266
