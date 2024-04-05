@@ -131,7 +131,7 @@ void counterHit(void* parameter) {
       counter++;
     }
     lastIRState = irState;
-    delay(50);
+    // delay(50);
   }
 }
 

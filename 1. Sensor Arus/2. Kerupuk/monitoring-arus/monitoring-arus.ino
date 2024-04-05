@@ -72,25 +72,25 @@ void connectToWiFi() {
           if (WiFi.SSID(i) == ssid) {
             WiFi.begin(ssid, password);
             Serial.println("Connecting with STTB1 Please Wait...");
-            delay(8000);
-            break;
+            delay(80);
           }
+          break;
         case 2:
           flag = 3;
           if (WiFi.SSID(i) == ssid2) {
             WiFi.begin(ssid2, password2);
             Serial.println("Connecting with STTB4 Please Wait...");
-            delay(8000);
-            break;
+            delay(80);
           }
+          break;
         case 3:
           flag = 1;
           if (WiFi.SSID(i) == ssid3) {
             WiFi.begin(ssid3, password3);
             Serial.println("Connecting with MT1 Please Wait...");
-            delay(8000);
-            break;
+            delay(80);
           }
+          break;
       }
     }
 

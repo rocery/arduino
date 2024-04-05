@@ -279,7 +279,7 @@ void loop() {
   
   sendDataDB++;
   Serial.println(ip_address);
-  Serial.println(sendDataDB++);
+  Serial.println(sendDataDB);
   if (sendDataDB >= 1000) {
     ESP.reset();
   }

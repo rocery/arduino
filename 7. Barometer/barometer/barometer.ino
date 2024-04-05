@@ -69,7 +69,6 @@ void getLocalTime() {
     ntpStatus = false;
   } else {
     ntpStatus = true;
-
     char timeStringBuff[50];
     strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
     dateTime = String(timeStringBuff);
@@ -94,7 +93,7 @@ void sendLogData() {
   */
   HTTPClient http;
   http.begin(api);
-  http.addHeader("Content-Tyoe", "application/x-www-form-urlencoded");
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   int httpResponseCode = http.POST(postData);
 
   if (httpResponseCode > 0) {
@@ -119,7 +118,7 @@ void setup() {
 
   Serial.println("Try Connect to WiFi");
   lcd.setCursor(0, 1);
-  lcd.print("Connecting..")
+  lcd.print("Connecting..");
   wifiMulti.addAP(ssid_a, password_a);
   wifiMulti.addAP(ssid_b, password_b);
   wifiMulti.addAP(ssid_c, password_c);
