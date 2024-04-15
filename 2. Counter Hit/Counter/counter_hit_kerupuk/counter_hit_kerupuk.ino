@@ -1,6 +1,6 @@
 /*
-  V. 0.1.4
-  Update Terakhir : 15-02-2024
+  V. 0.1.5
+  Update Terakhir : 15-04-2024
 
   PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
   Komponen:
@@ -65,15 +65,15 @@ const char* ssid_it = "Tester_ITB";
 const char* password_it = "Si4nt4r321";
 
 // Set IP to Static
-IPAddress staticIP(192, 168, 15, 213);
+IPAddress staticIP(192, 168, 7, 213);
 IPAddress gateway(192, 168, 15, 250);
-IPAddress subnet(255, 255, 255, 0);
+IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
 IPAddress secondaryDNS(8, 8, 4, 4);  //optional
 String ip_Address;
 
 // == Get NTP/RTC ==
-const char* ntpServer = "pool.ntp.org";
+const char* ntpServer = "192.168.7.223";
 const long gmtOffsetSec = 7 * 3600;  // Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
 const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat;
@@ -128,7 +128,7 @@ void counterHit(void* parameter) {
       counter++;
     }
     lastLDRState = ldrState;
-    delay(50);
+    delay(10);
   }
 }
 

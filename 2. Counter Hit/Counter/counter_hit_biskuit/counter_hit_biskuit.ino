@@ -1,6 +1,6 @@
 /*
-  V. 1.0.4
-  Update Terakhir : 13-02-2024
+  V. 1.0.5
+  Update Terakhir : 15-04-2024
 
   PENTING = Harus menggunakan Dual Core Micro Controller
   Komponen:
@@ -65,19 +65,19 @@ const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
 const char* ssid_a = "STTB8";
 const char* password_a = "siantar123";
-const char* ssid_it = "STTB5";
-const char* password_it = "siantar123";
+const char* ssid_it = "Tester_ITB";
+const char* password_it = "Si4nt4r321";
 
 // Set IP to Static
-IPAddress staticIP(192, 168, 15, 218);
+IPAddress staticIP(192, 168, 7, 218);
 IPAddress gateway(192, 168, 15, 250);
-IPAddress subnet(255, 255, 255, 0);
+IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
 IPAddress secondaryDNS(8, 8, 4, 4);  //optional
 String ip_Address;
 
 // == Get NTP/RTC ==
-const char* ntpServer = "pool.ntp.org";
+const char* ntpServer = "192.168.7.223;
 const long gmtOffsetSec = 7 * 3600;  // Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
 const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat;
@@ -182,7 +182,7 @@ void sendLogData() {
   /* Mengirim data ke local server
      Ganti isi variabel api sesuai dengan form php
   */
-  String api = "http://192.168.15.221/counter_hit_api/saveCounter.php";
+  String api = "http://192.168.7.223/counter_hit_api/saveCounter.php";
   HTTPClient http;
   http.begin(api);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -203,7 +203,7 @@ void getLogData() {
   Kode dibawah mohon untuk tidak dihapus.
   */
   HTTPClient http;
-  String getData = "http://192.168.15.221/counter_hit_api/getDataLastCounter.php?kode_product=" + productSelected;
+  String getData = "http://192.168.7.223/counter_hit_api/getDataLastCounter.php?kode_product=" + productSelected;
   http.begin(getData);
   int httpCode = http.GET();
 
@@ -553,6 +553,7 @@ void setup() {
     }
   }
 
+  Serial.println(WiFi.localIP().toString());
   lcd.clear();   // Clear LCD sebelum memilih menu
   selectMenu();  // Tampilkan pilihan product yang bisa dipilih
   logName = "/logCounter_" + productSelected + ".txt";
