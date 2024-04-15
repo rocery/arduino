@@ -17,6 +17,7 @@
 #include <HTTPClient.h>
 #include <LiquidCrystal_I2C.h>
 #include <TM1637Display.h>
+#include <Wire.h>
 
 String ESPName = "Barometer | Teknik-Kerupuk";
 String deviceID = "IoT-251-TK0532";
@@ -100,7 +101,7 @@ void sendLogData() {
     String response = http.getString();
     Serial.println(response);
   } else {
-    Serial.print("ERROR ON SENFING POST");
+    Serial.print("ERROR ON SENDING POST");
   }
   http.end();
 }
