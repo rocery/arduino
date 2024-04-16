@@ -256,6 +256,7 @@ void setup() {
 void loop() {
   lcd.setCursor(3, 0);
   lcd.print("PENGUKURAN SUHU");
+  
   //  tempCalibrationValue = random(55, 65) / 10.0;
   tempCalibrationValue = 0;
   int i = 0;

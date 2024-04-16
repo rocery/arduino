@@ -31,7 +31,7 @@ const int pressureMax = 921.6;   // Nilai analogread() pada kondisi maksimum psi
 const int pressuremaxPSI = 100;  // Nilai maksimal sensor yang digunakan
 float pressureValue = 0;
 float barValue = 0;
-const float psiToBar = 14.5037738;
+const float psiToBar = 14.5037738; // Nilai konversi pembagi psi ke bar
 int readPressureCoutner = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
@@ -201,12 +201,35 @@ void setup() {
 void loop() {
   readPressure();
 
+  lcd.setCursor(0, 0);
+  lcd.print(pressureValue, 1);
+  lcd.setCursor(0, 7);
+  lcd.print("PSI");
+
+  lcd.setCursor(1, 0);
+  lcd.print(barValue, 1);
+  lcd.setCursor(1, 7);
+  lcd.print("BAR");
+
+  if (wifiMulti.run() == WL_CONNECTED) {
+    lcd.setCursor(1, 3);
+    lcd.print(WiFi.SSID());
+    Serial.println(WiFi.SSID());
+    getLocalTime();
+  } else if (wifiMulti.run() != WL_CONNECTED) {
+    lcd.setCursor(1, 3);
+    lcd.print("WiFi DC");
+    wifiMulti.run();
+  }
+
+  ip_Address = WiFi.localIP().toString();
+
   if (readPressureCoutner % 30 == 0) {
     sendLogData();
   }
 
   if (sendCounter % 60 == 0) {
-    ESP.reset();
+    ESP.restart();
   }
 
   delay(1000);
