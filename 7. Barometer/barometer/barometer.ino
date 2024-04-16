@@ -1,5 +1,5 @@
 /*
-  V. 0.0.2 Alfa
+  V. 0.1.0 Beta
   Update Terakhir : 16-04-2024
 
   Komponen:
@@ -20,6 +20,7 @@
 #include <Wire.h>
 #include <Arduino.h>
 #include <TM1637Display.h>
+#include <math.h>
 
 String ESPName = "Barometer | Teknik-Kerupuk";
 String deviceID = "IoT-251-TK0532";
@@ -32,7 +33,7 @@ const int pressuremaxPSI = 100;  // Nilai maksimal sensor yang digunakan
 float pressureValue = 0;
 float barValue = 0;
 const float psiToBar = 14.5037738;  // Nilai konversi pembagi psi ke bar
-int readPressureCoutner = 0;
+int readPressureCounter = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
 Total kolom 16
@@ -93,7 +94,7 @@ void readPressure() {
 void testTM1637() {
   uint8_t data[] = { 0xff, 0xff, 0xff, 0xff };
   uint8_t blank[] = { 0x00, 0x00, 0x00, 0x00 };
-  tm1637.setBrightness(0x0f);
+  tm1637.setBrightness(7);
 
   tm1637.setSegments(data);
   delay(1000);
@@ -202,6 +203,18 @@ void setup() {
 
 void loop() {
   readPressure();
+
+  float bar = barValue * 100;
+  int roundBar = round(bar);
+
+  // https://www.makerguides.com/tm1637-arduino-tutorial/
+  tm1637.showNumberDecEx(roundBar, 0b01000000, false, 4, 0);
+  // byte rawData;
+  // tm1637.showNumberDecEx(roundBar);
+  // display degree symbol on position 3 plus set lower colon
+  // rawData = B11100011;
+  // tm1637.printRaw(rawData, 3);
+  // tm1637.showNumberDec(roundNearest, false);
 
   lcd.setCursor(0, 0);
   lcd.print(pressureValue, 1);
