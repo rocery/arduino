@@ -32,6 +32,7 @@ const int pressuremaxPSI = 100;  // Nilai maksimal sensor yang digunakan
 float pressureValue = 0;
 float barValue = 0;
 const float psiToBar = 14.5037738;
+int readPressureCoutner = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
 Total kolom 16
@@ -69,24 +70,24 @@ bool ntpStatus;
 
 // ===== Data Send/Get =====
 bool sendStatus, getStatus;
-const char* counterFromDB;
-int counterValueDB;
+int sendCounter = 0;
 String postData, api = "http://192.168.7.223/barometer_api/save_tekanan.php";
 
 // ===== TM1637 =====
 // Module connection pins (Digital Pins)
-#define CLK 2
-#define DIO 3
+#define CLK 5
+#define DIO 18
 TM1637Display tm1637(CLK, DIO);
 
 void readPressure() {
   pressureValue = analogRead(pressureInput);
-  pressureValue = ((pressureValue - pressureZero) * pressuretransducermaxPSI) / (pressureMax - pressureZero);
+  pressureValue = ((pressureValue - pressureZero) * pressuremaxPSI) / (pressureMax - pressureZero);
   barValue = pressureValue / psiToBar;
   Serial.print(pressureValue, 1);
   Serial.println("psi");
   Serial.print(barValue, 1);
   Serial.println("bar");
+  readPressureCoutner++;
 }
 
 void testTM1637() {
@@ -198,5 +199,15 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  readPressure();
+
+  if (readPressureCoutner % 30 == 0) {
+    sendLogData();
+  }
+
+  if (sendCounter % 60 == 0) {
+    ESP.reset();
+  }
+
+  delay(1000);
 }
