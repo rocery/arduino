@@ -1,6 +1,6 @@
 /*
-  V. 0.0.1 Alfa
-  Update Terakhir : 02-04-2024
+  V. 0.0.2 Alfa
+  Update Terakhir : 16-04-2024
 
   Komponen:
   1. ESP32
@@ -18,9 +18,20 @@
 #include <LiquidCrystal_I2C.h>
 #include <TM1637Display.h>
 #include <Wire.h>
+#include <Arduino.h>
+#include <TM1637Display.h>
 
 String ESPName = "Barometer | Teknik-Kerupuk";
 String deviceID = "IoT-251-TK0532";
+
+// ===== PRESSURE SENSOR =====
+const int pressureInput = 13;    // Pin pada mikrokontroller yang digunakan
+const int pressureZero = 102.4;  // Nilai analogread() pada kondisi 0 psi
+const int pressureMax = 921.6;   // Nilai analogread() pada kondisi maksimum psi
+const int pressuremaxPSI = 100;  // Nilai maksimal sensor yang digunakan
+float pressureValue = 0;
+float barValue = 0;
+const float psiToBar = 14.5037738;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
 Total kolom 16
@@ -61,6 +72,32 @@ bool sendStatus, getStatus;
 const char* counterFromDB;
 int counterValueDB;
 String postData, api = "http://192.168.7.223/barometer_api/save_tekanan.php";
+
+// ===== TM1637 =====
+// Module connection pins (Digital Pins)
+#define CLK 2
+#define DIO 3
+TM1637Display tm1637(CLK, DIO);
+
+void readPressure() {
+  pressureValue = analogRead(pressureInput);
+  pressureValue = ((pressureValue - pressureZero) * pressuretransducermaxPSI) / (pressureMax - pressureZero);
+  barValue = pressureValue / psiToBar;
+  Serial.print(pressureValue, 1);
+  Serial.println("psi");
+  Serial.print(barValue, 1);
+  Serial.println("bar");
+}
+
+void testTM1637() {
+  uint8_t data[] = { 0xff, 0xff, 0xff, 0xff };
+  uint8_t blank[] = { 0x00, 0x00, 0x00, 0x00 };
+  tm1637.setBrightness(0x0f);
+
+  tm1637.setSegments(data);
+  delay(1000);
+  tm1637.clear();
+}
 
 void getLocalTime() {
   /* Fungsi bertujuan menerima update waktu
@@ -156,6 +193,7 @@ void setup() {
     }
   }
 
+  testTM1637();
   lcd.clear();
 }
 
