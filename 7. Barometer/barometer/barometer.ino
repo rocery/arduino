@@ -31,7 +31,7 @@ const int pressureMax = 921.6;   // Nilai analogread() pada kondisi maksimum psi
 const int pressuremaxPSI = 100;  // Nilai maksimal sensor yang digunakan
 float pressureValue = 0;
 float barValue = 0;
-const float psiToBar = 14.5037738; // Nilai konversi pembagi psi ke bar
+const float psiToBar = 14.5037738;  // Nilai konversi pembagi psi ke bar
 int readPressureCoutner = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
@@ -64,7 +64,7 @@ String ip_Address;
 const char* ntpServer = "192.168.7.223";
 const long gmtOffsetSec = 7 * 3600;
 const int daylightOffsetSec = 0;
-String dateTime, dateFormat, timeFormat;
+String dateTime, dateFormat, timeFormat, lcdFormat;
 int year, month, day, hour, minute, second;
 bool ntpStatus;
 
@@ -87,7 +87,7 @@ void readPressure() {
   Serial.println("psi");
   Serial.print(barValue, 1);
   Serial.println("bar");
-  readPressureCoutner++;
+  readPressureCounter++;
 }
 
 void testTM1637() {
@@ -123,6 +123,8 @@ void getLocalTime() {
     dateFormat = String(year) + '-' + String(month) + '-' + String(day);
     // hh:mm:ss
     timeFormat = String(hour) + ':' + String(minute) + ':' + String(second);
+    // hh:mm
+    lcdFormat = String(hour) + ':' + String(minute);
   }
 }
 
@@ -212,19 +214,24 @@ void loop() {
   lcd.print("BAR");
 
   if (wifiMulti.run() == WL_CONNECTED) {
-    lcd.setCursor(1, 3);
+    lcd.setCursor(0, 12);
     lcd.print(WiFi.SSID());
     Serial.println(WiFi.SSID());
     getLocalTime();
   } else if (wifiMulti.run() != WL_CONNECTED) {
-    lcd.setCursor(1, 3);
-    lcd.print("WiFi DC");
+    lcd.setCursor(0, 12);
+    lcd.print("Error");
     wifiMulti.run();
   }
 
+  lcd.setCursor(1, 12);
+  lcd.print(lcdFormat);
+
   ip_Address = WiFi.localIP().toString();
 
-  if (readPressureCoutner % 30 == 0) {
+  postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&psi_value=" + String(pressureValue) + "&bar_value=" + String(barValue) + "&ip_address=" + ip_Address + "&date=" + dateTime;
+
+  if (readPressureCounter % 30 == 0) {
     sendLogData();
   }
 
