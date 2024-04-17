@@ -1,0 +1,9 @@
+Tujuan
+	Memastikan seluruh Hardware komputer dalam kondisi terawat dan termonitor secara rutin, sehingga
+	seluruh kegiatan operasional dapat berjalan lancar, efisien, efektif, dan optimal.
+
+Tugas Utama
+  A) Plan
+     1. Melakukan maintenance rutin terhadap seluruh hardware, servcer, jaringan, dan software pendukung
+        hardware (mis. Ms. Office, Remote Desktop, Disk Defragment, dll) secara rutin/berkala
+     2. Melayani dan memonitoring 
