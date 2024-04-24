@@ -233,38 +233,38 @@ void setup() {
     Serial.println("STA Failed to configure");
   }
 
-  lcd.setCursor(0, 1);
-  lcd.print("Connecting to WiFi");
+  lcd.setCursor(0, 0);
+  lcd.print("Connecting");
   wifiMulti.run();
 
   // NTP
   configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
   if (wifiMulti.run() == WL_CONNECTED) {
-    lcd.setCursor(0, 1);
+    lcd.setCursor(0, 0);
     lcd.print("WiFi Connected");
     int tryNTP = 0;
     while (ntpStatus == false && tryNTP < 2) {
+      lcd.setCursor(0, 1);
+      lcd.print("Getting Date");
       getLocalTime();
       tryNTP++;
-      lcd.setCursor(0, 2);
-      lcd.print("Getting Date");
     }
   }
   lcd.clear();
 }
 
 void loop() {
-  lcd.setCursor(3, 0);
-  lcd.print("PENGUKURAN SUHU");
-  
+  // lcd.setCursor(3, 0);
+  // lcd.print("PENGUKURAN SUHU");
+
   //  tempCalibrationValue = random(55, 65) / 10.0;
   tempCalibrationValue = 0;
   int i = 0;
   while (i < 30) {
     tempReal = thermocouple.readCelsius() - tempCalibrationValue;
-    lcd.setCursor(1, 1);
-    lcd.print("SUHU : ");
-    lcd.setCursor(8, 1);
+    lcd.setCursor(0, 0);
+    lcd.print("S:");
+    lcd.setCursor(2, 0);
 
     if (tempReal > 85.7) {
       tempValue = random(8250, 8450) / 100.0;
@@ -291,26 +291,26 @@ void loop() {
   tempAverage = tempData / 30;
   tempData = 0;
   // Cetak sinyal
-  lcd.setCursor(1, 2);
-  lcd.print("AVG  : ");
-  lcd.setCursor(8, 2);
+  lcd.setCursor(0, 1);
+  lcd.print("A:");
+  lcd.setCursor(2, 1);
   lcd.print(tempAverage);
   lcd.write(0);
   lcd.print("C");
-  lcd.setCursor(8, 3);
+  lcd.setCursor(10, 1);
   lcd.print(timeLCD);
 
   if (wifiMulti.run() == WL_CONNECTED) {
 
-    lcd.setCursor(1, 3);
+    lcd.setCursor(10, 0);
     lcd.print(WiFi.SSID());
     Serial.println(WiFi.SSID());
     getLocalTime();
 
   } else if (wifiMulti.run() != WL_CONNECTED) {
 
-    lcd.setCursor(1, 3);
-    lcd.print("WiFi DC");
+    lcd.setCursor(10, 0);
+    lcd.print("Wi-DC");
     wifiMulti.run();
   }
 
