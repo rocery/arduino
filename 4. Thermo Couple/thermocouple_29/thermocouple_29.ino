@@ -118,6 +118,10 @@ String dateTime, dateFormat, timeFormat, timeLCD;
 int year, month, day, hour, minute, second;
 bool ntpStatus;
 
+// == Potensiometer ==
+// int potPin = 26;
+// float potValue;
+
 void sendLogData() {
   /* Mengirim data ke local server
      Ganti isi variabel api sesuai dengan form php
@@ -214,6 +218,8 @@ void setup() {
   sendStatus = false;
   ntpStatus = false;
 
+  // pinMode(potPin, INPUT);
+
   // LCD
   lcd.init();
   lcd.clear();
@@ -261,7 +267,28 @@ void loop() {
   tempCalibrationValue = 0;
   int i = 0;
   while (i < 30) {
-    tempReal = thermocouple.readCelsius() - tempCalibrationValue;
+    int potValue = analogRead(34);                    // Read analog value from pin 26 on ESP32
+    int mappedValue = map(potValue, 0, 4095, 0, 20);  // Map the value from the potentiometer range to 1-30 range
+
+    // Output the mapped value
+    Serial.println(mappedValue);
+    lcd.setCursor(10, 1);
+    lcd.print("C:");
+    lcd.print(mappedValue);
+    if (mappedValue > 9) {
+      lcd.setCursor(10, 1);
+      lcd.print("C:");
+      lcd.print(mappedValue);
+    } else {
+      lcd.setCursor(10, 1);
+      lcd.print("C:");
+      lcd.setCursor(12, 1);
+      lcd.print("0");
+      lcd.setCursor(13, 1);
+      lcd.print(mappedValue);
+    }
+
+    tempReal = thermocouple.readCelsius() - mappedValue;
     lcd.setCursor(0, 0);
     lcd.print("S:");
     lcd.setCursor(2, 0);
@@ -297,8 +324,6 @@ void loop() {
   lcd.print(tempAverage);
   lcd.write(0);
   lcd.print("C");
-  lcd.setCursor(10, 1);
-  lcd.print(timeLCD);
 
   if (wifiMulti.run() == WL_CONNECTED) {
 
