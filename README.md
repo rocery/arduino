@@ -55,3 +55,11 @@ info : sastranuralamsyah@gmail.com
 - IoT-217-KR0232 = Produksi Kerupuk - Suhu - ESP32 - Oven 30
 - IoT-218-BM0132 = Produksi Biskuit/Mie - Counter - ESP32 - Goriorio Isi 2 - FC:B4:67:51:47:C0
 ```
+
+
+
+
+Catatan:
+Kuning - Putih Data
+Merah - Ungu VCC
+Hitam - Biru GND
