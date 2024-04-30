@@ -26,10 +26,10 @@ String ESPName = "Barometer | Teknik-Kerupuk";
 String deviceID = "IoT-251-TK0532";
 
 // ===== PRESSURE SENSOR =====
-const int pressureInput = 13;    // Pin pada mikrokontroller yang digunakan
+const int pressureInput = 34;    // Pin pada mikrokontroller yang digunakan
 const int pressureZero = 102.4;  // Nilai analogread() pada kondisi 0 psi
-const int pressureMax = 921.6;   // Nilai analogread() pada kondisi maksimum psi
-const int pressuremaxPSI = 100;  // Nilai maksimal sensor yang digunakan
+const int pressureMax = 4095;    // Nilai analogread() pada kondisi maksimum psi
+const int pressuremaxPSI = 174;  // Nilai maksimal sensor yang digunakan
 float pressureValue = 0;
 float barValue = 0;
 const float psiToBar = 14.5037738;  // Nilai konversi pembagi psi ke bar
@@ -82,12 +82,13 @@ TM1637Display tm1637(CLK, DIO);
 
 void readPressure() {
   pressureValue = analogRead(pressureInput);
+  Serial.println(pressureValue);
   pressureValue = ((pressureValue - pressureZero) * pressuremaxPSI) / (pressureMax - pressureZero);
   barValue = pressureValue / psiToBar;
   Serial.print(pressureValue, 1);
-  Serial.println("psi");
+  Serial.println(" PSI");
   Serial.print(barValue, 1);
-  Serial.println("bar");
+  Serial.println(" BAR");
   readPressureCounter++;
 }
 
@@ -159,7 +160,7 @@ void setup() {
   lcd.backlight();
 
   Serial.println("Try Connect to WiFi");
-  lcd.setCursor(0, 1);
+  lcd.setCursor(0, 0);
   lcd.print("Connecting..");
   wifiMulti.addAP(ssid_a, password_a);
   wifiMulti.addAP(ssid_b, password_b);
@@ -178,13 +179,13 @@ void setup() {
 
   if (wifiMulti.run() != WL_CONNECTED) {
     lcd.clear();
-    lcd.setCursor(0, 1);
+    lcd.setCursor(0, 0);
     lcd.print("WiFi Fail");
-    lcd.setCursor(0, 2);
+    lcd.setCursor(0, 1);
     lcd.print("Date/Time Error");
     delay(3000);
   } else {
-    lcd.setCursor(0, 1);
+    lcd.setCursor(0, 0);
     lcd.print("WiFi Connected");
 
     int tryNTP = 0;
@@ -192,7 +193,7 @@ void setup() {
       getLocalTime();
       tryNTP++;
       delay(50);
-      lcd.setCursor(0, 2);
+      lcd.setCursor(0, 1);
       lcd.print("Getting Time");
     }
   }
@@ -210,34 +211,34 @@ void loop() {
   // https://www.makerguides.com/tm1637-arduino-tutorial/
   tm1637.showNumberDecEx(roundBar, 0b01000000, false, 4, 0);
   // byte rawData;
-  // tm1637.showNumberDecEx(roundBar);
+  // tm1637.showNumberDec(roundBar);
   // display degree symbol on position 3 plus set lower colon
   // rawData = B11100011;
   // tm1637.printRaw(rawData, 3);
   // tm1637.showNumberDec(roundNearest, false);
 
   lcd.setCursor(0, 0);
-  lcd.print(pressureValue, 1);
-  lcd.setCursor(0, 7);
+  lcd.print(pressureValue, 2);
+  lcd.setCursor(6, 0);
   lcd.print("PSI");
 
-  lcd.setCursor(1, 0);
-  lcd.print(barValue, 1);
-  lcd.setCursor(1, 7);
+  lcd.setCursor(0, 1);
+  lcd.print(barValue, 2);
+  lcd.setCursor(6, 1);
   lcd.print("BAR");
 
   if (wifiMulti.run() == WL_CONNECTED) {
-    lcd.setCursor(0, 12);
+    lcd.setCursor(11, 0);
     lcd.print(WiFi.SSID());
     Serial.println(WiFi.SSID());
     getLocalTime();
   } else if (wifiMulti.run() != WL_CONNECTED) {
-    lcd.setCursor(0, 12);
+    lcd.setCursor(12, 0);
     lcd.print("Error");
     wifiMulti.run();
   }
 
-  lcd.setCursor(1, 12);
+  lcd.setCursor(11, 1);
   lcd.print(lcdFormat);
 
   ip_Address = WiFi.localIP().toString();
@@ -246,10 +247,11 @@ void loop() {
 
   if (readPressureCounter % 30 == 0) {
     sendLogData();
-  }
+    sendCounter++;
 
-  if (sendCounter % 60 == 0) {
-    ESP.restart();
+    if (sendCounter % 60 == 0) {
+      ESP.restart();
+    }
   }
 
   delay(1000);
