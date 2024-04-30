@@ -1,6 +1,6 @@
 /*
-  V. 0.1.0 Beta
-  Update Terakhir : 16-04-2024
+  V. 1.0.0
+  Update Terakhir : 30-04-2024
 
   Komponen:
   1. ESP32
@@ -27,8 +27,8 @@ String deviceID = "IoT-251-TK0532";
 
 // ===== PRESSURE SENSOR =====
 const int pressureInput = 34;    // Pin pada mikrokontroller yang digunakan
-const int pressureZero = 102.4;  // Nilai analogread() pada kondisi 0 psi
-const int pressureMax = 4095;    // Nilai analogread() pada kondisi maksimum psi
+const int pressureZero = 102.4;  // Nilai analogRead() pada kondisi 0 psi
+const int pressureMax = 4095;    // Nilai analogRead() pada kondisi maksimum psi
 const int pressuremaxPSI = 174;  // Nilai maksimal sensor yang digunakan
 float pressureValue = 0;
 float barValue = 0;
