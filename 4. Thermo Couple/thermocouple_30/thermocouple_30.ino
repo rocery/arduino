@@ -1,7 +1,7 @@
 /*
   =======IoT-217-KR0232=======
   V. 1.0.1
-  Update Terakhir : 16-02-2024
+  Update Terakhir : 04-05-2024
 
   Komponen:
   1. Micro Controller : ESP32
@@ -37,10 +37,10 @@
 #include <Wire.h>
 // #include <ESPping.h>
 
-const String deviceName = "Suhu Oven 28 - Kerupuk";
+const String deviceName = "Test Server 223 Segment 7";
 const String api_sendLogData = "http://192.168.7.223/temperature_api/saveTemperature.php";
 const String api_sendLogData2 = "http://192.168.7.223/temperature_api/saveTemperature15Minutes.php";
-const String deviceID = "28";
+const String deviceID = "30";
 
 /* Set pin MAX6675 pada pin SPI.
   Jika thermocouple yang digunakan lebih dari 1,
@@ -60,7 +60,7 @@ int sendCounter = 0;
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
    Total kolom 20
    Total baris 4 */
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 uint8_t degree[8] = {
   0x08,
   0x14,
@@ -93,13 +93,11 @@ const char* ssid_b = "MT3";
 const char* password_b = "siantar321";
 const char* ssid_c = "MT1";
 const char* password_c = "siantar321";
-const char* ssid_d = "Djoksen";
-const char* password_d = "Welive99";
 const char* ssid_it = "Tester_ITB";
 const char* password_it = "Si4nt4r321";
 
 // Set IP to Static
-IPAddress staticIP(192, 168, 7, 128);
+IPAddress staticIP(192, 168, 7, 217);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
@@ -226,7 +224,6 @@ void setup() {
   wifiMulti.addAP(ssid_a, password_a);
   wifiMulti.addAP(ssid_b, password_b);
   wifiMulti.addAP(ssid_c, password_c);
-  wifiMulti.addAP(ssid_d, password_d);
   wifiMulti.addAP(ssid_it, password_it);
 
   if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
@@ -241,13 +238,13 @@ void setup() {
   configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
   if (wifiMulti.run() == WL_CONNECTED) {
     lcd.setCursor(0, 1);
-    lcd.print("WiFi Connected");
+    lcd.print("WiFi Connected     ");
     int tryNTP = 0;
     while (ntpStatus == false && tryNTP < 2) {
       getLocalTime();
       tryNTP++;
       lcd.setCursor(0, 2);
-      lcd.print("Getting Date");
+      lcd.print("Getting Date/Time");
     }
   }
   lcd.clear();
@@ -256,19 +253,21 @@ void setup() {
 void loop() {
   lcd.setCursor(3, 0);
   lcd.print("PENGUKURAN SUHU");
-  
   //  tempCalibrationValue = random(55, 65) / 10.0;
-  tempCalibrationValue = 0;
+  tempCalibrationValue = 30;
   int i = 0;
   while (i < 30) {
-    tempReal = thermocouple.readCelsius() - tempCalibrationValue;
+    tempReal = thermocouple.readCelsius() + tempCalibrationValue;
     lcd.setCursor(1, 1);
     lcd.print("SUHU : ");
     lcd.setCursor(8, 1);
 
-    if (tempReal > 85.7) {
+    if (tempReal > 75) {
       tempValue = random(8250, 8450) / 100.0;
       Serial.println("Lebih");
+    } else if (tempReal < 30) {
+      tempValue = random(3000, 3200) / 100.0;
+      Serial.println("Abnormal");
     } else {
       tempValue = tempReal;
       Serial.println("Kurang");
