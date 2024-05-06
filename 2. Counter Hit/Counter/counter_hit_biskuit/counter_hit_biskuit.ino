@@ -77,7 +77,7 @@ IPAddress secondaryDNS(8, 8, 4, 4);  //optional
 String ip_Address;
 
 // == Get NTP/RTC ==
-const char* ntpServer = "192.168.7.223;
+const char* ntpServer = "192.168.7.223";
 const long gmtOffsetSec = 7 * 3600;  // Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
 const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat;
@@ -131,7 +131,7 @@ void counterHit(void* parameter) {
       counter++;
     }
     lastIRState = irState;
-    // delay(50);
+    delay(50);
   }
 }
 

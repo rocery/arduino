@@ -89,12 +89,10 @@ uint8_t plusMinus[8] = {
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB1";
 const char* password_a = "Si4nt4r321";
-const char* ssid_b = "MT3";
-const char* password_b = "siantar321";
+const char* ssid_b = "Amano2";
+const char* password_b = "Si4nt4r321";
 const char* ssid_c = "MT1";
 const char* password_c = "siantar321";
-const char* ssid_d = "Djoksen";
-const char* password_d = "Welive99";
 const char* ssid_it = "Tester_ITB";
 const char* password_it = "Si4nt4r321";
 
@@ -213,7 +211,7 @@ void debugSerial() {
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   sendStatus = false;
   ntpStatus = false;
@@ -232,7 +230,6 @@ void setup() {
   wifiMulti.addAP(ssid_a, password_a);
   wifiMulti.addAP(ssid_b, password_b);
   wifiMulti.addAP(ssid_c, password_c);
-  wifiMulti.addAP(ssid_d, password_d);
   wifiMulti.addAP(ssid_it, password_it);
 
   if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {

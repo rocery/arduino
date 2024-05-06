@@ -1,15 +1,6 @@
 # Projek IoT STTB
 info : sastranuralamsyah@gmail.com
 ```
-1. 192.168.15.211 - ESP8266 - IoT-211-Downtime_Molding_1
-2. 192.168.15.212
-3. 192.168.15.213 - ESP32 - IoT-213-Counter_Kerupuk
-4. 192.168.15.214
-5. 192.168.15.215 - ESP8266 - IoT-215-Stuffle_Mie_Biskuit
-6. 192.168.15.216 - ESP8266 - IoT-216-Kerupuk-Gudang_Jadi
-7. 192.168.15.217 - ESP32 - IoT-217-Suhu_Oven_30
-8. 192.168.15.218 - ESP32 - IoT-218-Counter_Biskuit
-
 192.168.7.251 - ESP32 - IoT-251-TK0532 - Pipa Angin Teknik - Kerupuk
 192.168.7.252 - ESP32 - IoT-252-TK0532 - Pipa Angin Teknik - Biskuit
 192.168.7.253 - ESP32 - IoT-253-KR0532 - Pipa Angin Kerupuk - Teknik
@@ -22,12 +13,14 @@ info : sastranuralamsyah@gmail.com
 - 10	= Admin (C-010-IT)
 - 243	= Test Address
 - 1	= Reserved IP
-- 211	= IoT-211-BM0466
-- 213	= IoT-213-KR0132
-- 215	= IoT-215-BM0366
-- 216	= IoT-216-KR0366
-- 217	= IoT-217-KR0232
-- 218	= IoT-218-BM0132
+- 211	= IoT-211-BM0466 IoT-211-Downtime_Molding_1
+- 213	= IoT-213-KR0132 IoT-213-Counter_Kerupuk
+- 215	= IoT-215-BM0366 IoT-215-Stuffle_Mie_Biskuit
+- 216	= IoT-216-KR0366 IoT-216-Kerupuk-Gudang_Jadi
+- 217	= IoT-217-KR0232 IoT-217-Suhu_Oven_30
+- 218	= IoT-218-BM0132 IoT-218-Counter_Biskuit
+- 128	= IoT-128-Suhu_Oven_28
+- 129	= IoT-129-Suhu_Oven_29
 ```
 
 ## Aturan Penamaan ID/Host Name/Device Name pada Alat IoT
