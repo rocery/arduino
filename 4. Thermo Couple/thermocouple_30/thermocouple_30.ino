@@ -89,8 +89,8 @@ uint8_t plusMinus[8] = {
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB1";
 const char* password_a = "Si4nt4r321";
-const char* ssid_b = "MT3";
-const char* password_b = "siantar321";
+const char* ssid_b = "Amano2";
+const char* password_b = "Si4nt4r321";
 const char* ssid_c = "MT1";
 const char* password_c = "siantar321";
 const char* ssid_it = "Tester_ITB";
