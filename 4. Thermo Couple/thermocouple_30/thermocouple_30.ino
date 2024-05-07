@@ -262,7 +262,7 @@ void loop() {
     lcd.print("SUHU : ");
     lcd.setCursor(8, 1);
 
-    if (tempReal > 75) {
+    if (tempReal > 65) {
       tempValue = random(8250, 8450) / 100.0;
       Serial.println("Lebih");
     } else if (tempReal < 30) {
