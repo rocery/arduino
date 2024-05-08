@@ -285,7 +285,7 @@ void loop() {
       lcd.print(mappedValue);
     }
 
-    tempReal = thermocouple.readCelsius() - mappedValue;
+    tempReal = thermocouple.readCelsius() + mappedValue;
     lcd.setCursor(0, 0);
     lcd.print("S:");
     lcd.setCursor(2, 0);
