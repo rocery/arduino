@@ -6,8 +6,7 @@
 #define PCA9548A_address 0x70
 
 PN532_I2C pn532_i2c(Wire);
-NfcAdapter nfc0 = NfcAdapter(pn532_i2c);
-NfcAdapter nfc1 = NfcAdapter(pn532_i2c);
+NfcAdapter nfc = NfcAdapter(pn532_i2c);
 String tagId = "None";
 byte nuidPICC[4];
 
@@ -16,14 +15,24 @@ void setup() {
   Wire.begin();
 
   TCA9548A(0);
-  nfc0.begin();
+  nfc.begin();
 
   TCA9548A(1);
-  nfc1.begin();
+  nfc.begin();
 }
 
 void loop() {
-  readNFC0();
+  Serial.println("Multi 0");
+  TCA9548A(0);
+  Serial.println("RFID 0");
+  readNFC();
+  delay(100);
+
+  Serial.println("Multi 1");
+  TCA9548A(1);
+  Serial.println("RFID 1");
+  readNFC();
+  delay(100);
 }
 
 // Select I2C BUS PCA9548A
@@ -31,23 +40,16 @@ void TCA9548A(uint8_t bus) {
   Wire.beginTransmission(PCA9548A_address);
   Wire.write(1 << bus);
   Wire.endTransmission();
-  // Serial.print(bus);
+  Serial.println(bus);
 }
 
-void readNFC0() {
-  if (nfc0.tagPresent()) {
-    NfcTag tag = nfc0.read();
-    tag.print();
+void readNFC() {
+  if (!nfc.tagPresent()) {
+    Serial.println("False");
+  } else {
+    NfcTag tag = nfc.read();
+    // tag.print();
     tagId = tag.getUidString();
+    Serial.println(tagId);
   }
-  delay(5000);
-}
-
-void readNFC1() {
-  if (nfc1.tagPresent()) {
-    NfcTag tag = nfc1.read();
-    tag.print();
-    tagId = tag.getUidString();
-  }
-  delay(5000);
 }
