@@ -26,6 +26,8 @@
 
   Informasi lebih lengkap sensor yang digunakan ada pada link berikut:
   https://learn.adafruit.com/thermocouple/
+
+  
 */
 
 // == Library ==
