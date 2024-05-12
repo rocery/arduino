@@ -265,7 +265,7 @@ void loop() {
   int i = 0;
   while (i < 30) {
     int potValue = analogRead(34);                    // Read analog value from pin 26 on ESP32
-    int mappedValue = map(potValue, 0, 4095, 0, 20);  // Map the value from the potentiometer range to 1-30 range
+    int mappedValue = map(potValue, 0, 4095, 0, 30);  // Map the value from the potentiometer range to 1-30 range
 
     // Output the mapped value
     Serial.println(mappedValue);
@@ -285,12 +285,12 @@ void loop() {
       lcd.print(mappedValue);
     }
 
-    tempReal = thermocouple.readCelsius() - mappedValue;
+    tempReal = thermocouple.readCelsius() + mappedValue;
     lcd.setCursor(0, 0);
     lcd.print("S:");
     lcd.setCursor(2, 0);
 
-    if (tempReal > 85.7) {
+    if (tempReal > 80) {
       tempValue = random(8250, 8450) / 100.0;
       Serial.println("Lebih");
     } else {

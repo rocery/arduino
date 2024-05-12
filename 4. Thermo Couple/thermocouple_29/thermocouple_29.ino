@@ -26,6 +26,8 @@
 
   Informasi lebih lengkap sensor yang digunakan ada pada link berikut:
   https://learn.adafruit.com/thermocouple/
+
+  
 */
 
 // == Library ==
@@ -285,7 +287,7 @@ void loop() {
       lcd.print(mappedValue);
     }
 
-    tempReal = thermocouple.readCelsius() - mappedValue;
+    tempReal = thermocouple.readCelsius() + mappedValue;
     lcd.setCursor(0, 0);
     lcd.print("S:");
     lcd.setCursor(2, 0);
