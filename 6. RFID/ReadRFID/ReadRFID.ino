@@ -2,14 +2,20 @@
   V. 0.0.2
   Update Terakhir : 13-05-2024
 
-  PENTING = Harus menggunakan Dual Core Micro Controller
+  PENTING
+  1. Harus menggunakan Dual Core Micro Controller
+  2. Kartu RFID yang digunakan adalah Mifare ISO14443A
+
   Komponen:
   1. Micro Controller : ESP32
-  2. LED                                        (3.3v, GND, I2C (22 = SCL, 21 = SDA))
-  3. SD Card                                    (3.3v, GND, I2C (22 = SCL, 21 = SDA))
-  4. PN532                                      (5v/Vin, GND, 26)
-  5. PCA9548A                                   (FAT32 1-16 GB)   (3.3v, GND, SPI(Mosi 23, Miso 19, CLK 18, CS 5))
+  2. LED
+  3. SD Card
+  4. PN532
+  5. PCA9548A
+
+
 */
+
 // == Deklarasi semua Library yang digunakan ==
 #include <WiFi.h>
 #include <WiFiMulti.h>
@@ -32,7 +38,7 @@ const String deviceName = "Door Lock Sport Park";
 Adafruit_PN532 nfc(SDA_PIN, SCL_PIN);
 
 // == PN532 ==
-uint8_t success;
+uint8_t rfidReadStatus;
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
 uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
 String uidString = "";                    // String to store UID for further use
@@ -80,19 +86,10 @@ bool statusSD, readStatusSD, insertLastLineSDCardStatus;
 
 void setup(void) {
   Serial.begin(115200);
-  Serial.println("Hello! Scan your NFC tag on the reader");
+  Wire.begin();
 
-  nfc.begin();
-  nfc.setPassiveActivationRetries(0x10);
-  uint32_t versiondata = nfc.getFirmwareVersion();
-  if (!versiondata) {
-    Serial.print("Didn't find PN53x board");
-    while (1) {
-    }
-  }
-
-  // Configure board to read RFID tags
-  nfc.SAMConfig();
+  TCA9548A(0);
+  setupNFC();
 
   Serial.println("Waiting for an NFC Tag...");
 }
@@ -100,15 +97,30 @@ void setup(void) {
 void loop() {
 }
 
-void setupNFC()
+bool setupNFC() {
+  nfc.begin();
+  nfc.setPassiveActivationRetries(0x10);
+
+  uint32_t versiondata = nfc.getFirmwareVersion();
+  if (!versiondata) {
+    Serial.print("PN532 Tidak Terdeteksi");
+    while (1) {
+    }
+  } else {
+    Serial.print("PN532 Firmware Version: ");
+    Serial.println(versiondata);
+  }
+  // Configure board to read RFID tags
+  nfc.SAMConfig();
+}
 
 void readNFC() {
   // Wait for an ISO14443A type cards (Mifare, etc.). When one is found
   // 'uid' will be populated with the UID, and uidLength will indicate
   // if it's a 4-byte or 7-byte UID
-  success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
+  rfidReadStatus = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
 
-  if (success) {
+  if (rfidReadStatus) {
     Serial.println("Found an NFC tag!");
     Serial.print("UID Length: ");
     Serial.print(uidLength, DEC);
@@ -135,5 +147,5 @@ void TCA9548A(uint8_t bus) {
   Wire.beginTransmission(PCA9548A_address);
   Wire.write(1 << bus);
   Wire.endTransmission();
-  Serial.println(bus);
+  // Serial.println(bus);
 }
