@@ -88,8 +88,17 @@ void setup(void) {
   Serial.begin(115200);
   Wire.begin();
 
-  TCA9548A(0);
-  setupNFC();
+  if(setupPN532(0) && setupPN532(1)) {
+    Serial.println("Inisialisasi PN532 berhasil");
+  } else {
+    Serial.println("Inisialisasi PN532 gagal");
+    Serial.println("Alat tidak bisa digunakan");
+    Serial.println("Periksa sensor PN532");
+    while(1) {
+      Serial.print(".");
+      // ledFDIDFailSetup();
+    }
+  }
 
   Serial.println("Waiting for an NFC Tag...");
 }
@@ -97,24 +106,27 @@ void setup(void) {
 void loop() {
 }
 
-bool setupNFC() {
+bool setupPN532(int bus_TCA9548A) {
+  TCA9548A(bus_TCA9548A);
+  Serial.print("Inisialisasi PN532 bus : ");
+  Serial.println(bus_TCA9548A);
   nfc.begin();
   nfc.setPassiveActivationRetries(0x10);
 
   uint32_t versiondata = nfc.getFirmwareVersion();
   if (!versiondata) {
-    Serial.print("PN532 Tidak Terdeteksi");
-    while (1) {
-    }
+    Serial.println("PN532 Tidak Terdeteksi");
   } else {
     Serial.print("PN532 Firmware Version: ");
     Serial.println(versiondata);
+    return true;
   }
   // Configure board to read RFID tags
   nfc.SAMConfig();
+  delay(500);
 }
 
-void readNFC() {
+void readRFID() {
   // Wait for an ISO14443A type cards (Mifare, etc.). When one is found
   // 'uid' will be populated with the UID, and uidLength will indicate
   // if it's a 4-byte or 7-byte UID
