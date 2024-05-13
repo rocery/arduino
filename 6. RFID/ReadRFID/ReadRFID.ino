@@ -91,7 +91,7 @@ void setup() {
 
   // Setup RFID
   if (setupPN532(0) && setupPN532(1)) {
-    Serial.println("Inisialisasi PN532 berhasil");
+    Serial.println("Inisialisasi PN532 Berhasil");
   } else {
     Serial.println("Inisialisasi PN532 Gagal");
     Serial.println("Alat Tidak Bisa Digunakan");
@@ -102,10 +102,10 @@ void setup() {
     }
   }
 
+  //Setup SD Card
+
   //Setup WiFi
   wifiNtpSetup();
-
-  //Setup SD Card
 }
 
 void loop() {
@@ -227,5 +227,8 @@ void wifiNtpSetup() {
       Serial.println("Getting Date/Time");
     }
   }
+}
 
+void setupSDCard() {
+  
 }
