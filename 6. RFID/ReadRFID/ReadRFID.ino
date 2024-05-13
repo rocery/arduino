@@ -73,40 +73,45 @@ const long gmtOffsetSec = 7 * 3600;  // Karena Bekasi ada di GMT+7, maka Offset 
 const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat;
 int year, month, day, hour, minute, second;
+bool ntpStatus;
 
 // == Data Send/Get ==
 bool sendStatus;
 String postData;
-const String api = "http://192.168.7.223/counter_hit_api/getDataLastCounter.php?";
+const String api = "http://192.168.7.223/rfid_api/sendDataRFID.php?";
 
 // == SD Card ==
 String line, logName, logData;
 String dateTimeSD, productSelectedSD, counterSD, ipAddressSD;
 bool statusSD, readStatusSD, insertLastLineSDCardStatus;
 
-void setup(void) {
+void setup() {
   Serial.begin(115200);
   Wire.begin();
 
-  if(setupPN532(0) && setupPN532(1)) {
+  // Setup RFID
+  if (setupPN532(0) && setupPN532(1)) {
     Serial.println("Inisialisasi PN532 berhasil");
   } else {
-    Serial.println("Inisialisasi PN532 gagal");
-    Serial.println("Alat tidak bisa digunakan");
-    Serial.println("Periksa sensor PN532");
-    while(1) {
+    Serial.println("Inisialisasi PN532 Gagal");
+    Serial.println("Alat Tidak Bisa Digunakan");
+    Serial.println("Periksa Sensor PN532");
+    while (1) {
       Serial.print(".");
       // ledFDIDFailSetup();
     }
   }
 
-  Serial.println("Waiting for an NFC Tag...");
+  //Setup WiFi
+  wifiNtpSetup();
+
+  //Setup SD Card
 }
 
 void loop() {
 }
 
-bool setupPN532(int bus_TCA9548A) {
+bool setupPN532(uint8_t bus_TCA9548A) {
   TCA9548A(bus_TCA9548A);
   Serial.print("Inisialisasi PN532 bus : ");
   Serial.println(bus_TCA9548A);
@@ -115,7 +120,8 @@ bool setupPN532(int bus_TCA9548A) {
 
   uint32_t versiondata = nfc.getFirmwareVersion();
   if (!versiondata) {
-    Serial.println("PN532 Tidak Terdeteksi");
+    // Serial.println("PN532 Tidak Terdeteksi");
+    return false;
   } else {
     Serial.print("PN532 Firmware Version: ");
     Serial.println(versiondata);
@@ -126,7 +132,8 @@ bool setupPN532(int bus_TCA9548A) {
   delay(500);
 }
 
-void readRFID() {
+void readRFID(uint8_t bus_TCA9548A) {
+  TCA9548A(bus_TCA9548A);
   // Wait for an ISO14443A type cards (Mifare, etc.). When one is found
   // 'uid' will be populated with the UID, and uidLength will indicate
   // if it's a 4-byte or 7-byte UID
@@ -151,7 +158,7 @@ void readRFID() {
     delay(500);
   } else {
     // Put a delay to avoid too much serial output
-    delay(500);
+    delay(100);
   }
 }
 
@@ -160,4 +167,65 @@ void TCA9548A(uint8_t bus) {
   Wire.write(1 << bus);
   Wire.endTransmission();
   // Serial.println(bus);
+}
+
+bool getLocalTime() {
+  /* Fungsi bertujuan menerima update waktu
+     lokal dari ntp.pool.org */
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    Serial.println("NTP Gagal");
+    return false;
+  } else {
+    char timeStringBuff[50];
+    strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    dateTime = String(timeStringBuff);
+
+    // Save time data to variabel
+    year = timeinfo.tm_year + 1900;
+    month = timeinfo.tm_mon + 1;
+    day = timeinfo.tm_mday;
+    hour = timeinfo.tm_hour;
+    minute = timeinfo.tm_min;
+    second = timeinfo.tm_sec;
+    // YYYY-MM-DD
+    dateFormat = String(year) + '-' + String(month) + '-' + String(day);
+    // hh:mm:ss
+    timeFormat = String(hour) + ':' + String(minute) + ':' + String(second);
+
+    return true;
+  }
+}
+
+void wifiNtpSetup() {
+  wifiMulti.addAP(ssid_a, password_a);
+  wifiMulti.addAP(ssid_b, password_b);
+  wifiMulti.addAP(ssid_c, password_c);
+  wifiMulti.addAP(ssid_d, password_d);
+  wifiMulti.addAP(ssid_it, password_it);
+
+  if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    Serial.println("STA Failed to configure");
+  }
+
+  wifiMulti.run();
+
+  // NTP
+  configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
+
+  if (wifiMulti.run() != WL_CONNECTED) {
+    wifiMulti.run();
+    Serial.println("WiFi Disconnected");
+    Serial.println("Date/Time Error");
+    delay(5000);
+
+  } else {
+    int tryNTP = 0;
+    while (!getLocalTime() && tryNTP <= 2) {  
+      tryNTP++;
+      delay(50);
+      Serial.println("Getting Date/Time");
+    }
+  }
+
 }
