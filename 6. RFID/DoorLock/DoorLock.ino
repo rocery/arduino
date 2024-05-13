@@ -44,6 +44,7 @@ void TCA9548A(uint8_t bus) {
 }
 
 void readNFC() {
+  nfc.setPassiveActivationRetries(0x11);
   if (!nfc.tagPresent()) {
     Serial.println("False");
   } else {
