@@ -1,3 +1,5 @@
+
+
 /*
   V. 0.0.2
   Update Terakhir : 13-05-2024
@@ -5,6 +7,8 @@
   PENTING
   1. Harus menggunakan Dual Core Micro Controller
   2. Kartu RFID yang digunakan adalah Mifare ISO14443A
+  3. Library SD harus dideklarasikan secara lengkap dan pertama ditulis,
+     Jika tidak akan bermasalah dengan library PN532
 
   Komponen:
   1. Micro Controller : ESP32
@@ -15,33 +19,33 @@
 
 
 */
-
 // == Deklarasi semua Library yang digunakan ==
+// Library SD Card Deklarasikan pertama sebelum PN532
+#include <SD.h>
+#include <sd_defines.h>
+#include <sd_diskio.h>
+#include <FS.h>
+#include <FSImpl.h>
+#include <vfs_api.h>
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
 #include <Wire.h>
-#include <Adafruit_PN532.h>
-#include "FS.h"
-#include "SD.h"
+#include <PN532_I2C.h>
+#include <PN532.h>
+#include <NfcAdapter.h>
 #include "time.h"
 
 const String deviceName = "Door Lock Sport Park";
 
-// PIN I2C PCA9548A
-#define SDA_PIN 21
-#define SCL_PIN 22
+// == PN532 ==
+PN532_I2C pn532_i2c(Wire);
+NfcAdapter nfc = NfcAdapter(pn532_i2c);
+String tagId = "None";
+byte nuidPICC[4];
 
 // Adress PCA9548A (A0, A1, A2 == GND)
 #define PCA9548A_address 0x70
-
-Adafruit_PN532 nfc(SDA_PIN, SCL_PIN);
-
-// == PN532 ==
-uint8_t rfidReadStatus;
-uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
-uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
-String uidString = "";                    // String to store UID for further use
 
 // == WiFi Config ==
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
@@ -88,6 +92,14 @@ bool statusSD, readStatusSD, insertLastLineSDCardStatus;
 void setup() {
   Serial.begin(115200);
   Wire.begin();
+  pinMode(32, OUTPUT);
+  
+  // digitalWrite(32, HIGH);
+  // delay(500);
+  // digitalWrite(32, LOW);
+  // delay(500);
+  // digitalWrite(32, HIGH);
+  // delay(500);
 
   // Setup RFID
   if (setupPN532(0) && setupPN532(1)) {
@@ -102,6 +114,15 @@ void setup() {
     }
   }
 
+  if (!SD.begin()) {
+    Serial.println("Inisialisasi SD Card Gagal");
+  } else {
+    digitalWrite(32, HIGH);
+    delay(1000);
+    digitalWrite(32, LOW);
+    delay(1000);
+  }
+
   //Setup SD Card
 
   //Setup WiFi
@@ -109,6 +130,8 @@ void setup() {
 }
 
 void loop() {
+  readRFID(0);
+  readRFID(1);
 }
 
 bool setupPN532(uint8_t bus_TCA9548A) {
@@ -116,51 +139,58 @@ bool setupPN532(uint8_t bus_TCA9548A) {
   Serial.print("Inisialisasi PN532 bus : ");
   Serial.println(bus_TCA9548A);
   nfc.begin();
-  nfc.setPassiveActivationRetries(0x10);
-
-  uint32_t versiondata = nfc.getFirmwareVersion();
-  if (!versiondata) {
-    // Serial.println("PN532 Tidak Terdeteksi");
+  if (!nfc.status()) {
     return false;
   } else {
-    Serial.print("PN532 Firmware Version: ");
-    Serial.println(versiondata);
     return true;
   }
-  // Configure board to read RFID tags
-  nfc.SAMConfig();
   delay(500);
 }
 
 void readRFID(uint8_t bus_TCA9548A) {
   TCA9548A(bus_TCA9548A);
-  // Wait for an ISO14443A type cards (Mifare, etc.). When one is found
-  // 'uid' will be populated with the UID, and uidLength will indicate
-  // if it's a 4-byte or 7-byte UID
-  rfidReadStatus = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
-
-  if (rfidReadStatus) {
-    Serial.println("Found an NFC tag!");
-    Serial.print("UID Length: ");
-    Serial.print(uidLength, DEC);
-    Serial.println(" bytes");
-    Serial.print("UID Value: ");
-    for (uint8_t i = 0; i < uidLength; i++) {
-      Serial.print(" 0x");
-      Serial.print(uid[i], HEX);
-      uidString += String(uid[i], HEX);  // Append each byte of the UID to the uidString
-    }
-    Serial.println("");
-    Serial.print("UID String: ");
-    Serial.println(uidString);  // Display the complete UID string
-
-    // Wait 1 second before continuing
-    delay(500);
+  Serial.print("Get tagID dari RFID ");
+  Serial.println(bus_TCA9548A);
+  if (!nfc.tagPresent(1)) {
+    Serial.println("tag RFID Tidak terbaca");
   } else {
-    // Put a delay to avoid too much serial output
-    delay(100);
+    NfcTag tag = nfc.read();
+    // tag.print();
+    tagId = tag.getUidString();
+    Serial.println(tagId);
   }
+  delay(100);
 }
+
+// void readRFID(uint8_t bus_TCA9548A) {
+//   TCA9548A(bus_TCA9548A);
+//   // Wait for an ISO14443A type cards (Mifare, etc.). When one is found
+//   // 'uid' will be populated with the UID, and uidLength will indicate
+//   // if it's a 4-byte or 7-byte UID
+//   rfidReadStatus = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
+
+//   if (rfidReadStatus) {
+//     Serial.println("Found an NFC tag!");
+//     Serial.print("UID Length: ");
+//     Serial.print(uidLength, DEC);
+//     Serial.println(" bytes");
+//     Serial.print("UID Value: ");
+//     for (uint8_t i = 0; i < uidLength; i++) {
+//       Serial.print(" 0x");
+//       Serial.print(uid[i], HEX);
+//       uidString += String(uid[i], HEX);  // Append each byte of the UID to the uidString
+//     }
+//     Serial.println("");
+//     Serial.print("UID String: ");
+//     Serial.println(uidString);  // Display the complete UID string
+
+//     // Wait 1 second before continuing
+//     delay(500);
+//   } else {
+//     // Put a delay to avoid too much serial output
+//     delay(100);
+//   }
+// }
 
 void TCA9548A(uint8_t bus) {
   Wire.beginTransmission(PCA9548A_address);
@@ -221,7 +251,7 @@ void wifiNtpSetup() {
 
   } else {
     int tryNTP = 0;
-    while (!getLocalTime() && tryNTP <= 2) {  
+    while (!getLocalTime() && tryNTP <= 2) {
       tryNTP++;
       delay(50);
       Serial.println("Getting Date/Time");
@@ -230,5 +260,4 @@ void wifiNtpSetup() {
 }
 
 void setupSDCard() {
-  
 }

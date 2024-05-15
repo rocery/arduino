@@ -27,6 +27,7 @@ class NfcAdapter {
         ~NfcAdapter(void);
         void begin(boolean verbose=true);
         boolean tagPresent(unsigned long timeout=0); // tagAvailable
+        boolean status();
         NfcTag read();
         boolean write(NdefMessage& ndefMessage);
         // erase tag by writing an empty NDEF record

@@ -32,6 +32,21 @@ void NfcAdapter::begin(boolean verbose)
     shield->SAMConfig();
 }
 
+boolean NfcAdapter::status()
+{
+	uint32_t versiondata = shield->getFirmwareVersion();
+
+    if (! versiondata)
+    {
+        return false;
+    }
+
+    else 
+    {
+    	return true;
+    }
+}
+
 boolean NfcAdapter::tagPresent(unsigned long timeout)
 {
     uint8_t success;
