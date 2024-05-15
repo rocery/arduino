@@ -1,14 +1,12 @@
-
-
 /*
-  V. 0.0.2
-  Update Terakhir : 13-05-2024
+  V. 0.0.3
+  Update Terakhir : 15-05-2024
 
   PENTING
   1. Harus menggunakan Dual Core Micro Controller
   2. Kartu RFID yang digunakan adalah Mifare ISO14443A
-  3. Library SD harus dideklarasikan secara lengkap dan pertama ditulis,
-     Jika tidak akan bermasalah dengan library PN532
+  3. Library SD harus dideklarasikan secara lengkap dan pertama dideklarasikan,
+     Jika tidak, akan bermasalah dengan library PN532
 
   Komponen:
   1. Micro Controller : ESP32
@@ -16,7 +14,6 @@
   3. SD Card
   4. PN532
   5. PCA9548A
-
 
 */
 // == Deklarasi semua Library yang digunakan ==
@@ -85,15 +82,15 @@ String postData;
 const String api = "http://192.168.7.223/rfid_api/sendDataRFID.php?";
 
 // == SD Card ==
-String line, logName, logData;
-String dateTimeSD, productSelectedSD, counterSD, ipAddressSD;
-bool statusSD, readStatusSD, insertLastLineSDCardStatus;
+String logName = "/logRFID.txt";
+String listDataCard = "/dataCardRFID.txt";
+String line, logData, uidRFID_SD, datetime_SD;
 
 void setup() {
   Serial.begin(115200);
   Wire.begin();
   pinMode(32, OUTPUT);
-  
+
   // digitalWrite(32, HIGH);
   // delay(500);
   // digitalWrite(32, LOW);
@@ -161,36 +158,6 @@ void readRFID(uint8_t bus_TCA9548A) {
   }
   delay(100);
 }
-
-// void readRFID(uint8_t bus_TCA9548A) {
-//   TCA9548A(bus_TCA9548A);
-//   // Wait for an ISO14443A type cards (Mifare, etc.). When one is found
-//   // 'uid' will be populated with the UID, and uidLength will indicate
-//   // if it's a 4-byte or 7-byte UID
-//   rfidReadStatus = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
-
-//   if (rfidReadStatus) {
-//     Serial.println("Found an NFC tag!");
-//     Serial.print("UID Length: ");
-//     Serial.print(uidLength, DEC);
-//     Serial.println(" bytes");
-//     Serial.print("UID Value: ");
-//     for (uint8_t i = 0; i < uidLength; i++) {
-//       Serial.print(" 0x");
-//       Serial.print(uid[i], HEX);
-//       uidString += String(uid[i], HEX);  // Append each byte of the UID to the uidString
-//     }
-//     Serial.println("");
-//     Serial.print("UID String: ");
-//     Serial.println(uidString);  // Display the complete UID string
-
-//     // Wait 1 second before continuing
-//     delay(500);
-//   } else {
-//     // Put a delay to avoid too much serial output
-//     delay(100);
-//   }
-// }
 
 void TCA9548A(uint8_t bus) {
   Wire.beginTransmission(PCA9548A_address);
@@ -260,5 +227,108 @@ void wifiNtpSetup() {
 }
 
 void setupSDCard() {
-  
+  if (!SD.begin()) {
+    return false;
+  } else {
+    File logFile = SD.open(logName);
+    File cardFile = SD.open(listDataCard);
+    if (!logFile || file.isDirectory()) {
+      File myLog = SD.open(logName, FILE_WRITE);
+      myLog.println("0,0");
+      myLog.close()
+    } else {
+      Serial.println("Data logName berhasil dimuat");
+    }
+
+    if (!cardFilke || file.isDirectory()) {
+      File myCard = SD.open(listDataCard, FILE_WRITE);
+      myCard.println("0");
+      myCard.close()
+    } else {
+      Serial.println("Data listDataCard berhasil dimuat");
+    }
+    logFile.close();
+    cardFile.close();
+
+    return true;
+  }
+}
+
+bool readLastLineLog(String logName) {
+  File file = SD.open(logName);
+
+  if (!file || file.isDirectory()) {
+    Serial.println("Failed to open file for reading");
+    return false;
+  } else if (file) {
+    while (file.available()) {
+      line = file.readStringUntil('\n');
+    }
+    file.close();
+
+    Serial.print("Data dari SD : ");
+    Serial.println(line);
+    int firstCommaIndex = line.indexOf(',');
+    uid_RFID = line.substring(0, firstCommaIndex);
+
+    // line = line.substring(firstCommaIndex + 1);
+    // int secondCommaIndex = line.indexOf(',');
+    // counterSD = line.substring(0, secondCommaIndex);
+
+    datetime_SD = line.substring(thirdCommaIndex + 1);
+
+    return true;
+  }
+}
+
+bool insertLastLineLog(String logName, String line) {
+  File file = SD.open(logName, FILE_WRITE);
+  if (!file) {
+    Serial.println("Failed to open file for writing");
+    return false;
+  } else if (file) {
+    if (file.println(line)) {
+      Serial.println("Line written");
+    } else {
+      Serial.println("Write failed");
+    }
+    Serial.print("Data ke SD : ");
+    Serial.println(line);
+    file.close();
+
+    return true;
+  }
+}
+
+bool insertCard(String listDataCard, String dataCard) {
+  File file = SD.open(listDataCard, FILE_WRITE);
+
+  if (!file) {
+    Serial.println("File data akses RFID tidak ada");
+    return false;
+  } else {
+    bool doubleRFID = true;
+    while (file.available()) {
+      String line = myFile.readStringUntil('\n');
+      if (line == dataCard) {
+        Serial.println("Data kartu sudah ada");
+        doubleRFID = true;
+        break;
+      }
+    }
+    if (doubleRFID == false) {
+      insertLastLineLog(listDataCard, dataCard);
+    }
+    myFile.close();
+    return true;
+  }
+}
+
+bool readCard(String listDataCard, String dataCard) {
+  File file = SD.open(listDataCard, FILE_WRITE);
+
+  if (!file) {
+    createData(listDataCard);
+  } else {
+  }
 }
