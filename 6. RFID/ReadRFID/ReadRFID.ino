@@ -84,19 +84,11 @@ const String api = "http://192.168.7.223/rfid_api/sendDataRFID.php?";
 // == SD Card ==
 String logName = "/logRFID.txt";
 String listDataCard = "/dataCardRFID.txt";
-String line, logData, uidRFID_SD, datetime_SD;
+String line, logData, uid_RFID_SD, datetime_SD;
 
 void setup() {
   Serial.begin(115200);
   Wire.begin();
-  pinMode(32, OUTPUT);
-
-  // digitalWrite(32, HIGH);
-  // delay(500);
-  // digitalWrite(32, LOW);
-  // delay(500);
-  // digitalWrite(32, HIGH);
-  // delay(500);
 
   // Setup RFID
   if (setupPN532(0) && setupPN532(1)) {
@@ -105,30 +97,41 @@ void setup() {
     Serial.println("Inisialisasi PN532 Gagal");
     Serial.println("Alat Tidak Bisa Digunakan");
     Serial.println("Periksa Sensor PN532");
-    while (1) {
-      Serial.print(".");
-      // ledFDIDFailSetup();
-    }
-  }
-
-  if (!SD.begin()) {
-    Serial.println("Inisialisasi SD Card Gagal");
-  } else {
-    digitalWrite(32, HIGH);
-    delay(1000);
-    digitalWrite(32, LOW);
-    delay(1000);
+    // ledFDIDFailSetup();
   }
 
   //Setup SD Card
+  if (!setupSDCard()) {
+    Serial.println("Inisialisasi SD Card Gagal");
+    // ledSDFail();
+  }
 
   //Setup WiFi
   wifiNtpSetup();
 }
 
 void loop() {
-  readRFID(0);
+  // Jika tag id == master --> insert card
+  if (readRFID(0) && tagId == "master") {
+    delay(1000);
+    // ledInsert
+    Serial.println("Proses mendaftarkan kartu baru");
+    int tryNewInsertCard = 5;
+    while (!readRFID(0) || tryNewInsertCard < 5) {
+      Serial.println("Tempelkan kartu baru");
+    }
+    if (tagId != "master" && tagId != "") {
+      insertCard(listDataCard, tagId);
+    } else {
+      Serial.println("Kartu tidak terbaca");
+    }
+  } else if (readRFID(0) { 
+    // Jika tidak --> cek data di sd card, grand access, masukan log, masukan db
+
+  }
+  
   readRFID(1);
+  //
 }
 
 bool setupPN532(uint8_t bus_TCA9548A) {
@@ -144,17 +147,19 @@ bool setupPN532(uint8_t bus_TCA9548A) {
   delay(500);
 }
 
-void readRFID(uint8_t bus_TCA9548A) {
+bool readRFID(uint8_t bus_TCA9548A) {
   TCA9548A(bus_TCA9548A);
   Serial.print("Get tagID dari RFID ");
   Serial.println(bus_TCA9548A);
   if (!nfc.tagPresent(1)) {
     Serial.println("tag RFID Tidak terbaca");
+    return false;
   } else {
     NfcTag tag = nfc.read();
     // tag.print();
     tagId = tag.getUidString();
     Serial.println(tagId);
+    return true;
   }
   delay(100);
 }
@@ -217,6 +222,7 @@ void wifiNtpSetup() {
     delay(5000);
 
   } else {
+    Serial.println(WiFi.SSID());
     int tryNTP = 0;
     while (!getLocalTime() && tryNTP <= 2) {
       tryNTP++;
@@ -226,24 +232,24 @@ void wifiNtpSetup() {
   }
 }
 
-void setupSDCard() {
+bool setupSDCard() {
   if (!SD.begin()) {
     return false;
   } else {
     File logFile = SD.open(logName);
     File cardFile = SD.open(listDataCard);
-    if (!logFile || file.isDirectory()) {
+    if (!logFile || logFile.isDirectory()) {
       File myLog = SD.open(logName, FILE_WRITE);
       myLog.println("0,0");
-      myLog.close()
+      myLog.close();
     } else {
       Serial.println("Data logName berhasil dimuat");
     }
 
-    if (!cardFilke || file.isDirectory()) {
+    if (!cardFile || cardFile.isDirectory()) {
       File myCard = SD.open(listDataCard, FILE_WRITE);
       myCard.println("0");
-      myCard.close()
+      myCard.close();
     } else {
       Serial.println("Data listDataCard berhasil dimuat");
     }
@@ -269,13 +275,13 @@ bool readLastLineLog(String logName) {
     Serial.print("Data dari SD : ");
     Serial.println(line);
     int firstCommaIndex = line.indexOf(',');
-    uid_RFID = line.substring(0, firstCommaIndex);
+    uid_RFID_SD = line.substring(0, firstCommaIndex);
 
     // line = line.substring(firstCommaIndex + 1);
     // int secondCommaIndex = line.indexOf(',');
     // counterSD = line.substring(0, secondCommaIndex);
 
-    datetime_SD = line.substring(thirdCommaIndex + 1);
+    datetime_SD = line.substring(firstCommaIndex + 1);
 
     return true;
   }
@@ -307,28 +313,46 @@ bool insertCard(String listDataCard, String dataCard) {
     Serial.println("File data akses RFID tidak ada");
     return false;
   } else {
-    bool doubleRFID = true;
+    bool doubleRFID = false;
     while (file.available()) {
-      String line = myFile.readStringUntil('\n');
+      String line = file.readStringUntil('\n');
       if (line == dataCard) {
         Serial.println("Data kartu sudah ada");
         doubleRFID = true;
+        return false;
         break;
       }
     }
     if (doubleRFID == false) {
       insertLastLineLog(listDataCard, dataCard);
+      Serial.println("Kartu baru berhasil disimpan");
+      return true;
     }
-    myFile.close();
-    return true;
+    file.close();
   }
 }
 
 bool readCard(String listDataCard, String dataCard) {
-  File file = SD.open(listDataCard, FILE_WRITE);
+  File file = SD.open(listDataCard);
 
   if (!file) {
-    createData(listDataCard);
+    Serial.println("File data akses RFID tidak ada");
+    return false;
   } else {
+    bool dataRFID = false;
+    while (file.available()) {
+      String line = file.readStringUntil('\n');
+      if (line == dataCard) {
+        Serial.println("Data ditemukan");
+        dataRFID = true;
+        return true;
+        break;
+      }
+    }
+    if (dataRFID == false) {
+      Serial.println("Data akses RFID tidak ada");
+      return false;
+    }
+    file.close();
   }
 }
