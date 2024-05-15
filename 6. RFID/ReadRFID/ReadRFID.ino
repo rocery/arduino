@@ -260,4 +260,5 @@ void wifiNtpSetup() {
 }
 
 void setupSDCard() {
+  
 }
