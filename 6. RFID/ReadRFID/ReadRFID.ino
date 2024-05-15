@@ -14,6 +14,7 @@
   3. SD Card
   4. PN532
   5. PCA9548A
+  6. Relay 5v
 
 */
 // == Deklarasi semua Library yang digunakan ==
@@ -130,6 +131,9 @@ void loop() {
   if (readRFID(0) && tagId == "master") {
     delay(1000);
     // ledInsert
+    digitalWrite(led1, HIGH);
+    digitalWrite(led2, HIGH);
+
     Serial.println("Proses mendaftarkan kartu baru");
     int tryNewInsertCard = 5;
     while (!readRFID(0) || tryNewInsertCard < 5) {
@@ -137,14 +141,18 @@ void loop() {
     }
     if (tagId != "master" && tagId != "") {
       insertCard(listDataCard, tagId);
+      digitalWrite(led1, HIGH);
     } else {
       Serial.println("Kartu tidak terbaca");
+      digitalWrite(led2, HIGH);
     }
   } else if (readRFID(0)) {
     // Jika tidak --> cek data di sd card, grand access, masukan log, masukan db
     if (readCard(listDataCard, tagId)) {
       logData = tagId + String(dateTime);
       // OpenKey
+      openKey();
+      digitalWrite(led1, HIGH);
 
       // Insert Log
       insertLastLineLog(logName, logData);
@@ -156,6 +164,7 @@ void loop() {
       postData = lineData;
       sendLogData(api, postData);
     } else {
+      digitalWrite(led2, HIGH);
       // Jika kartu tidak ada dalam data
       logData = tagId + String(dateTime);
       postData = logData;
@@ -170,6 +179,8 @@ void loop() {
     if (readCard(listDataCard, tagId)) {
       logData = tagId + String(dateTime);
       // OpenKey
+      openKey();
+      digitalWrite(led1, HIGH);
 
       // Insert Log
       insertLastLineLog(logOut, logData);
@@ -181,6 +192,7 @@ void loop() {
       postData = lineData;
       sendLogData(apiOut, postData);
     } else {
+      digitalWrite(led2, HIGH);
       // Jika kartu tidak ada dalam data
       logData = tagId + String(dateTime);
       postData = logData;
@@ -229,7 +241,10 @@ void TCA9548A(uint8_t bus) {
 }
 
 void openKey() {
-
+  digitalWrite(relayPin, HIGH);
+  delay(5000);
+  digitalWrite(relayPin, LOW);
+  delay(500);
 }
 
 bool getLocalTime() {
