@@ -51,7 +51,7 @@ void TCA9548A(uint8_t bus) {
 }
 
 void readNFC() {
-  if (!nfc.tagPresent(1)) {
+  if (!nfc.tagPresent()) {
     Serial.println("False");
   } else {
     NfcTag tag = nfc.read();

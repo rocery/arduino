@@ -35,12 +35,14 @@
 #include "time.h"
 
 const String deviceName = "Door Lock Sport Park";
-
+const String deviceID = "RFID_200";
 // == PN532 ==
 PN532_I2C pn532_i2c(Wire);
 NfcAdapter nfc = NfcAdapter(pn532_i2c);
-String tagId = "None";
+String tagId;
 byte nuidPICC[4];
+String master1 = "23 45 B7 15";
+// String master2 = "73 CB 9B 0E";
 
 // Adress PCA9548A (A0, A1, A2 == GND)
 #define PCA9548A_address 0x70
@@ -54,14 +56,14 @@ byte nuidPICC[4];
 ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
 */
 WiFiMulti wifiMulti;
-const char* ssid_d = "STTB1";
-const char* password_d = "Si4nt4r321";
+const char* ssid_a = "STTB8";
+const char* password_a = "siantar123";
 const char* ssid_b = "MT4";
 const char* password_b = "siantar321";
 const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
-const char* ssid_a = "STTB8";
-const char* password_a = "siantar123";
+const char* ssid_d = "STTB1";
+const char* password_d = "Si4nt4r321";
 const char* ssid_it = "Tester_ITB";
 const char* password_it = "Si4nt4r321";
 
@@ -95,114 +97,6 @@ String logOut = "/logRFIDout.txt";
 String listDataCard = "/dataCardRFID.txt";
 String lineData, logData, uid_RFID_SD, datetime_SD;
 
-void setup() {
-  Serial.begin(115200);
-  Wire.begin();
-
-  pinMode(relayPin, OUTPUT);
-  pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
-
-  // Setup RFID
-  if (setupPN532(0) && setupPN532(1)) {
-    Serial.println("Inisialisasi PN532 Berhasil");
-  } else {
-    Serial.println("Inisialisasi PN532 Gagal");
-    Serial.println("Alat Tidak Bisa Digunakan");
-    Serial.println("Periksa Sensor PN532");
-    // ledFDIDFailSetup();
-  }
-
-  //Setup SD Card
-  if (!setupSDCard()) {
-    Serial.println("Inisialisasi SD Card Gagal");
-    // ledSDFail();
-  }
-
-  //Setup WiFi
-  wifiNtpSetup();
-}
-
-void loop() {
-  getLocalTime();
-  wifiMulti.run();
-
-  // Jika tag id == master --> insert card
-  if (readRFID(0) && tagId == "master") {
-    delay(1000);
-    // ledInsert
-    digitalWrite(led1, HIGH);
-    digitalWrite(led2, HIGH);
-
-    Serial.println("Proses mendaftarkan kartu baru");
-    int tryNewInsertCard = 5;
-    while (!readRFID(0) || tryNewInsertCard < 5) {
-      Serial.println("Tempelkan kartu baru");
-    }
-    if (tagId != "master" && tagId != "") {
-      insertCard(listDataCard, tagId);
-      digitalWrite(led1, HIGH);
-    } else {
-      Serial.println("Kartu tidak terbaca");
-      digitalWrite(led2, HIGH);
-    }
-  } else if (readRFID(0)) {
-    // Jika tidak --> cek data di sd card, grand access, masukan log, masukan db
-    if (readCard(listDataCard, tagId)) {
-      logData = tagId + String(dateTime);
-      // OpenKey
-      openKey();
-      digitalWrite(led1, HIGH);
-
-      // Insert Log
-      insertLastLineLog(logName, logData);
-
-      // readLog
-      readLastLineLog(logName);
-
-      //send Log (line)
-      postData = lineData;
-      sendLogData(api, postData);
-    } else {
-      digitalWrite(led2, HIGH);
-      // Jika kartu tidak ada dalam data
-      logData = tagId + String(dateTime);
-      postData = logData;
-      // Insert Log
-      insertLastLineLogFail(logNameFail, logData);
-      sendLogData(apiFail, postData);
-    }
-  }
-
-  if (readRFID(1)) {
-    // Jika tidak --> cek data di sd card, grand access, masukan log, masukan db
-    if (readCard(listDataCard, tagId)) {
-      logData = tagId + String(dateTime);
-      // OpenKey
-      openKey();
-      digitalWrite(led1, HIGH);
-
-      // Insert Log
-      insertLastLineLog(logOut, logData);
-
-      // readLog
-      readLastLineLog(logOut);
-
-      //send Log (line)
-      postData = lineData;
-      sendLogData(apiOut, postData);
-    } else {
-      digitalWrite(led2, HIGH);
-      // Jika kartu tidak ada dalam data
-      logData = tagId + String(dateTime);
-      postData = logData;
-      // Insert Log
-      insertLastLineLogFail(logName, logData);
-      sendLogData(apiFail, postData);
-    }
-  }
-}
-
 bool setupPN532(uint8_t bus_TCA9548A) {
   TCA9548A(bus_TCA9548A);
   Serial.print("Inisialisasi PN532 bus : ");
@@ -220,7 +114,7 @@ bool readRFID(uint8_t bus_TCA9548A) {
   TCA9548A(bus_TCA9548A);
   Serial.print("Get tagID dari RFID ");
   Serial.println(bus_TCA9548A);
-  if (!nfc.tagPresent(1)) {
+  if (!nfc.tagPresent(50)) {
     Serial.println("tag RFID Tidak terbaca");
     return false;
   } else {
@@ -312,25 +206,47 @@ bool setupSDCard() {
   if (!SD.begin()) {
     return false;
   } else {
-    File logFile = SD.open(logName);
-    File cardFile = SD.open(listDataCard);
-    if (!logFile || logFile.isDirectory()) {
-      File myLog = SD.open(logName, FILE_WRITE);
-      myLog.println("0,0");
-      myLog.close();
-    } else {
-      Serial.println("Data logName berhasil dimuat");
-    }
+  //   File logFile = SD.open(logName);
+  //   File cardFile = SD.open(listDataCard);
+  //   File failFile = SD.open(logNameFail);
+  //   File outFile = SD.open(logOut);
 
-    if (!cardFile || cardFile.isDirectory()) {
-      File myCard = SD.open(listDataCard, FILE_WRITE);
-      myCard.println("0");
-      myCard.close();
-    } else {
-      Serial.println("Data listDataCard berhasil dimuat");
-    }
-    logFile.close();
-    cardFile.close();
+  //   if (!logFile || logFile.isDirectory()) {
+  //     File myLog = SD.open(logName, FILE_WRITE);
+  //     myLog.println("0,0");
+  //     myLog.close();
+  //   } else {
+  //     Serial.println("Data logName berhasil dimuat");
+  //   }
+
+  //   if (!cardFile || cardFile.isDirectory()) {
+  //     File myCard = SD.open(listDataCard, FILE_WRITE);
+  //     myCard.println("0");
+  //     myCard.close();
+  //   } else {
+  //     Serial.println("Data listDataCard berhasil dimuat");
+  //   }
+
+  //   if (!failFile || failFile.isDirectory()) {
+  //     File myFail = SD.open(logNameFail, FILE_WRITE);
+  //     myFail.println("0,0");
+  //     myFail.close();
+  //   } else {
+  //     Serial.println("Data logName berhasil dimuat");
+  //   }
+
+  //   if (!outFile || outFile.isDirectory()) {
+  //     File myOut = SD.open(logOut, FILE_WRITE);
+  //     myOut.println("0,0");
+  //     myOut.close();
+  //   } else {
+  //     Serial.println("Data logName berhasil dimuat");
+  //   }
+
+  //   logFile.close();
+  //   cardFile.close();
+  //   failFile.close();
+  //   outFile.close();
 
     return true;
   }
@@ -404,9 +320,9 @@ bool insertLastLineLogFail(String logNameFail, String line) {
 bool insertCard(String listDataCard, String dataCard) {
   File file = SD.open(listDataCard, FILE_WRITE);
 
-  if (!file) {
-    Serial.println("File data akses RFID tidak ada");
-    return false;
+    if (!file) {
+      Serial.println("File data akses RFID tidak ada");
+      return false;
   } else {
     bool doubleRFID = false;
     String dataWrite;
@@ -440,9 +356,10 @@ bool readCard(String listDataCard, String dataCard) {
     Serial.println("File data akses RFID tidak ada");
     return false;
   } else {
-    bool dataRFID = false;
+    bool dataRFID;
     while (file.available()) {
       String line = file.readStringUntil('\n');
+      Serial.println(line);
       if (line == dataCard) {
         Serial.println("Data ditemukan");
         dataRFID = true;
@@ -462,16 +379,127 @@ void sendLogData(String API, String Data) {
   /* Mengirim data ke local server
      Ganti isi variabel api sesuai dengan form php
   */
-  HTTPClient http;
-  http.begin(API);
-  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-  int httpResponseCode = http.POST(Data);
+  // HTTPClient http;
+  // http.begin(API);
+  // http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  // int httpResponseCode = http.POST(Data);
 
-  if (httpResponseCode > 0) {
-    String response = http.getString();
-    Serial.println(response);
+  // if (httpResponseCode > 0) {
+  //   String response = http.getString();
+  //   Serial.println(response);
+  // } else {
+  //   Serial.print("Error on sending POST");
+  // }
+  // http.end();
+}
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin();
+
+  pinMode(relayPin, OUTPUT);
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
+
+  // Setup RFID
+  if (setupPN532(0) && setupPN532(1)) {
+    Serial.println("Inisialisasi PN532 Berhasil");
   } else {
-    Serial.print("Error on sending POST");
+    Serial.println("Inisialisasi PN532 Gagal");
+    Serial.println("Alat Tidak Bisa Digunakan");
+    Serial.println("Periksa Sensor PN532");
+    // ledFDIDFailSetup();
   }
-  http.end();
+
+  //Setup SD Card
+  if (!setupSDCard()) {
+    Serial.println("Inisialisasi SD Card Gagal");
+    // ledSDFail();
+  }
+
+  //Setup WiFi
+  wifiNtpSetup();
+}
+
+void loop() {
+  getLocalTime();
+  wifiMulti.run();
+  ip_Address = WiFi.localIP().toString();
+
+  // Jika tag id == master --> insert card
+  if (readRFID(0)) {
+    if (tagId == "23 45 B7 15") {
+      delay(1000);
+      // ledInsert
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+
+      Serial.println("Proses mendaftarkan kartu baru");
+      int tryNewInsertCard = 5;
+      while (!readRFID(0)/* || tryNewInsertCard < 5*/) {
+        Serial.println("Tempelkan kartu baru");
+      }
+      if (tagId != "23 45 B7 15" && tagId != "") {
+        insertCard(listDataCard, tagId);
+        // digitalWrite(led1, HIGH);
+      } else {
+        Serial.println("Kartu tidak terbaca");
+        // digitalWrite(led2, HIGH);
+      }
+    } else {
+      // Jika tidak --> cek data di sd card, grand access, masukan log, masukan db
+      if (readCard(listDataCard, tagId)) {
+        logData = tagId + String(dateTime);
+        // OpenKey
+        openKey();
+        digitalWrite(led1, HIGH);
+
+        // Insert Log
+        insertLastLineLog(logName, logData);
+
+        // readLog
+        readLastLineLog(logName);
+
+        //send Log (line)
+        postData = "deviceName=" + deviceName + "&data=" + lineData + "&ip_address=" + ip_Address;
+        sendLogData(api, postData);
+      } else {
+        digitalWrite(led2, HIGH);
+        // Jika kartu tidak ada dalam data
+        logData = tagId + String(dateTime);
+        postData = "deviceName=" + deviceName + "&tagId=" + tagId + "&dateTime=" + String(dateTime) + "&ip_address=" + ip_Address;
+        // Insert Log
+        insertLastLineLogFail(logNameFail, logData);
+        sendLogData(apiFail, postData);
+      }
+    }
+  }
+
+  if (readRFID(1)) {
+    // Jika tidak --> cek data di sd card, grand access, masukan log, masukan db
+    if (readCard(listDataCard, tagId)) {
+      logData = tagId + String(dateTime);
+      // OpenKey
+      openKey();
+      digitalWrite(led1, HIGH);
+
+      // Insert Log
+      insertLastLineLog(logOut, logData);
+
+      // readLog
+      readLastLineLog(logOut);
+
+      //send Log (line)
+      postData = "deviceName=" + deviceName + "&tagId=" + tagId + "&dateTime=" + String(dateTime) + "&ip_address=" + ip_Address;
+      sendLogData(apiOut, postData);
+    } else {
+      digitalWrite(led2, HIGH);
+      // Jika kartu tidak ada dalam data
+      logData = tagId + String(dateTime);
+      postData = "deviceName=" + deviceName + "&tagId=" + tagId + "&dateTime=" + String(dateTime) + "&ip_address=" + ip_Address;
+      // Insert Log
+      insertLastLineLogFail(logName, logData);
+      sendLogData(apiFail, postData);
+    }
+  }
 }
