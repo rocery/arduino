@@ -194,7 +194,7 @@ bool insertCard(String dataFile, String dataCard) {
     Serial.println("File data akses RFID tidak ada");
     return false;
   } else {
-    if (data.println(dataCard)) {
+    if (data.print(dataCard)) {
       Serial.println("Kartu baru berhasil disimpan");
       return true;
     } else {
@@ -204,8 +204,24 @@ bool insertCard(String dataFile, String dataCard) {
   }
 }
 
+// void readFile(fs::FS& fs, String path) {
+//   Serial.printf("Reading file: %s\n", path);
+
+//   File file = fs.open(path);
+//   if (!file) {
+//     Serial.println("Failed to open file for reading");
+//     return;
+//   }
+
+//   Serial.print("Read from file: ");
+//   while (file.available()) {
+//     Serial.println(file.read());
+//   }
+//   file.close();
+// }
+
 bool checkCard(String dataFile, String dataCard) {
-  File data = SD.open(dataFile, FILE_READ);
+  File data = SD.open(dataFile, FILE_WRITE);
   bool dataRFID = false;
 
   if (!data) {
@@ -342,8 +358,10 @@ void loop() {
     getLocalTime();
   }
 
+  // readFile(SD, listDataCard);
+
   if (readRFID()) {
-    if (tagId = "23 45 B7 15") {
+    if (tagId == "23 45 B7 15") {
       digitalWrite(led1, HIGH);
       digitalWrite(led2, HIGH);
       delay(2000);

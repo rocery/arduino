@@ -20,7 +20,7 @@ PZEM004Tv30 pzem(12, 13);
 // SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
 // PZEM004Tv30 pzem(pzemSWSerial);
 // Ganti Adress sesuai nilai yang dibutuhkan
-#define SET_ADDRESS 0x14
+#define SET_ADDRESS 0x15
 
 
 
