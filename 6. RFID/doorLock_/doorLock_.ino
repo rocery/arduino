@@ -41,6 +41,9 @@ const String deviceId = "RFID_200";
 PN532_I2C pn532_i2c(Wire);
 NfcAdapter nfc = NfcAdapter(pn532_i2c);
 
+// Variabel tag RFID
+String payloadAsString = "";
+
 // == Relay/LED/IR ==
 #define irPin 34
 #define relayPin 33
@@ -115,8 +118,6 @@ bool readRFID() {
         byte payload[payloadLength];
         record.getPayload(payload);
 
-        // Assuming the payload is ASCII text
-        String payloadAsString = "";
         for (int c = 1; c < payloadLength; c++) {
           payloadAsString += (char)payload[c];
         }
@@ -126,8 +127,13 @@ bool readRFID() {
         }
       }
     }
+
+    return true;
+  } else {
+    Serial.println("\nKatru RFID/NFC tidak terbaca");
+    return false;
   }
-  delay(1000);
+  // delay(1000);
 }
 
 void setup() {
