@@ -131,6 +131,8 @@ void loop(void) {
 
     // Make sure the authentification process didn't fail
     if (!success) {
+
+      
       Serial.println("Authentication failed.");
       return;
     }

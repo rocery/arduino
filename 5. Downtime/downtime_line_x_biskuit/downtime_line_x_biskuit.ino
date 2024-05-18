@@ -241,6 +241,14 @@ void loop() {
     digitalWrite(ledPin, HIGH);
   } else {
     digitalWrite(ledPin, LOW);
+    delay(300);
+    digitalWrite(ledPin, HIGH);
+    delay(300);
+    digitalWrite(ledPin, LOW);
+    delay(300);
+    digitalWrite(ledPin, HIGH);
+    delay(300);
+    digitalWrite(ledPin, LOW);
   }
 
   // if (isnan(pzem12Power)) {
