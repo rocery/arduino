@@ -42,7 +42,7 @@ PN532_I2C pn532_i2c(Wire);
 NfcAdapter nfc = NfcAdapter(pn532_i2c);
 
 // Variabel tag RFID
-String payloadAsString = "";
+String payloadAsString, tagId;
 
 // == Relay/LED/IR ==
 #define irPin 34
@@ -83,13 +83,14 @@ String dateTime;
 // == SD Card ==
 String logIn = "/logRFID.txt";
 String logFail = "/logRFID.txt";
-String uid_RFID_SD, datetime_SD;
+String logData, uid_RFID_SD, datetime_SD;
 
 // == Data Send/Get ==
 String postData;
 const String api = "http://192.168.7.223/rfid_api/sendDataRFID.php";
 
 bool setupPN532() {
+  Serial.println("== Inisialisasi PN532 ==");
   nfc.begin();
   if (!nfc.status()) {
     return false;
@@ -106,7 +107,8 @@ bool readRFID() {
     Serial.print("Tag Type: ");
     Serial.println(tag.getTagType());
     Serial.print("UID: ");
-    Serial.println(tag.getUidString());
+    tagId = tag.getUidString();
+    Serial.println(tagId);
     tag.print();
 
     if (tag.hasNdefMessage()) {  // Check if the tag has an NDEF message
@@ -122,9 +124,6 @@ bool readRFID() {
           payloadAsString += (char)payload[c];
         }
         Serial.println(payloadAsString);
-        if (payloadAsString == "ACC") {
-          Serial.println("Success");
-        }
       }
     }
 
@@ -136,10 +135,189 @@ bool readRFID() {
   // delay(1000);
 }
 
+bool getLocalTime() {
+  /* Fungsi bertujuan menerima update waktu
+     lokal dari ntp.pool.org */
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    Serial.println("NTP Gagal");
+    return false;
+  } else {
+    char timeStringBuff[50];
+    strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    dateTime = String(timeStringBuff);
+
+    return true;
+  }
+}
+
+void wifiNtpSetup() {
+  wifiMulti.addAP(ssid_a, password_a);
+  wifiMulti.addAP(ssid_b, password_b);
+  wifiMulti.addAP(ssid_c, password_c);
+  wifiMulti.addAP(ssid_d, password_d);
+  wifiMulti.addAP(ssid_it, password_it);
+
+  if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    Serial.println("STA Failed to configure");
+  }
+
+  wifiMulti.run();
+
+  // NTP
+  configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
+
+  if (wifiMulti.run() != WL_CONNECTED) {
+    wifiMulti.run();
+    Serial.println("WiFi Disconnected");
+    Serial.println("Date/Time Error");
+    delay(5000);
+
+  } else {
+    Serial.println(WiFi.SSID());
+    int tryNTP = 0;
+    while (!getLocalTime() && tryNTP <= 2) {
+      tryNTP++;
+      delay(50);
+      Serial.println("Getting Date/Time");
+    }
+  }
+}
+
+bool insertLastLineLog(String path, String data) {
+  File file = SD.open(logName, FILE_WRITE);
+  if (!file) {
+    Serial.println("Gagal membuka file");
+    return false;
+  } else if (file) {
+    if (file.println(data)) {
+      Serial.println("Data disimpan");
+      Serial.print("Data ke SD : ");
+      Serial.println(data);
+      return true;
+    } else {
+      Serial.println("Data gagal disimpan");
+      return false;
+    }
+
+    file.close();
+  }
+}
+
+bool readLastLineSDCard(String path) {
+  File file = SD.open(path);
+  String line;
+  if (!file || file.isDirectory()) {
+    Serial.println("Gagal membuka file");
+    return false;
+  } else if (file || file.isDirectory()) {
+    while (file.available()) {
+      line = file.readStringUntil('\n');
+    }
+    file.close();
+    Serial.print("Data dari SD : ");
+    Serial.println(line);
+    int firstCommaIndex = line.indexOf(',');
+    String productSelectedSD = line.substring(0, firstCommaIndex);
+
+    line = line.substring(firstCommaIndex + 1);
+    int secondCommaIndex = line.indexOf(',');
+    uid_RFID_SD = line.substring(0, secondCommaIndex);
+
+    line = line.substring(secondCommaIndex + 1);
+    int thirdCommaIndex = line.indexOf(',');
+    datetime_SD = line.substring(0, thirdCommaIndex);
+
+    String ipAddressSD = line.substring(thirdCommaIndex + 1);
+
+    return true;
+  }
+}
+
+void sendLogData(String API, String data) {
+  /* Mengirim data ke local server
+     Ganti isi variabel api sesuai dengan form php
+  */
+  HTTPClient http;
+  http.begin(API);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  int httpResponseCode = http.POST(data);
+
+  if (httpResponseCode > 0) {
+    String response = http.getString();
+    Serial.println(response);
+  } else {
+    Serial.print("Error on sending POST");
+  }
+  http.end();
+}
+
 void setup() {
-  // put your setup code here, to run once:
+  Serial.begin(115200);
+  Wire.begin();
+
+  pinMode(irPin, INPUT_PULLUP);
+  pinMode(relayPin, OUTPUT);
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
+
+  // Setup RFID
+  if (!setupPN532()) {
+    Serial.println("Inisialisasi PN532 Gagal");
+    Serial.println("Alat Tidak Bisa Digunakan");
+    Serial.println("Periksa Sensor PN532");
+  } else {
+    Serial.println("Inisialisasi PN532 Berhasil");
+  }
+
+  // Setup SD
+  if (!SD.begin()) {
+    Serial.println("Inisialisasi SD Card Gagal");
+  }
+
+  // Setup WiFi
+  wifiNtpSetup();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  getLocalTime();
+  wifiMulti.run();
+  ip_Address = WiFi.localIP().toString();
+
+  if (readRFID()) {
+    if (payloadAsString == "ACC" /*|| payloadAsString == "MASTER"*/) {
+      Serial.println("Akses diterima");
+      // Open Key
+
+      // Save Log
+      Serial.println("Proses simpan log");
+      logData = deviceName + "," + tagId + "," + dateTime + "," + ip_Address;
+
+      if (insertLastLineLog(logIn, logData)) {
+        if (readLastLineSDCard(logIn)) {
+          postData = "device_name=" + deviceName + "&tag_id=" + uid_RFID_SD + "&date=" + datetime_SD + "&ip_address=" + ip_Address;
+        } else {
+          postData = "device_name=" + deviceName + "&tag_id=" + tagId + "&date=" + dateTime + "&ip_address=" + ip_Address;
+        }
+      } else {
+        postData = "device_name=" + deviceName + "&tag_id=" + tagId + "&date=" + dateTime + "&ip_address=" + ip_Address;
+      }
+      sendLogData(api, postData);
+    } else {
+      Serial.println("Akses ditolak");
+      Serial.println("Proses simpan log");
+      logData = deviceName + "," + tagId + "," + dateTime + "," + ip_Address;
+
+      if (insertLastLineLog(logIn, logData)) {
+        if (readLastLineSDCard(logIn)) {
+          postData = "device_name=" + deviceName + "&tag_id=" + uid_RFID_SD + "&date=" + datetime_SD + "&ip_address=" + ip_Address;
+        } else {
+          postData = "device_name=" + deviceName + "&tag_id=" + tagId + "&date=" + dateTime + "&ip_address=" + ip_Address;
+        }
+      } else {
+        postData = "device_name=" + deviceName + "&tag_id=" + tagId + "&date=" + dateTime + "&ip_address=" + ip_Address;
+      }
+    }
+  } else {
+  }
 }
