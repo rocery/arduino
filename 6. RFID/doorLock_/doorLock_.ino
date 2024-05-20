@@ -33,9 +33,15 @@
 #include <PN532.h>
 #include <NfcAdapter.h>
 #include "time.h"
+#include <LiquidCrystal_I2C.h>
 
 const String deviceName = "Door Lock Sports Park";
 const String deviceId = "RFID_200";
+
+/* Mendeklarasikan LCD dengan alamat I2C 0x27
+   Total kolom 20
+   Total baris 4 */
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 // == PN532 ==
 PN532_I2C pn532_i2c(Wire);
@@ -173,15 +179,21 @@ void wifiNtpSetup() {
     wifiMulti.run();
     Serial.println("WiFi Disconnected");
     Serial.println("Date/Time Error");
+    lcd.setCursor(1, 2);
+    lcd.print("WiFi Error");
     delay(5000);
 
   } else {
+    lcd.setCursor(1, 2);
+    lcd.print("WiFi Normal");
     Serial.println(WiFi.SSID());
     int tryNTP = 0;
     while (!getLocalTime() && tryNTP <= 2) {
       tryNTP++;
       delay(50);
       Serial.println("Getting Date/Time");
+      lcd.setCursor(1, 3);
+      lcd.print("Proses NTP");
     }
   }
 }
@@ -266,27 +278,53 @@ void setup() {
   Serial.begin(115200);
   Wire.begin();
 
+  // LCD
+  lcd.init();
+  lcd.clear();
+  lcd.backlight();
+
   pinMode(irPin, INPUT_PULLUP);
   pinMode(relayPin, OUTPUT);
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);
+
+  lcd.setCursor(1, 0);
+  lcd.print("Inisialisasi RFID");
+  lcd.setCursor(1, 1);
+  lcd.print("Inisialisasi SDCard");
+  lcd.setCursor(1, 2);
+  lcd.print("Inisialisasi WiFi");
+  lcd.setCursor(1, 3);
+  lcd.print("Inisialisasi NTP");
 
   // Setup RFID
   if (!setupPN532()) {
     Serial.println("Inisialisasi PN532 Gagal");
     Serial.println("Alat Tidak Bisa Digunakan");
     Serial.println("Periksa Sensor PN532");
+    lcd.setCursor(1, 0);
+    lcd.print("RFID Error");
   } else {
-    Serial.println("Inisialisasi PN532 Berhasil");
+    lcd.setCursor(1, 0);
+    lcd.print("Inisialisasi RFID");
+    Serial.println("RFID Normal");
   }
 
   // Setup SD
   if (!SD.begin()) {
     Serial.println("Inisialisasi SD Card Gagal");
+    lcd.setCursor(1, 1);
+    lcd.print("SDCard Error");
+  } else {
+    lcd.setCursor(1, 1);
+    lcd.print("SDCard Normal");
   }
 
   // Setup WiFi
   wifiNtpSetup();
+
+  delay(1000);
+  lcd.clear();
 }
 
 void loop() {
