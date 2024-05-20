@@ -88,6 +88,7 @@ String logData, uid_RFID_SD, datetime_SD;
 // == Data Send/Get ==
 String postData;
 const String api = "http://192.168.7.223/rfid_api/sendDataRFID.php";
+const String apiFail = "http://192.168.7.223/rfid_api/sendDataRFIDFail.php";
 
 bool setupPN532() {
   Serial.println("== Inisialisasi PN532 ==");
@@ -111,6 +112,7 @@ bool readRFID() {
     Serial.println(tagId);
     tag.print();
 
+    payloadAsString = "";
     if (tag.hasNdefMessage()) {  // Check if the tag has an NDEF message
       NdefMessage message = tag.getNdefMessage();
       Serial.print("Message: ");
@@ -185,7 +187,7 @@ void wifiNtpSetup() {
 }
 
 bool insertLastLineLog(String path, String data) {
-  File file = SD.open(logName, FILE_WRITE);
+  File file = SD.open(path, FILE_WRITE);
   if (!file) {
     Serial.println("Gagal membuka file");
     return false;
@@ -252,6 +254,14 @@ void sendLogData(String API, String data) {
   http.end();
 }
 
+void openKey() {
+  Serial.println("Kunci dibuka");
+  digitalWrite(relayPin, HIGH);
+  delay(5000);
+  digitalWrite(relayPin, LOW);
+  delay(500);
+}
+
 void setup() {
   Serial.begin(115200);
   Wire.begin();
@@ -285,9 +295,9 @@ void loop() {
   ip_Address = WiFi.localIP().toString();
 
   if (readRFID()) {
-    if (payloadAsString == "ACC" /*|| payloadAsString == "MASTER"*/) {
+    if (payloadAsString == "ACC") {
       Serial.println("Akses diterima");
-      // Open Key
+      openKey();
 
       // Save Log
       Serial.println("Proses simpan log");
@@ -308,8 +318,8 @@ void loop() {
       Serial.println("Proses simpan log");
       logData = deviceName + "," + tagId + "," + dateTime + "," + ip_Address;
 
-      if (insertLastLineLog(logIn, logData)) {
-        if (readLastLineSDCard(logIn)) {
+      if (insertLastLineLog(logFail, logData)) {
+        if (readLastLineSDCard(logFail)) {
           postData = "device_name=" + deviceName + "&tag_id=" + uid_RFID_SD + "&date=" + datetime_SD + "&ip_address=" + ip_Address;
         } else {
           postData = "device_name=" + deviceName + "&tag_id=" + tagId + "&date=" + dateTime + "&ip_address=" + ip_Address;
@@ -317,7 +327,11 @@ void loop() {
       } else {
         postData = "device_name=" + deviceName + "&tag_id=" + tagId + "&date=" + dateTime + "&ip_address=" + ip_Address;
       }
+      sendLogData(apiFail, postData);
     }
-  } else {
+  }
+
+  if (digitalRead(irPin) == LOW) {
+    openKey();
   }
 }
