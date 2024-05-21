@@ -128,7 +128,7 @@ void counterHit(void* parameter) {
       counter++;
     }
     lastLDRState = ldrState;
-    delay(10);
+    delay(50);
   }
 }
 
@@ -461,8 +461,11 @@ void setup() {
   rtc.begin();
 
   if (wifiMulti.run() == WL_CONNECTED) {
-    
-
+    lcd.setCursor(0, 1);
+    lcd.print("WiFi Connected");
+    lcd.setCursor(0, 2);
+    lcd.print("Loading Date/Time");
+    getLocalTime();
   } else {
     lcd.setCursor(0, 1);
     lcd.print("WiFi Disconnected");
@@ -484,7 +487,7 @@ void setup() {
     }
   }
 
-  lcd.clear();   // Clear LCD sebelum memilih menu
+  lcd.clear();  // Clear LCD sebelum memilih menu
   Serial.println("Select Menu");
   Serial.println(WiFi.localIP());
   selectMenu();  // Tampilkan pilihan product yang bisa dipilih

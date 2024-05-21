@@ -267,11 +267,9 @@ void sendLogData(String API, String data) {
 }
 
 void openKey() {
-  Serial.println("Kunci dibuka");
   digitalWrite(relayPin, HIGH);
-  delay(5000);
+  delay(5050);
   digitalWrite(relayPin, LOW);
-  delay(500);
 }
 
 void setup() {
