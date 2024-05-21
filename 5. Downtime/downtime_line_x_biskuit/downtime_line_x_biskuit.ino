@@ -58,7 +58,7 @@ String postData;
 String ip_address;
 int sendDataDB = 0;
 
-String pzem14Chanel = "Molding Line x - Biskuit (Test)";
+String pzem14Chanel = "Roll Line 2 - Mie";
 
 void sendData(float Voltage, String deviceName, String IP) {
   HTTPClient http;     // http object of clas HTTPClient
@@ -177,7 +177,7 @@ void connectToWiFi() {
           flag = 3;
           if (WiFi.SSID(i) == ssid_2) {
             WiFi.begin(ssid_2, password_2);
-            Serial.println("Connecting with STTB4 Please Wait...");
+            Serial.println("Connecting with Tester_ITB Please Wait...");
             delay(80);
             break;
           }
@@ -185,7 +185,7 @@ void connectToWiFi() {
           flag = 1;
           if (WiFi.SSID(i) == ssid_3) {
             WiFi.begin(ssid_3, password_3);
-            Serial.println("Connecting with MT1 Please Wait...");
+            Serial.println("Connecting with MT3 Please Wait...");
             delay(80);
             break;
           }
