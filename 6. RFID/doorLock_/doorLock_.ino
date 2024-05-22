@@ -37,6 +37,7 @@
 
 const String deviceName = "Door Lock Sports Park";
 const String deviceId = "RFID_200";
+int programLoop = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
    Total kolom 20
@@ -84,7 +85,8 @@ const char* ntpServer = "192.168.7.223";
 // Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
 const long gmtOffsetSec = 7 * 3600;
 const int daylightOffsetSec = 0;
-String dateTime;
+String dateTime, dateLCD;
+int year, month, day, hour, minute, second;
 
 // == SD Card ==
 String logIn = "/logRFID.txt";
@@ -111,12 +113,12 @@ bool readRFID() {
   if (nfc.tagPresent(20)) {
     NfcTag tag = nfc.read();
     Serial.println("NFC Tag found:");
-    Serial.print("Tag Type: ");
-    Serial.println(tag.getTagType());
+    // Serial.print("Tag Type: ");
+    // Serial.println(tag.getTagType());
     Serial.print("UID: ");
     tagId = tag.getUidString();
     Serial.println(tagId);
-    tag.print();
+    // tag.print();
 
     payloadAsString = "";
     if (tag.hasNdefMessage()) {  // Check if the tag has an NDEF message
@@ -155,6 +157,16 @@ bool getLocalTime() {
     strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
     dateTime = String(timeStringBuff);
 
+    // Save time data to variabel
+    year = timeinfo.tm_year + 1900;
+    month = timeinfo.tm_mon + 1;
+    day = timeinfo.tm_mday;
+    hour = timeinfo.tm_hour;
+    minute = timeinfo.tm_min;
+    second = timeinfo.tm_sec;
+
+    dateLCD = String(day) + "-" + String(month) + " " + String(hour) + ":" + String(minute);
+
     return true;
   }
 }
@@ -177,15 +189,15 @@ void wifiNtpSetup() {
 
   if (wifiMulti.run() != WL_CONNECTED) {
     wifiMulti.run();
-    Serial.println("WiFi Disconnected");
-    Serial.println("Date/Time Error");
+    Serial.println("WiFi Disconnected  ");
+    Serial.println("Date/Time Error    ");
     lcd.setCursor(1, 2);
-    lcd.print("WiFi Error");
+    lcd.print("WiFi Error     ");
     delay(5000);
 
   } else {
     lcd.setCursor(1, 2);
-    lcd.print("WiFi Normal");
+    lcd.print("WiFi Normal        ");
     Serial.println(WiFi.SSID());
     int tryNTP = 0;
     while (!getLocalTime() && tryNTP <= 2) {
@@ -193,7 +205,10 @@ void wifiNtpSetup() {
       delay(50);
       Serial.println("Getting Date/Time");
       lcd.setCursor(1, 3);
-      lcd.print("Proses NTP");
+    }
+    if (getLocalTime()) {
+      lcd.setCursor(1, 3);
+      lcd.print("Proses NTP Normal ");
     }
   }
 }
@@ -289,11 +304,11 @@ void setup() {
   lcd.setCursor(1, 0);
   lcd.print("Inisialisasi RFID");
   lcd.setCursor(1, 1);
-  lcd.print("Inisialisasi SDCard");
+  lcd.print("Memuat SDCard");
   lcd.setCursor(1, 2);
-  lcd.print("Inisialisasi WiFi");
+  lcd.print("Koneksi WiFi");
   lcd.setCursor(1, 3);
-  lcd.print("Inisialisasi NTP");
+  lcd.print("Akses NTP");
 
   // Setup RFID
   if (!setupPN532()) {
@@ -301,10 +316,10 @@ void setup() {
     Serial.println("Alat Tidak Bisa Digunakan");
     Serial.println("Periksa Sensor PN532");
     lcd.setCursor(1, 0);
-    lcd.print("RFID Error");
+    lcd.print("RFID Error        ");
   } else {
     lcd.setCursor(1, 0);
-    lcd.print("Inisialisasi RFID");
+    lcd.print("RFID Normal       ");
     Serial.println("RFID Normal");
   }
 
@@ -312,27 +327,54 @@ void setup() {
   if (!SD.begin()) {
     Serial.println("Inisialisasi SD Card Gagal");
     lcd.setCursor(1, 1);
-    lcd.print("SDCard Error");
+    lcd.print("SDCard Error       ");
   } else {
     lcd.setCursor(1, 1);
-    lcd.print("SDCard Normal");
+    lcd.print("SDCard Normal      ");
   }
 
   // Setup WiFi
   wifiNtpSetup();
 
-  delay(1000);
+  delay(3000);
   lcd.clear();
 }
 
 void loop() {
-  getLocalTime();
-  wifiMulti.run();
+  lcd.setCursor(2, 0);
+  lcd.print("== SPORTS PARK ==");
+  lcd.setCursor(1, 1);
+  lcd.print("Letakan Kartu Pada");
+  lcd.setCursor(0, 2);
+  lcd.print("       Sensor       ");
+
+  /* Jika WiFi status WiFi tidak terkoneksi,
+     coba ulang koneksi
+  */
+  if (wifiMulti.run() == WL_CONNECTED) {
+    lcd.setCursor(0, 3);
+    lcd.print(WiFi.SSID());
+    getLocalTime();
+  } else if (wifiMulti.run() != WL_CONNECTED) {
+    lcd.setCursor(0, 3);
+    lcd.print("WiFi DC");
+    wifiMulti.run();
+  }
+
+  // Print Waktu hh:mm:ss
+  lcd.setCursor(9, 3);
+  lcd.print(dateLCD);
+
   ip_Address = WiFi.localIP().toString();
 
   if (readRFID()) {
     if (payloadAsString == "ACC") {
       Serial.println("Akses diterima");
+      lcd.setCursor(0, 1);
+      lcd.print("   Akses Diterima   ");
+      lcd.setCursor(0, 2);
+      lcd.print("                ");
+
       openKey();
 
       // Save Log
@@ -351,6 +393,11 @@ void loop() {
       sendLogData(api, postData);
     } else {
       Serial.println("Akses ditolak");
+      lcd.setCursor(1, 1);
+      lcd.print("   Akses Ditolak   ");
+      lcd.setCursor(0, 2);
+      lcd.print("Kartu Tidak Dikenali");
+
       Serial.println("Proses simpan log");
       logData = deviceName + "," + tagId + "," + dateTime + "," + ip_Address;
 
@@ -364,10 +411,19 @@ void loop() {
         postData = "device_name=" + deviceName + "&tag_id=" + tagId + "&date=" + dateTime + "&ip_address=" + ip_Address;
       }
       sendLogData(apiFail, postData);
+      delay(3000);
     }
   }
 
   if (digitalRead(irPin) == LOW) {
     openKey();
+  }
+
+  programLoop++;
+  if (programLoop % 10 == 0) {
+    lcd.clear();
+    if (programLoop % 20000 == 0) {
+      ESP.restart();
+    }
   }
 }
