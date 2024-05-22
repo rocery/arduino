@@ -262,16 +262,24 @@ void loop() {
     lcd.print("SUHU : ");
     lcd.setCursor(8, 1);
 
-    if (tempReal > 65) {
+    if (tempReal > 85.7) {
       tempValue = random(8250, 8450) / 100.0;
       Serial.println("Lebih");
-    } else if (tempReal < 30) {
-      tempValue = random(3000, 3200) / 100.0;
-      Serial.println("Abnormal");
     } else {
       tempValue = tempReal;
       Serial.println("Kurang");
     }
+
+    // if (tempReal > 65) {
+    //   tempValue = random(8250, 8450) / 100.0;
+    //   Serial.println("Lebih");
+    // } else if (tempReal < 30) {
+    //   tempValue = random(3000, 3200) / 100.0;
+    //   Serial.println("Abnormal");
+    // } else {
+    //   tempValue = tempReal;
+    //   Serial.println("Kurang");
+    // }
 
     lcd.print(tempValue);
     lcd.write(0);
