@@ -253,8 +253,8 @@ void setup() {
 void loop() {
   lcd.setCursor(3, 0);
   lcd.print("PENGUKURAN SUHU");
-  //  tempCalibrationValue = random(55, 65) / 10.0;
-  tempCalibrationValue = 0;
+  tempCalibrationValue = random(55, 65) / 10.0;
+  // tempCalibrationValue = 0;
   int i = 0;
   while (i < 30) {
     tempReal = thermocouple.readCelsius() + tempCalibrationValue;
@@ -297,7 +297,7 @@ void loop() {
 
   tempAverage = tempData / 30;
   tempData = 0;
-  // Cetak sinyal
+  // Cetak temperature
   lcd.setCursor(1, 2);
   lcd.print("AVG  : ");
   lcd.setCursor(8, 2);
@@ -340,7 +340,7 @@ void loop() {
 
   // if (minute % 15 == 0 && !sendStatus) {
   //   sendLogData();
-  //   sendStatus = true;
+  //   sendStatus = true;Civil War (2024)
   // } else if (minute % 15 == 1 && sendStatus) {
   //   sendStatus = false;
   // }
