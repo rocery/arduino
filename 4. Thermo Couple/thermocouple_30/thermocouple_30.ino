@@ -207,7 +207,7 @@ void debugSerial() {
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   sendStatus = false;
   ntpStatus = false;
