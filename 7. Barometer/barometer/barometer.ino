@@ -243,7 +243,7 @@ void loop() {
 
   ip_Address = WiFi.localIP().toString();
 
-  postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&psi_value=" + String(pressureValue) + "&bar_value=" + String(barValue) + "&ip_address=" + ip_Address + "&date=" + dateTime;
+  postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&psi_value=" + String(pressureValue) + "&bar_value=" + String(barValue) + "&date=" + dateTime + "&ip_address=" + ip_Address;
 
   if (readPressureCounter % 30 == 0) {
     sendLogData();

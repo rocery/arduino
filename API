@@ -1,0 +1,15 @@
+API Door Lock (kartu dikenali, kartu tidak dikenal)
+device_name 	-> varchar
+tag_id 		-> varchar
+date
+ip_address
+
+
+
+API Tekanan Angin
+device_id	-> varchar
+device_name	-> varchar
+psi_value	-> float
+bar_value	-> vloat
+date
+ip_address
