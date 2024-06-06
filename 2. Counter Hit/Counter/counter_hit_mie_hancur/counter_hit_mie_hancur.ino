@@ -1,13 +1,13 @@
 /*
-  V. 1.0.5
+  V. 0.1.5
   Update Terakhir : 15-04-2024
 
-  PENTING = Harus menggunakan Dual Core Micro Controller
+  PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
   Komponen:
   1. Micro Controller : ESP32
   2. LCD I2C 20x4                               (3.3v, GND, I2C (22 = SCL, 21 = SDA))
-  3. DS3231                                     (3.3v, GND, I2C (22 = SCL, 21 = SDA))
-  4. IR Sensor E18-D80NK                        (5v/Vin, GND, 26)
+  3. RTC DS3231                                 (3.3v, GND, I2C (22 = SCL, 21 = SDA))
+  4. IR Sensor Laser & LDR                      (5v/Vin, GND, 2)
   5. Module SD Card + SD Card (FAT32 1-16 GB)   (3.3v, GND, SPI(Mosi 23, Miso 19, CLK 18, CS 5))
   6. Tacticle Button 1x1 cm @3                  (3.3v, GND, 34, 35, 25)
   -- Belum diimplementasikan --
@@ -20,9 +20,6 @@
   Semua fungsi Serial.print() pada program ini sebenarnya bisa dihapus/di-comment,
   masih dipertahankan untuk fungsi debuging. Akan di-comment/dihapus pada saat final
   program sudah tercapai demi menghemat rosource pada ESP32.
-
-  Module RTC pada program ini beleum digunakan, program ini masih memanfaatkan waktu dari
-  server NTP, direkomendasikan menggunakan RTC bilamana terjadi gangguan WiFi.
 */
 
 // == Deklarasi semua Library yang digunakan ==
@@ -37,7 +34,7 @@
 #include <RTClib.h>
 #include "time.h"
 
-String ESPName = "Ctr-Biskuit";
+String ESPName = "Ctr-Mie";
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
    Total kolom 20
@@ -45,12 +42,11 @@ String ESPName = "Ctr-Biskuit";
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 // Terdapat 3 tombol pada project ini, up, down, select
-// Tidak disarankan menggunakan pin 32 dan 33 (Terdapat Bug), bisa digunakan pin 27
 #define upButton 35
 #define downButton 34
 #define selectButton 32
 
-#define irPin 25
+#define sensorPin 13
 
 // == WiFi Config ==
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
@@ -59,7 +55,7 @@ ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
 WiFiMulti wifiMulti;
 const char* ssid_d = "STTB1";
 const char* password_d = "Si4nt4r321";
-const char* ssid_b = "MT4";
+const char* ssid_b = "MT1";
 const char* password_b = "siantar321";
 const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
@@ -69,7 +65,7 @@ const char* ssid_it = "Tester_ITB";
 const char* password_it = "Si4nt4r321";
 
 // Set IP to Static
-IPAddress staticIP(192, 168, 7, 218);
+IPAddress staticIP(192, 168, 7, 219);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
@@ -106,13 +102,14 @@ String postData;
 bool menuSelect;
 int menu = 1;
 String productSelected, nameProductSelected;
-String productCodeOne = "P-0722-00250", nameProductOne = "IN GORIORIO VAN 2";
-String productCodeTwo = "P-0722-00251", nameProductTwo = "IN GORIORIO COK 2";
-String productCodeThree = "P-1023-00282", nameProductThree = "NO GORIORIO VAN 2";
-String productCodeFour = "P-1023-00283", nameProductFour = "NO GORIORIO COK 2";
-String productCodeFive = "P-1122-00260", nameProductFive = "NO GORIORIO VAN 4";
-String productCodeSix = "P-1222-00263", nameProductSix = "NO GORIORIO COK 4";
-String productCodeSeven = "Test Mode_218", nameProductSeven = "Test Mode_218";
+String productCodeOne = "P-0722-00239";
+String productCodeTwo = "P-0922-00257";
+String productCodeThree = "Test Mode_213";
+String productCodeFour = "4";
+String nameProductOne = "Tic Tic Bwg 2000";
+String nameProductTwo = "Tic Tic Bwg 5000";
+String nameProductThree = "Test Mode_213";
+String nameProductFour = "d";
 
 // == SD Card ==
 String line, logName, logData;
@@ -123,14 +120,14 @@ bool statusSD, readStatusSD, insertLastLineSDCardStatus;
 void counterHit(void* parameter) {
   for (;;) {
     // Deklarasi mode pin sensor
-    pinMode(irPin, INPUT_PULLUP);
-    static int lastIRState = HIGH;
+    pinMode(sensorPin, INPUT_PULLUP);
+    static int lastLDRState = HIGH;
     // Membaca output Sensor
-    int irState = digitalRead(irPin);
-    if (irState == LOW && lastIRState == HIGH) {
+    int ldrState = digitalRead(sensorPin);
+    if (ldrState == LOW && lastLDRState == HIGH) {
       counter++;
     }
-    lastIRState = irState;
+    lastLDRState = ldrState;
     delay(50);
   }
 }
@@ -192,6 +189,8 @@ void sendLogData() {
     String response = http.getString();
     Serial.println(response);
   } else {
+    String response = http.getString();
+    Serial.println(response);
     Serial.print("Error on sending POST");
   }
   http.end();
@@ -294,6 +293,8 @@ void updateMenu() {
       lcd.print(nameProductTwo);
       lcd.setCursor(1, 3);
       lcd.print("WiFi : " + WiFi.SSID());
+      //      lcd.setCursor(1, 3);
+      //      lcd.print(nameProductThree);
       break;
     case 2:
       lcd.clear();
@@ -305,6 +306,8 @@ void updateMenu() {
       lcd.print(">" + nameProductTwo);
       lcd.setCursor(1, 3);
       lcd.print("WiFi : " + WiFi.SSID());
+      //      lcd.setCursor(1, 3);
+      //      lcd.print(nameProductThree);
       break;
     case 3:
       lcd.clear();
@@ -318,51 +321,7 @@ void updateMenu() {
       lcd.print(">" + nameProductThree);
       break;
     case 4:
-      lcd.clear();
-      lcd.setCursor(2, 0);
-      lcd.print("==PILIH PRODUK==");
-      lcd.setCursor(0, 1);
-      lcd.print(">" + nameProductFour);
-      lcd.setCursor(1, 2);
-      lcd.print(nameProductFive);
-      lcd.setCursor(1, 3);
-      lcd.print(nameProductSix);
-      break;
-    case 5:
-      lcd.clear();
-      lcd.setCursor(2, 0);
-      lcd.print("==PILIH PRODUK==");
-      lcd.setCursor(1, 1);
-      lcd.print(nameProductFour);
-      lcd.setCursor(0, 2);
-      lcd.print(">" + nameProductFive);
-      lcd.setCursor(1, 3);
-      lcd.print(nameProductSix);
-      break;
-    case 6:
-      lcd.clear();
-      lcd.setCursor(2, 0);
-      lcd.print("==PILIH PRODUK==");
-      lcd.setCursor(1, 1);
-      lcd.print(nameProductFour);
-      lcd.setCursor(1, 2);
-      lcd.print(nameProductFive);
-      lcd.setCursor(0, 3);
-      lcd.print(">" + nameProductSix);
-      break;
-    case 7:
-      lcd.clear();
-      lcd.setCursor(2, 0);
-      lcd.print("==PILIH PRODUK==");
-      lcd.setCursor(1, 1);
-      lcd.print(nameProductFive);
-      lcd.setCursor(1, 2);
-      lcd.print(nameProductSix);
-      lcd.setCursor(0, 3);
-      lcd.print(">" + nameProductSeven);
-      break;
-    case 8:
-      menu = 7;
+      menu = 3;
       break;
   }
 }
@@ -387,30 +346,12 @@ void menuSelected() {
       delay(1000);
       lcd.clear();
       break;
-    case 4:
-      productSelected = productCodeFour;
-      nameProductSelected = nameProductFour;
-      delay(1000);
-      lcd.clear();
-      break;
-    case 5:
-      productSelected = productCodeFive;
-      nameProductSelected = nameProductFive;
-      delay(1000);
-      lcd.clear();
-      break;
-    case 6:
-      productSelected = productCodeSix;
-      nameProductSelected = nameProductSix;
-      delay(1000);
-      lcd.clear();
-      break;
-    case 7:
-      productSelected = productCodeSeven;
-      nameProductSelected = nameProductSeven;
-      delay(1000);
-      lcd.clear();
-      break;
+      //    case 4:
+      //      productSelected = productCodeFour;
+      //      nameProductSelected = nameProductFour;
+      //      delay(1000);
+      //      lcd.clear();
+      //      break;
   }
 }
 
@@ -495,12 +436,13 @@ void setup() {
     Serial.println("Card Mount Failed");
     lcd.setCursor(0, 0);
     lcd.print("Card Mount Failed");
-    return;
   } else if (SD.begin()) {
     Serial.println("Card Mounted");
     lcd.setCursor(0, 0);
     lcd.print("SD Card Mounted");
   }
+
+  Serial.println("Try Connect to WiFi");
 
   wifiMulti.addAP(ssid_a, password_a);
   wifiMulti.addAP(ssid_b, password_b);
@@ -510,6 +452,8 @@ void setup() {
 
   if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
     Serial.println("STA Failed to configure");
+  } else {
+    Serial.println("STA OKE");
   }
 
   wifiMulti.run();
@@ -521,22 +465,14 @@ void setup() {
   if (wifiMulti.run() == WL_CONNECTED) {
     lcd.setCursor(0, 1);
     lcd.print("WiFi Connected");
-
-    int tryNTP = 0;
-    while (ntpStatus == false && tryNTP <= 5) {
-      getLocalTime();
-      tryNTP++;
-      delay(50);
-      lcd.setCursor(0, 2);
-      lcd.print("Getting Date/Time");
-    }
-
+    lcd.setCursor(0, 2);
+    lcd.print("Loading Date/Time");
+    getLocalTime();
   } else {
     lcd.setCursor(0, 1);
     lcd.print("WiFi Disconnected");
     lcd.setCursor(0, 2);
     lcd.print("Date/Time Error");
-    delay(5000);
   }
   now = rtc.now();
 
@@ -553,8 +489,9 @@ void setup() {
     }
   }
 
-  Serial.println(WiFi.localIP().toString());
-  lcd.clear();   // Clear LCD sebelum memilih menu
+  lcd.clear();  // Clear LCD sebelum memilih menu
+  Serial.println("Select Menu");
+  Serial.println(WiFi.localIP());
   selectMenu();  // Tampilkan pilihan product yang bisa dipilih
   logName = "/logCounter_" + productSelected + ".txt";
 
@@ -595,7 +532,7 @@ void setup() {
 void loop() {
   // Print Counter Hit
   lcd.setCursor(1, 2);
-  lcd.print("TOTAL : ");
+  lcd.print("Total : ");
   lcd.setCursor(9, 2);
   lcd.print(counter);
 

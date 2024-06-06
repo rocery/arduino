@@ -1,6 +1,6 @@
 /*
   V. 1.0.0
-  Update Terakhir : 30-04-2024
+  Update Terakhir : 06-05-2024
 
   Komponen:
   1. ESP32
@@ -238,8 +238,13 @@ void loop() {
     wifiMulti.run();
   }
 
-  lcd.setCursor(11, 1);
-  lcd.print(lcdFormat);
+  if (ntpStatus == false) {
+    lcd.setCursor(11, 1);
+    lcd.print("Error");
+  } else {
+    lcd.setCursor(11, 1);
+    lcd.print(lcdFormat);
+  }
 
   ip_Address = WiFi.localIP().toString();
 
@@ -254,5 +259,5 @@ void loop() {
     }
   }
 
-  delay(1000);
+  delay(2000);
 }

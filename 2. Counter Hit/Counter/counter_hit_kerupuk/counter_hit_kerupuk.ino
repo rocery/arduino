@@ -179,7 +179,7 @@ void sendLogData() {
   /* Mengirim data ke local server
      Ganti isi variabel api sesuai dengan form php
   */
-  String api = "http://192.168.15.221/counter_hit_api/saveCounter.php";
+  String api = "http://192.168.7.223/counter_hit_api/saveCounter.php";
   HTTPClient http;
   http.begin(api);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -189,6 +189,8 @@ void sendLogData() {
     String response = http.getString();
     Serial.println(response);
   } else {
+    String response = http.getString();
+    Serial.println(response);
     Serial.print("Error on sending POST");
   }
   http.end();
