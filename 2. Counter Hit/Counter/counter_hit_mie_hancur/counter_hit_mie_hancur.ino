@@ -1,6 +1,6 @@
 /*
-  V. 0.1.5
-  Update Terakhir : 15-04-2024
+  V. 1.0.5
+  Update Terakhir : 07-06-2024
 
   PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
   Komponen:
@@ -53,14 +53,14 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
 */
 WiFiMulti wifiMulti;
-const char* ssid_a = "STTB1";
-const char* password_a = "Si4nt4r321";
+const char* ssid_d = "STTB1";
+const char* password_d = "Si4nt4r321";
 const char* ssid_b = "MT1";
 const char* password_b = "siantar321";
 const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
-const char* ssid_d = "Djoksen";
-const char* password_d = "Welive99";
+const char* ssid_a = "STTB8";
+const char* password_a = "siantar123";
 const char* ssid_it = "Tester_ITB";
 const char* password_it = "Si4nt4r321";
 
@@ -102,25 +102,17 @@ String postData;
 bool menuSelect;
 int menu = 1;
 String productSelected, nameProductSelected;
-String productCodeOne = "P-0722-00245";
-String productCodeTwo = "P-0722-00247";
-String productCodeThree = "P-0124-00287";
-String productCodeFour = "P-0124-00285";
-String productCodeFive = "P-0124-00286";
-String productCodeSix = "P-0722-00246";
-String productCodeSeven = "Test 219 Mie Hancur"
-String nameProductOne = "SP MG BBQ";
-String nameProductTwo = "SP MG Smbl Balado";
-String nameProductThree = "SP SB Mie Chicken";
-String nameProductFour = "SP SB Mie Potato";
-String nameProductFive = "SP SB Mie Balado";
-String nameProductSix = "SK Mie Ayam Kecap";
-String nameProductSeven = "Test Mode_219"
+String productCodeOne = "P-0722-00245", String nameProductOne = "SP MG BBQ";
+String productCodeTwo = "P-0722-00247", String nameProductTwo = "SP MG Smbl Balado";
+String productCodeThree = "P-0124-00287", String nameProductThree = "SP SB Mie Chicken";
+String productCodeFour = "P-0124-00285", String nameProductFour = "SP SB Mie Potato";
+String productCodeFive = "P-0124-00286", String nameProductFive = "SP SB Mie Balado";
+String productCodeSix = "P-0722-00246", String nameProductSix = "SK Mie Ayam Kecap";
+String productCodeSeven = "Test 219 Mie Hancur", String nameProductSeven = "Test Mode_219";
 
 // == SD Card ==
-String line, logName, logData;
 int lineAsInt;
-String dateTimeSD, productSelectedSD, counterSD, ipAddressSD;
+String dateTimeSD, productSelectedSD, counterSD, ipAddressSD, line, logName, logData;
 bool statusSD, readStatusSD, insertLastLineSDCardStatus;
 
 void counterHit(void* parameter) {
