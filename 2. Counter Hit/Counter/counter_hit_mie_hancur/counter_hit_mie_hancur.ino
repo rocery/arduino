@@ -34,7 +34,7 @@
 #include <RTClib.h>
 #include "time.h"
 
-String ESPName = "Ctr-Mie";
+String ESPName = "Ctr-Mie Hancur";
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
    Total kolom 20
@@ -53,14 +53,14 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
 */
 WiFiMulti wifiMulti;
-const char* ssid_d = "STTB1";
-const char* password_d = "Si4nt4r321";
+const char* ssid_a = "STTB1";
+const char* password_a = "Si4nt4r321";
 const char* ssid_b = "MT1";
 const char* password_b = "siantar321";
 const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
-const char* ssid_a = "STTB8";
-const char* password_a = "siantar123";
+const char* ssid_d = "Djoksen";
+const char* password_d = "Welive99";
 const char* ssid_it = "Tester_ITB";
 const char* password_it = "Si4nt4r321";
 
@@ -102,14 +102,20 @@ String postData;
 bool menuSelect;
 int menu = 1;
 String productSelected, nameProductSelected;
-String productCodeOne = "P-0722-00239";
-String productCodeTwo = "P-0922-00257";
-String productCodeThree = "Test Mode_213";
-String productCodeFour = "4";
-String nameProductOne = "Tic Tic Bwg 2000";
-String nameProductTwo = "Tic Tic Bwg 5000";
-String nameProductThree = "Test Mode_213";
-String nameProductFour = "d";
+String productCodeOne = "P-0722-00245";
+String productCodeTwo = "P-0722-00247";
+String productCodeThree = "P-0124-00287";
+String productCodeFour = "P-0124-00285";
+String productCodeFive = "P-0124-00286";
+String productCodeSix = "P-0722-00246";
+String productCodeSeven = "Test 219 Mie Hancur"
+String nameProductOne = "SP MG BBQ";
+String nameProductTwo = "SP MG Smbl Balado";
+String nameProductThree = "SP SB Mie Chicken";
+String nameProductFour = "SP SB Mie Potato";
+String nameProductFive = "SP SB Mie Balado";
+String nameProductSix = "SK Mie Ayam Kecap";
+String nameProductSeven = "Test Mode_219"
 
 // == SD Card ==
 String line, logName, logData;
@@ -134,7 +140,7 @@ void counterHit(void* parameter) {
 
 void getLocalTime() {
   /* Fungsi bertujuan menerima update waktu
-     lokal dari ntp.pool.org */
+     lokal dari ntp server */
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) {
     ntpStatus = false;
@@ -293,8 +299,6 @@ void updateMenu() {
       lcd.print(nameProductTwo);
       lcd.setCursor(1, 3);
       lcd.print("WiFi : " + WiFi.SSID());
-      //      lcd.setCursor(1, 3);
-      //      lcd.print(nameProductThree);
       break;
     case 2:
       lcd.clear();
@@ -306,8 +310,6 @@ void updateMenu() {
       lcd.print(">" + nameProductTwo);
       lcd.setCursor(1, 3);
       lcd.print("WiFi : " + WiFi.SSID());
-      //      lcd.setCursor(1, 3);
-      //      lcd.print(nameProductThree);
       break;
     case 3:
       lcd.clear();
@@ -321,7 +323,51 @@ void updateMenu() {
       lcd.print(">" + nameProductThree);
       break;
     case 4:
-      menu = 3;
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(0, 1);
+      lcd.print(">" + nameProductFour);
+      lcd.setCursor(1, 2);
+      lcd.print(nameProductFive);
+      lcd.setCursor(1, 3);
+      lcd.print(nameProductSix);
+      break;
+    case 5:
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(1, 1);
+      lcd.print(nameProductFour);
+      lcd.setCursor(0, 2);
+      lcd.print(">" + nameProductFive);
+      lcd.setCursor(1, 3);
+      lcd.print(nameProductSix);
+      break;
+    case 6:
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(1, 1);
+      lcd.print(nameProductFour);
+      lcd.setCursor(1, 2);
+      lcd.print(nameProductFive);
+      lcd.setCursor(0, 3);
+      lcd.print(">" + nameProductSix);
+      break;
+    case 7:
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(1, 1);
+      lcd.print(nameProductFive);
+      lcd.setCursor(1, 2);
+      lcd.print(nameProductSix);
+      lcd.setCursor(0, 3);
+      lcd.print(">" + nameProductSeven);
+      break;
+    case 8:
+      menu = 7;
       break;
   }
 }
@@ -346,12 +392,30 @@ void menuSelected() {
       delay(1000);
       lcd.clear();
       break;
-      //    case 4:
-      //      productSelected = productCodeFour;
-      //      nameProductSelected = nameProductFour;
-      //      delay(1000);
-      //      lcd.clear();
-      //      break;
+    case 4:
+      productSelected = productCodeFour;
+      nameProductSelected = nameProductFour;
+      delay(1000);
+      lcd.clear();
+      break;
+    case 5:
+      productSelected = productCodeFive;
+      nameProductSelected = nameProductFive;
+      delay(1000);
+      lcd.clear();
+      break;
+    case 6:
+      productSelected = productCodeSix;
+      nameProductSelected = nameProductSix;
+      delay(1000);
+      lcd.clear();
+      break;
+    case 7:
+      productSelected = productCodeSeven;
+      nameProductSelected = nameProductSeven;
+      delay(1000);
+      lcd.clear();
+      break;
   }
 }
 
