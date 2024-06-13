@@ -366,13 +366,12 @@ void loop() {
 
   if (readRFID()) {
     if (payloadAsString == "ACC") {
+      openKey();
       Serial.println("Akses diterima");
       lcd.setCursor(0, 1);
       lcd.print("   Akses Diterima   ");
       lcd.setCursor(0, 2);
       lcd.print("                ");
-
-      openKey();
 
       // Save Log
       Serial.println("Proses simpan log");
@@ -388,6 +387,7 @@ void loop() {
         postData = "device_name=" + deviceName + "&tag_id=" + tagId + "&date=" + dateTime + "&ip_address=" + ip_Address;
       }
       sendLogData(api, postData);
+      
     } else {
       Serial.println("Akses ditolak");
       lcd.setCursor(1, 1);
