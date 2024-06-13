@@ -1,29 +1,34 @@
 # Projek IoT STTB
+
 info : sastranuralamsyah@gmail.com
+
 ```
+Upcoming:
 192.168.7.251 - ESP32 - IoT-251-TK0532 - Pipa Angin Teknik - Kerupuk
 192.168.7.252 - ESP32 - IoT-252-TK0532 - Pipa Angin Teknik - Biskuit
-192.168.7.253 - ESP32 - IoT-253-KR0532 - Pipa Angin Kerupuk - Teknik
-192.168.7.254 - ESP32 - IoT-254-BM0532 - Pipa Angin Biskuit - Teknik
+192.168.7.253 - ESP32 - IoT-253-BM0532 - Pipa Angin Biskuit - Teknik
+192.168.7.254 - ESP32 - IoT-254-KR0532 - Pipa Angin Kerupuk - Teknik
 ```
 
 ## Used IP:
+
 ```
-- 223	= Server (Tidak Boleh diganti)
-- 10	= Admin (C-010-IT)
-- 243	= Test Address
-- 1	= Reserved IP
-- 211	= IoT-211-BM0466 IoT-211-Downtime_Molding_1
-- 213	= IoT-213-KR0132 IoT-213-Counter_Kerupuk
-- 215	= IoT-215-BM0366 IoT-215-Stuffle_Mie_Biskuit
-- 216	= IoT-216-KR0366 IoT-216-Kerupuk-Gudang_Jadi
-- 217	= IoT-217-KR0232 IoT-217-Suhu_Oven_30
-- 218	= IoT-218-BM0132 IoT-218-Counter_Biskuit
-- 128	= IoT-128-Suhu_Oven_28
-- 129	= IoT-129-Suhu_Oven_29
+- 223    = Server (Tidak Boleh diganti)
+- 10    = Admin (C-010-IT)
+- 243    = Test Address
+- 1    = Reserved IP
+- 211    = IoT-211-BM0466 IoT-211-Downtime_Molding_1
+- 213    = IoT-213-KR0132 IoT-213-Counter_Kerupuk
+- 215    = IoT-215-BM0366 IoT-215-Stuffle_Mie_Biskuit
+- 216    = IoT-216-KR0366 IoT-216-Kerupuk-Gudang_Jadi
+- 217    = IoT-217-KR0232 IoT-217-Suhu_Oven_30
+- 218    = IoT-218-BM0132 IoT-218-Counter_Biskuit
+- 128    = IoT-128-Suhu_Oven_28
+- 129    = IoT-129-Suhu_Oven_29
 ```
 
 ## Aturan Penamaan ID/Host Name/Device Name pada Alat IoT
+
 ```
 - IoT-
 - 3 digit akhir Ip Address
@@ -48,9 +53,6 @@ info : sastranuralamsyah@gmail.com
 - IoT-217-KR0232 = Produksi Kerupuk - Suhu - ESP32 - Oven 30
 - IoT-218-BM0132 = Produksi Biskuit/Mie - Counter - ESP32 - Goriorio Isi 2 - FC:B4:67:51:47:C0
 ```
-
-
-
 
 Catatan:
 Kuning - Putih Data
