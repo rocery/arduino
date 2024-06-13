@@ -48,6 +48,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 // == PN532 ==
 PN532_I2C pn532_i2c(Wire);
 NfcAdapter nfc = NfcAdapter(pn532_i2c);
+uint8_t uidLength;
 
 // Variabel tag RFID
 String payloadAsString, tagId;
@@ -122,19 +123,22 @@ bool readRFID() {
     // tag.print();
 
     if (tag.hasNdefMessage()) {
-      NdefMessage message = tag.getNdefMessage();
-      Serial.print("Message: ");
-      for (int i = 0; i < message.getRecordCount(); i++) {
-        NdefRecord record = message.getRecord(i);
-        int payloadLength = record.getPayloadLength();
-        byte payload[payloadLength];
-        record.getPayload(payload);
+      payloadAsString = "ACC";
+      // NdefMessage message = tag.getNdefMessage();
+      // Serial.print("Message: ");
+      // for (int i = 0; i < message.getRecordCount(); i++) {
+      //   NdefRecord record = message.getRecord(i);
+      //   int payloadLength = record.getPayloadLength();
+      //   byte payload[payloadLength];
+      //   record.getPayload(payload);
 
-        for (int c = 1; c < payloadLength; c++) {
-          payloadAsString += (char)payload[c];
-        }
-        Serial.println(payloadAsString);
-      }
+      //   for (int c = 1; c < payloadLength; c++) {
+      //     payloadAsString += (char)payload[c];
+      //   }
+      //   Serial.println(payloadAsString);
+      //}
+    } else {
+      payloadAsString = "";
     }
 
     return true;
@@ -334,7 +338,7 @@ void setup() {
   // Setup WiFi
   wifiNtpSetup();
 
-  delay(3000);
+  delay(100);
   lcd.clear();
 }
 
@@ -366,13 +370,13 @@ void loop() {
   ip_Address = WiFi.localIP().toString();
 
   if (readRFID()) {
-    if (payloadAsString == "ACC") {
-      openKey();
+    if (payloadAsString == "ACC" && tagId.length() <= 12) {
       Serial.println("Akses diterima");
       lcd.setCursor(0, 1);
       lcd.print("   Akses Diterima   ");
       lcd.setCursor(0, 2);
       lcd.print("                ");
+      openKey();  
 
       // Save Log
       Serial.println("Proses simpan log");
@@ -395,7 +399,7 @@ void loop() {
       lcd.print("   Akses Ditolak   ");
       lcd.setCursor(0, 2);
       lcd.print("Kartu Tidak Dikenali");
-
+      delay(1500);
       Serial.println("Proses simpan log");
       logData = deviceName + "," + tagId + "," + dateTime + "," + ip_Address;
 
@@ -416,10 +420,12 @@ void loop() {
     openKey();
   }
 
+  delay(100);
+
   programLoop++;
   if (programLoop % 10 == 0) {
     lcd.clear();
-    if (programLoop % 20000 == 0) {
+    if (programLoop % 5000 == 0) {
       ESP.restart();
     }
   }
