@@ -1,12 +1,13 @@
 /*
-  V. 0.0.3
-  Update Terakhir : 15-05-2024
+  V. 0.0.4
+  Update Terakhir : 13-06-2024
 
   PENTING
   1. Harus menggunakan Dual Core Micro Controller
   2. Kartu RFID yang digunakan adalah Mifare ISO14443A
   3. Library SD harus dideklarasikan secara lengkap dan pertama dideklarasikan,
      Jika tidak, akan bermasalah dengan library PN532
+  4. Spasi pada lcd.print() disengaja untuk keperluan UI LCD
 
   Komponen:
   1. Micro Controller : ESP32
@@ -387,7 +388,7 @@ void loop() {
         postData = "device_name=" + deviceName + "&tag_id=" + tagId + "&date=" + dateTime + "&ip_address=" + ip_Address;
       }
       sendLogData(api, postData);
-      
+
     } else {
       Serial.println("Akses ditolak");
       lcd.setCursor(1, 1);
