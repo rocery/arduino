@@ -62,11 +62,11 @@ String payloadAsString, tagId;
     ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
 */
 WiFiMulti wifiMulti;
-const char* ssid_a = "STTB8";
-const char* password_a = "siantar123";
-const char* ssid_b = "MT4";
-const char* password_b = "siantar321";
-const char* ssid_c = "MT3";
+const char* ssid_a = "Amano2";
+const char* password_a = "Si4nt4r321";
+const char* ssid_b = "Amano2-EXT";
+const char* password_b = "Si4nt4r321";
+const char* ssid_c = "MT1";
 const char* password_c = "siantar321";
 const char* ssid_d = "STTB1";
 const char* password_d = "Si4nt4r321";
@@ -109,19 +109,18 @@ bool setupPN532() {
 }
 
 bool readRFID() {
+  payloadAsString = "";
   Serial.println("\nLetakan kartu RFID/NFC pada sensor");
   if (nfc.tagPresent(20)) {
     NfcTag tag = nfc.read();
-    Serial.println("NFC Tag found:");
-    // Serial.print("Tag Type: ");
-    // Serial.println(tag.getTagType());
-    Serial.print("UID: ");
+    // Serial.println("NFC Tag found:");
+    // // Serial.print("Tag Type: ");
+    // // Serial.println(tag.getTagType());
+    // Serial.print("UID: ");
     tagId = tag.getUidString();
-    Serial.println(tagId);
     // tag.print();
 
-    payloadAsString = "";
-    if (tag.hasNdefMessage()) {  // Check if the tag has an NDEF message
+    if (tag.hasNdefMessage()) {
       NdefMessage message = tag.getNdefMessage();
       Serial.print("Message: ");
       for (int i = 0; i < message.getRecordCount(); i++) {
@@ -142,7 +141,6 @@ bool readRFID() {
     Serial.println("\nKatru RFID/NFC tidak terbaca");
     return false;
   }
-  // delay(1000);
 }
 
 bool getLocalTime() {
@@ -202,7 +200,6 @@ void wifiNtpSetup() {
     int tryNTP = 0;
     while (!getLocalTime() && tryNTP <= 2) {
       tryNTP++;
-      delay(50);
       Serial.println("Getting Date/Time");
       lcd.setCursor(1, 3);
     }
@@ -283,12 +280,12 @@ void sendLogData(String API, String data) {
 
 void openKey() {
   digitalWrite(relayPin, HIGH);
-  delay(5050);
+  delay(3000);
   digitalWrite(relayPin, LOW);
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(115200); // 115200
   Wire.begin();
 
   // LCD
@@ -411,7 +408,6 @@ void loop() {
         postData = "device_name=" + deviceName + "&tag_id=" + tagId + "&date=" + dateTime + "&ip_address=" + ip_Address;
       }
       sendLogData(apiFail, postData);
-      delay(3000);
     }
   }
 
