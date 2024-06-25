@@ -1,13 +1,13 @@
 /*
   V. 1.0.5
-  Update Terakhir : 07-06-2024
+  Update Terakhir : 25-06-2024
 
   PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
   Komponen:
   1. Micro Controller : ESP32
   2. LCD I2C 20x4                               (3.3v, GND, I2C (22 = SCL, 21 = SDA))
   3. RTC DS3231                                 (3.3v, GND, I2C (22 = SCL, 21 = SDA))
-  4. IR Sensor Laser & LDR                      (5v/Vin, GND, 2)
+  4. IR Sensor                                  (5v/Vin, GND, 13)
   5. Module SD Card + SD Card (FAT32 1-16 GB)   (3.3v, GND, SPI(Mosi 23, Miso 19, CLK 18, CS 5))
   6. Tacticle Button 1x1 cm @3                  (3.3v, GND, 34, 35, 25)
   -- Belum diimplementasikan --
@@ -19,7 +19,7 @@
 
   Semua fungsi Serial.print() pada program ini sebenarnya bisa dihapus/di-comment,
   masih dipertahankan untuk fungsi debuging. Akan di-comment/dihapus pada saat final
-  program sudah tercapai demi menghemat rosource pada ESP32.
+  program sudah tercapai demi menghemat resource pada ESP32.
 */
 
 // == Deklarasi semua Library yang digunakan ==
@@ -46,11 +46,12 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define downButton 34
 #define selectButton 32
 
+// Sensor IR disambungkan ke pin 13
 #define sensorPin 13
 
 // == WiFi Config ==
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
-ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
+   ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
 */
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB8";
@@ -61,20 +62,22 @@ const char* ssid_b = "MT1";
 const char* password_b = "siantar321";
 const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
-const char* ssid_it = "Tester_ITB";
+const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
 
-// Set IP to Static
+// Atur IP Static yang digunakan
 IPAddress staticIP(192, 168, 7, 219);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
-IPAddress primaryDNS(8, 8, 8, 8);    //optional
-IPAddress secondaryDNS(8, 8, 4, 4);  //optional
+// Optional
+IPAddress primaryDNS(8, 8, 8, 8);
+IPAddress secondaryDNS(8, 8, 4, 4);
 String ip_Address;
 
 // == Get NTP/RTC ==
 const char* ntpServer = "192.168.7.223";
-const long gmtOffsetSec = 7 * 3600;  // Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
+// Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
+const long gmtOffsetSec = 7 * 3600;
 const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat;
 int year, rtcYear;
@@ -127,12 +130,15 @@ void counterHit(void* parameter) {
     // Deklarasi mode pin sensor
     pinMode(sensorPin, INPUT_PULLUP);
     static int lastLDRState = HIGH;
+
     // Membaca output Sensor
     int ldrState = digitalRead(sensorPin);
     if (ldrState == LOW && lastLDRState == HIGH) {
       counter++;
     }
     lastLDRState = ldrState;
+
+    // Delay diperlukan untuk mencegah penambahan nilai counter karena noise
     delay(50);
   }
 }
@@ -674,7 +680,7 @@ void loop() {
   // }
 
   /* Simpan data SD
-      Data akan disimpan setiap kali nilai counter bertambah
+     Data akan disimpan setiap kali nilai counter bertambah
     */
   logData = productSelected + ',' + String(counter) + ',' + dateTime + ',' + ip_Address;
   newCounter = counter;
