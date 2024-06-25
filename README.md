@@ -2,6 +2,20 @@
 
 info : sastranuralamsyah@gmail.com
 
+---
+
+## Important!
+
+```
+Library ada di folder '/libraries'
+Semua file yang berhubungan sudah ada di '/fritzing library' dan '/fritzing schematic'
+Arduino IDE yang digunakan versi 2++
+
+Link Board ESP32 dan ESP8266:
+http://arduino.esp8266.com/stable/package_esp8266com_index.json
+https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+```
+
 ```
 Upcoming:
 192.168.7.251 - ESP32 - IoT-251-TK0532 - Pipa Angin Teknik - Kerupuk
