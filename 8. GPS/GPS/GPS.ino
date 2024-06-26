@@ -30,6 +30,8 @@
 TinyGPSPlus gps;
 
 // ============ Hardware Serial ============
+// Gunakan Hardware Serial nomor 1 pada ESP32 yaitu pin 13, 14
+HardwareSerial gpsSerial(1);
 // Gunakan Hardware Serial nomor 2 pada ESP32 yaitu pin 16, 17
 HardwareSerial simSerial(2);
 
@@ -50,6 +52,12 @@ void setup() {
   // Pin RX SIM800L is connected to pin 17
   // Pin TX SIM800L is connected to pin 16
   simSerial.begin(9600, SERIAL_8N1, 16, 17);
+
+  // Initialize serial communication with the GPS module
+  // Set the data rate to 9600 baud and use the SERIAL_8N1 mode
+  // Pin RX GPS is connected to pin 14
+  // Pin TX GPS is connected to pin 13
+  gpsSerial.begin(9600, SERIAL_8N1, 13, 14);
 
   // Initialize the SIM800L module
   sim800Linit();
