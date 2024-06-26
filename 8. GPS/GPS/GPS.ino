@@ -12,6 +12,14 @@
     Setup SIM -> Setup GPS
   Main:
     Pembacaan GPS -> Waktu kirim ? pembacaan GPS, kirim data
+
+  
+  Perjenalan singkat tentang pin UART:
+  ESP32 memiliki 3 Serial UART, Serial 0, 1, 2
+  Serial 0 tidak bisa dipakai karena sudah terhubung ke loader program
+  Serial 1 : Bebas, contoh 13, 14
+  Serial 2 : Bebas, biasanya menggunakan pin 16, 17
+  Penjelasan lengkap: https://mikroavr.com/pin-out-esp32/ 
 */
 
 // ============ INISIALISASI LIBRARY ============
