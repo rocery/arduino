@@ -424,52 +424,85 @@ void menuSelected() {
   }
 }
 
+/**
+ * Reads the last line of a file from the SD card and extracts information from it.
+ * @param path The path of the file to read.
+ */
 void readLastLineSDCard(String path) {
+  // Open the file for reading
   File file = SD.open(path);
+
+  // Check if file opened successfully
   if (!file || file.isDirectory()) {
     Serial.println("Failed to open file for reading");
     readStatusSD = false;
     return;
-  } else if (file || file.isDirectory()) {
+  } else {
     readStatusSD = true;
   }
 
+  // Read the last line of the file
   while (file.available()) {
     line = file.readStringUntil('\n');
   }
   file.close();
+
+  // Print the data read from the file
   Serial.print("Data dari SD : ");
   Serial.println(line);
+
+  // Extract product selected from the line
   int firstCommaIndex = line.indexOf(',');
   productSelectedSD = line.substring(0, firstCommaIndex);
 
+  // Extract counter value from the line
   line = line.substring(firstCommaIndex + 1);
   int secondCommaIndex = line.indexOf(',');
   counterSD = line.substring(0, secondCommaIndex);
 
+  // Extract date and time from the line
   line = line.substring(secondCommaIndex + 1);
   int thirdCommaIndex = line.indexOf(',');
   dateTimeSD = line.substring(0, thirdCommaIndex);
 
+  // Extract IP address from the line
   ipAddressSD = line.substring(thirdCommaIndex + 1);
 }
 
+/**
+ * Writes a line of text to the end of a file on the SD card.
+ *
+ * @param path The path of the file to write to.
+ * @param line The line of text to write.
+ */
 void insertLastLineSDCard(String path, String line) {
+  // Open the file for writing
   File file = SD.open(path, FILE_WRITE);
+  
+  // Check if file opened successfully
   if (!file) {
+    // Print error message if failed to open
     Serial.println("Failed to open file for writing");
     insertLastLineSDCardStatus = false;
     return;
-  } else if (file) {
+  } else {
+    // Set insertLastLineSDCardStatus to true if file opened successfully
     insertLastLineSDCardStatus = true;
   }
 
+  // Write the line of text to the file
   if (file.println(line)) {
+    // Print success message if line written successfully
     Serial.println("Line written");
   } else {
+    // Print error message if write failed
     Serial.println("Write failed");
   }
+  
+  // Close the file
   file.close();
+  
+  // Print the data written to the SD card
   Serial.print("Data ke SD : ");
   Serial.println(line);
 }
