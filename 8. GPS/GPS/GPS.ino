@@ -1,6 +1,6 @@
 /*
   V. 0.0.1 Alpa
-  Update Terakhir : 26-06-2024
+  Update Terakhir : 27-06-2024
 
   Komponen:
   1. ESP32 Doit V1
@@ -96,4 +96,66 @@ void sim800lInit() {
   sendCommand("AT+CIICR", 1000, "OK");
   // Get the local IP address
   sendCommand("AT+CIFSR", 1000, ".");
+}
+
+/**
+ * Sends data to a server using the SIM800L module.
+ *
+ * @param data The data to send.
+ */
+void sendDataToServer(String data) {
+  // Start TCP connection to server
+  sendCommand("AT+CIPSTART=\"TCP\",\"your_server_address\",\"your_server_port\"", 3000, "OK");
+  delay(2000); // Wait for connection to establish
+
+  // Set the length of the data to send
+  String cmd = "AT+CIPSEND=" + String(data.length() + 4);
+
+  // Send the command to send data
+  sendCommand(cmd.c_str(), 1000, ">");
+
+  // Send the data
+  sim800l.print(data);
+
+  // Send the end of data signal
+  sim800l.write(26); // Send Ctrl+Z
+
+  delay(5000); // Wait for data to send
+
+  // Close the TCP connection
+  sendCommand("AT+CIPCLOSE", 1000, "OK");
+}
+
+/**
+ * Sends a command to the SIM800L module and waits for an expected response.
+ *
+ * @param cmd The command to send.
+ * @param timeout The maximum time to wait for a response.
+ * @param expected The response to wait for.
+ */
+void sendCommand(const char* cmd, int timeout, const char* expected) {
+  // Send the command to the SIM800L module
+  sim800l.println(cmd);
+
+  // Record the start time
+  long int startTime = millis();
+
+  // Wait for the expected response or until the timeout is reached
+  while ((startTime + timeout) > millis()) {
+    // Check if there is data available from the SIM800L module
+    while (sim800l.available()) {
+      // Read the response as a string
+      String response = sim800l.readString();
+
+      // Check if the expected response is in the response
+      if (response.indexOf(expected) != -1) {
+        // If the expected response is found, return
+        return;
+      }
+    }
+  }
+
+  // If the command times out, print an error message
+  Serial.print("Command timed out: ");
+  Serial.println(cmd);
 }
