@@ -36,40 +36,6 @@ HardwareSerial gpsSerial(1);
 HardwareSerial simSerial(2);
 
 /**
- * Sets up the hardware and initializes the SIM800L module.
- *
- * This function initializes the serial communication with the ESP32 and
- * configures the SIM800L module. It sets the data rate to 9600 baud and
- * uses the SERIAL_8N1 mode. The RX pin is connected to pin 17 and the TX pin
- * is connected to pin 16.
- */
-void setup() {
-  // Initialize serial communication with the ESP32
-  Serial.begin(115200);
-
-  // Initialize serial communication with the SIM800L module
-  // Set the data rate to 9600 baud and use the SERIAL_8N1 mode
-  // Pin RX SIM800L is connected to pin 17
-  // Pin TX SIM800L is connected to pin 16
-  simSerial.begin(9600, SERIAL_8N1, 16, 17);
-
-  // Initialize serial communication with the GPS module
-  // Set the data rate to 9600 baud and use the SERIAL_8N1 mode
-  // Pin RX GPS is connected to pin 14
-  // Pin TX GPS is connected to pin 13
-  gpsSerial.begin(9600, SERIAL_8N1, 13, 14);
-
-  // Initialize the SIM800L module
-  sim800Linit();
-  
-}
-
-void loop() {
-  // put your main code here, to run repeatedly:
-
-}
-
-/**
  * Initializes the SIM800L module.
  *
  * This function sends a series of AT commands to the SIM800L module to initialize it.
@@ -123,8 +89,7 @@ void sendDataToServer(String data) {
   delay(5000); // Wait for data to send
 
   // Close the TCP connection
-  sendCommand("AT+CIPCLOSE", 1000, "OK");
-}
+  sendCommand("AT+CIPCLOSE", 1000, "OK");}
 
 /**
  * Sends a command to the SIM800L module and waits for an expected response.
@@ -158,4 +123,38 @@ void sendCommand(const char* cmd, int timeout, const char* expected) {
   // If the command times out, print an error message
   Serial.print("Command timed out: ");
   Serial.println(cmd);
+}
+
+/**
+ * Sets up the hardware and initializes the SIM800L module.
+ *
+ * This function initializes the serial communication with the ESP32 and
+ * configures the SIM800L module. It sets the data rate to 9600 baud and
+ * uses the SERIAL_8N1 mode. The RX pin is connected to pin 17 and the TX pin
+ * is connected to pin 16.
+ */
+void setup() {
+  // Initialize serial communication with the ESP32
+  Serial.begin(115200);
+
+  // Initialize serial communication with the SIM800L module
+  // Set the data rate to 9600 baud and use the SERIAL_8N1 mode
+  // Pin RX SIM800L is connected to pin 17
+  // Pin TX SIM800L is connected to pin 16
+  simSerial.begin(9600, SERIAL_8N1, 16, 17);
+
+  // Initialize serial communication with the GPS module
+  // Set the data rate to 9600 baud and use the SERIAL_8N1 mode
+  // Pin RX GPS is connected to pin 14
+  // Pin TX GPS is connected to pin 13
+  gpsSerial.begin(9600, SERIAL_8N1, 13, 14);
+
+  // Initialize the SIM800L module
+  sim800Linit();
+  
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
 }
