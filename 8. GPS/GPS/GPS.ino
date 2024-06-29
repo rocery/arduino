@@ -126,6 +126,85 @@ void sendCommand(const char* cmd, int timeout, const char* expected) {
 }
 
 /**
+ * Decodes the GPS data and prints the updated location, date, time, altitude,
+ * speed, course, and number of satellites.
+ *
+ * This function reads GPS data from the GPS module and decodes it using the
+ * TinyGPSPlus library. It then prints the updated location, date, time,
+ * altitude, speed, course, and number of satellites to the serial monitor.
+ */
+void encodeGPS() {
+  // Read and decode GPS data
+  gps.encode(gpsSerial.read());
+
+  // Print the updated location
+  if (gps.location.isUpdated()) {
+    Serial.print(F("Latitude= "));
+    Serial.print(gps.location.lat(), 6);
+    Serial.print(F(" Longitude= "));
+    Serial.println(gps.location.lng(), 6);
+  }
+
+  // Print the updated date
+  if (gps.date.isUpdated()) {
+    Serial.print(F("Date= "));
+    Serial.print(gps.date.month());
+    Serial.print(F("/"));
+    Serial.print(gps.date.day());
+    Serial.print(F("/"));
+    Serial.println(gps.date.year());
+  }
+
+  // Print the updated time
+  if (gps.time.isUpdated()) {
+    Serial.print(F("Time= "));
+    if (gps.time.hour() < 10) Serial.print(F("0"));
+    Serial.print(gps.time.hour());
+    Serial.print(F(":"));
+    if (gps.time.minute() < 10) Serial.print(F("0"));
+    Serial.print(gps.time.minute());
+    Serial.print(F(":"));
+    if (gps.time.second() < 10) Serial.print(F("0"));
+    Serial.print(gps.time.second());
+    Serial.print(F("."));
+    if (gps.time.centisecond() < 10) Serial.print(F("0"));
+    Serial.println(gps.time.centisecond());
+  }
+
+  // Print the updated altitude
+  if (gps.altitude.isUpdated()) {
+    Serial.print(F("Altitude= "));
+    Serial.print(gps.altitude.meters());
+    Serial.println(F(" meters"));
+  }
+
+  // Print the updated speed
+  if (gps.speed.isUpdated()) {
+    Serial.print(F("Speed= "));
+    Serial.print(gps.speed.kmph());
+    Serial.println(F(" km/h"));
+  }
+
+  // Print the updated course
+  if (gps.course.isUpdated()) {
+    Serial.print(F("Course= "));
+    Serial.println(gps.course.deg());
+  }
+
+  // Print the number of satellites in view
+  if (gps.satellites.isUpdated()) {
+    Serial.print(F("Satellites= "));
+    Serial.println(gps.satellites.value());
+  }
+
+  // Print the horizontal dilution of precision
+  if (gps.hdop.isUpdated()) {
+    Serial.print(F("HDOP= "));
+    Serial.println(gps.hdop.value());
+  }
+}
+
+/**
  * Sets up the hardware and initializes the SIM800L module.
  *
  * This function initializes the serial communication with the ESP32 and
@@ -155,6 +234,8 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  while (gpsSerial.available() > 0) {
+    encodeGPS();
+  }
 
 }
