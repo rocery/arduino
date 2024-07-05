@@ -42,7 +42,7 @@ PZEM004Tv30 pzem14(pzemSWSerial, 0x15);
 
 const char* ssid_1 = "STTB1";
 const char* password_1 = "Si4nt4r321";
-const char* ssid_2 = "Tester_ITB";
+const char* ssid_2 = "TesterITB";
 const char* password_2 = "Si4nt4r321";
 const char* ssid_3 = "MT3";
 const char* password_3 = "siantar321";
@@ -58,7 +58,7 @@ String postData;
 String ip_address;
 int sendDataDB = 0;
 
-String pzem14Chanel = "Roll Line 2 - Mie";
+String pzem14Chanel = "Roller Line 1 - Mie";
 
 void sendData(float Voltage, String deviceName, String IP) {
   HTTPClient http;     // http object of clas HTTPClient
