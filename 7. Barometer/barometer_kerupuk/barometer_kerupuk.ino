@@ -52,7 +52,7 @@ const char* ssid_b = "MT1";
 const char* password_b = "siantar321";
 const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
-const char* ssid_d = "Tester_ITB";
+const char* ssid_d = "STTB11";
 const char* password_d = "Si4nt4r321";
 
 // Set IP to Static
