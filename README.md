@@ -16,14 +16,10 @@ http://arduino.esp8266.com/stable/package_esp8266com_index.json
 https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 ```
 
-
 ## Used IP:
 
 ```
 - 223    = Server (Tidak Boleh diganti)
-- 10    = Admin (C-010-IT)
-- 243    = Test Address
-- 1    = Reserved IP
 - 211    = IoT-211-Downtime_Molding_1
 - 213    = IoT-213-Counter_Kerupuk
 - 215    = IoT-215-Stuffle_Mie_Biskuit
@@ -32,10 +28,12 @@ https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32
 - 218    = IoT-218-Counter_Biskuit
 - 128    = IoT-128-Suhu_Oven_28
 - 129    = IoT-129-Suhu_Oven_29
-- 251 - ESP32 - IoT-251-TK0532 - Pipa Angin Teknik - Kerupuk
-- 252 - ESP32 - IoT-252-TK0532 - Pipa Angin Teknik - Biskuit
-- 253 - ESP32 - IoT-253-BM0532 - Pipa Angin Biskuit - Teknik
-- 254 - ESP32 - IoT-254-KR0532 - Pipa Angin Kerupuk - Teknik
+- 251    = IoT-251-Pipa Angin Teknik - Kerupuk
+- 252    = IoT-252-Pipa Angin Teknik - Biskuit
+- 253    = IoT-253-Pipa Angin Biskuit - Teknik
+- 254    = IoT-254-Pipa Angin Kerupuk - Teknik
+- 200    = IoT-200-Doolock_Gym
+- 219    = IoT-219-Counter_Mie_Hancur
 ```
 
 ## Aturan Penamaan ID/Host Name/Device Name pada Alat IoT
