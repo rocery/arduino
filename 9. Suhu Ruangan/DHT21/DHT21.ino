@@ -5,12 +5,12 @@
 
 float temperature, humidity;
 
-void readDHT() {
-    temperature = dht.getTemperature();
-    humidity = dht.getHumidity();
-}
-
 DHT dht(DHTPIN, DHTTYPE);
+
+void readDHT() {
+  temperature = dht.readTemperature();
+  humidity = dht.readHumidity();
+}
 
 void setup() {
   Serial.begin(115200);
@@ -18,8 +18,7 @@ void setup() {
 }
 
 void loop() {
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
+  readDHT();
   Serial.print("Humidity: ");
   Serial.print(h);
   Serial.print(" %\t");
