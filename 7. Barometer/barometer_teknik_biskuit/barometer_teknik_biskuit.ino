@@ -51,9 +51,9 @@ Gunakan tidak lebih dari 3 WiFi (WiFi Utama, WiFi Cadangan, WiFi Test)
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB1";
 const char* password_a = "Si4nt4r321";
-const char* ssid_b = "MT3";
-const char* password_b = "siantar321";
-const char* ssid_c = "Tester_ITB";
+// const char* ssid_b = "MT3";
+// const char* password_b = "siantar321";
+const char* ssid_c = "TesterITB";
 const char* password_c = "Si4nt4r321";
 
 // Set IP to Static
