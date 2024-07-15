@@ -166,7 +166,7 @@ void setup() {
   lcd.setCursor(0, 0);
   lcd.print("Connecting..");
   wifiMulti.addAP(ssid_a, password_a);
-  wifiMulti.addAP(ssid_b, password_b);
+  // wifiMulti.addAP(ssid_b, password_b);
   wifiMulti.addAP(ssid_c, password_c);
 
   if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
