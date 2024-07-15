@@ -16,6 +16,19 @@ http://arduino.esp8266.com/stable/package_esp8266com_index.json
 https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 ```
 
+## Error Note
+```
+Errors below can be ignored:  
+WARNING: library LiquidCrystal I2C claims to run on avr architecture(s) and 
+may be incompatible with your current board which runs on esp32 architecture(s).
+
+In Linux bases OS, in order to upload code, you need to add your user to dialout group.
+Just run this command: 
+sudo usermod -G dialout $USER
+
+```
+
+---
 ## Used IP:
 
 ```
