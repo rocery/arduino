@@ -47,6 +47,7 @@ sudo usermod -G dialout $USER
 - 254    = IoT-254-Pipa Angin Kerupuk - Teknik
 - 200    = IoT-200-Doolock_Gym
 - 219    = IoT-219-Counter_Mie_Hancur
+- 49     = Komputer IT
 ```
 
 ## Aturan Penamaan ID/Host Name/Device Name pada Alat IoT
