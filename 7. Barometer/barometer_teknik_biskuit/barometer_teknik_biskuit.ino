@@ -1,12 +1,12 @@
 /*
   V. 1.0.0
-  Update Terakhir : 06-05-2024
+  Update Terakhir : 15-07-2024
 
   Komponen:
   1. ESP32
   2. Sensor Pressure Transmitter 5V DC G 1/4"
   3. LCD I2C 16x2
-  4. 7 Segment TM1637
+  4. 7 Segment TM1637 (Optional)
 
   Program ini  berfungsi untuk mengukur tekanan angin secara real-time.
 */
@@ -22,11 +22,14 @@
 #include <TM1637Display.h>
 #include <math.h>
 
-String ESPName = "Barometer | Teknik-Biskuit";
-String deviceID = "IoT-252-TK0532";
+String ESPName = "Tekanan Angin | Teknik-Kerupuk";
+String deviceID = "IoT-252";
 
 // ===== PRESSURE SENSOR =====
 const int pressureInput = 34;    // Pin pada mikrokontroller yang digunakan
+/* Nilai pressureZero bisa gigunakan sebagai nilai kablibrasi
+ * Semakin besar nilai pressureZero, maka semakin kecil nilai PSI
+*/
 const int pressureZero = 102.4;  // Nilai analogRead() pada kondisi 0 psi
 const int pressureMax = 4095;    // Nilai analogRead() pada kondisi maksimum psi
 const int pressuremaxPSI = 174;  // Nilai maksimal sensor yang digunakan
