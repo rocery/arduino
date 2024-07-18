@@ -78,6 +78,4 @@ sudo usermod -G dialout $USER
 ```
 
 Catatan:
-Kuning - Putih Data
-Merah - Ungu VCC
-Hitam - Biru GND
+-
