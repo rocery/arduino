@@ -14,6 +14,19 @@ Arduino IDE yang digunakan versi 2++
 Link Board ESP32 dan ESP8266:
 http://arduino.esp8266.com/stable/package_esp8266com_index.json
 https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+
+List Project IoT:
+1. Sensor Downtime (4)
+    a. Conveyor (2)
+    b. Line 1 Biskuit (1)
+    c. Line 1 Mie (1)
+2. Counter (3)
+    a. Counter Biskuit (1)
+    b. Counter Mie (1)
+    c. Counter Kerupuk (1)
+3. Sensor Suhu Oven (3)
+4. Doorlock (1)
+5. Sensor Tekanan Angin (4)
 ```
 
 ## Error Note
