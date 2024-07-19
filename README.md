@@ -61,6 +61,8 @@ sudo usermod -G dialout $USER
 - 200    = IoT-200-Doolock_Gym
 - 219    = IoT-219-Counter_Mie_Hancur
 - 49     = Komputer IT
+
+11, 12, 13, 14, 15, 16, 17, 18, 29, 20, 21, 22, 23, 24 = IoT-x-Suhu Ruang
 ```
 
 ## Aturan Penamaan ID/Host Name/Device Name pada Alat IoT
