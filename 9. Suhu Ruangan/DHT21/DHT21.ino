@@ -10,6 +10,7 @@
 
   Fungsi : Mengukur temperatur ruang dan kelembaban relatif (RH)
 */
+
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
@@ -17,18 +18,24 @@
 #include <LiquidCrystal_I2C.h>
 
 /*
-  Isi variabel dibawah sebagai inisialisasi awal projek
+  Isi variabel dibawah sebagai inisialisasi awal projek,
+  @param ip = IP Address ESP32
+  @param loc = Lokasi ruangan untuk diukur
+  @param api = URL API
 */
 const String ip = "11";
 const String loc = "Kerupuk";
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
 
-
 String ESPName = "Suhu Ruang | " + loc;
 String deviceID = "IoT-" + ip;
 
-#define DHTPIN 4
+#define DHTPIN 34
 #define DHTTYPE DHT21
+
+#define POTPIN 15
+int potValue;
+#define LCDADDR 0x27
 
 float temperature, humidity;
 
