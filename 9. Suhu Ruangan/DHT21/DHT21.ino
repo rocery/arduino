@@ -40,7 +40,7 @@ String deviceID = "IoT-" + ip;
 #define DHTPIN 34
 #define DHTTYPE DHT21
 DHT dht(DHTPIN, DHTTYPE);
-float temperature, humidity, calTemp, calHum;
+float temperature, humidity, calTemp;
 
 /* Mendeklarasikan Potensiometer
   @param POTPIN = Pin Potensiometer
@@ -97,14 +97,13 @@ void readPot() {
   mappedPotValue = map(potValue, 0, 4095, 0, 10);
 }
 
-void getLocalTime() {
+bool getLocalTime() {
   /* Fungsi bertujuan menerima update waktu
   lokal dari ntpServer */
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) {
     ntpStatus = false;
   } else {
-    ntpStatus = true;
     char timeStringBuff[50];
     strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
     dateTime = String(timeStringBuff);
@@ -122,6 +121,8 @@ void getLocalTime() {
     timeFormat = String(hour) + ':' + String(minute) + ':' + String(second);
     // hh:mm
     lcdFormat = String(hour) + ':' + String(minute);
+
+    ntpStatus = true;
   }
 }
 
@@ -143,11 +144,63 @@ void sendLogData() {
   http.end();
 }
 
+void printLCD(float temp, float hum) {
+  lcd.setCursor(0, 0);
+  lcd.print("Temp: ");
+  lcd.print(temp);
+  lcd.setCursor(0, 1);
+  lcd.print("Hum: ");
+  lcd.print(hum);
+}
+
 void setup() {
   Serial.begin(115200);
   dht.begin();
 
+  // LCD
+  lcd.init();
+  lcd.clear();
+  lcd.backlight();
 
+  // WiFi
+  lcd.setCursor(0, 0);
+  lcd.print("Connecting..");
+  wifiMulti.addAP(ssid_a, password_a);
+  wifiMulti.addAP(ssid_b, password_b);
+  wifiMulti.addAP(ssid_c, password_c);
+  wifiMulti.addAP(ssid_d, password_d);
+
+  if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    Serial.println("STA Failed to configure");
+  } else {
+    Serial.println("STA Success");
+  }
+  wifiMulti.run();
+
+  // NTP
+  configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
+  if (wifiMulti.run() != WL_CONNECTED) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("WiFi Fail");
+    lcd.setCursor(0, 1);
+    lcd.print("Date/Time Error");
+    delay(3000);
+  } else {
+    lcd.setCursor(0, 0);
+    lcd.print("WiFi Connected");
+
+    int tryNTP = 0;
+    while (ntpStatus == false && tryNTP <= 2) {
+      getLocalTime();
+      tryNTP++;
+      delay(50);
+      lcd.setCursor(0, 1);
+      lcd.print("Getting Time");
+    }
+  }
+
+  lcd.clear();
 }
 
 void loop() {
@@ -155,5 +208,7 @@ void loop() {
   readPot();
 
   calTemp = temperature + mappedPotValue;
-
+  printLCD(calTemp, humidity);
+  sendLogData();
+  delay(1000);
 }
