@@ -253,7 +253,7 @@ void loop() {
   }
 
   ip_Address = WiFi.localIP().toString();
-  postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip=" + ip_Address;
+  postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip_address=" + ip_Address;
   
   if (readDHTCount % 30 == 0) {
     sendLogData();
