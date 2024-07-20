@@ -97,11 +97,57 @@ void readPot() {
   mappedPotValue = map(potValue, 0, 4095, 0, 10);
 }
 
+void getLocalTime() {
+  /* Fungsi bertujuan menerima update waktu
+  lokal dari ntpServer */
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    ntpStatus = false;
+  } else {
+    ntpStatus = true;
+    char timeStringBuff[50];
+    strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    dateTime = String(timeStringBuff);
+
+    // Save time data to variabel
+    year = timeinfo.tm_year + 1900;
+    month = timeinfo.tm_mon + 1;
+    day = timeinfo.tm_mday;
+    hour = timeinfo.tm_hour;
+    minute = timeinfo.tm_min;
+    second = timeinfo.tm_sec;
+    // YYYY-MM-DD
+    dateFormat = String(year) + '-' + String(month) + '-' + String(day);
+    // hh:mm:ss
+    timeFormat = String(hour) + ':' + String(minute) + ':' + String(second);
+    // hh:mm
+    lcdFormat = String(hour) + ':' + String(minute);
+  }
+}
+
+void sendLogData() {
+  /* Mengirim data ke local server
+  Ganti isi variabel api sesuai dengan form php
+  */
+  HTTPClient http;
+  http.begin(api);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  int httpResponseCode = http.POST(postData);
+
+  if (httpResponseCode > 0) {
+    String response = http.getString();
+    Serial.println(response);
+  } else {
+    Serial.print("ERROR ON SENDING POST");
+  }
+  http.end();
+}
+
 void setup() {
   Serial.begin(115200);
   dht.begin();
 
-  
+
 }
 
 void loop() {
