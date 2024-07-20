@@ -30,34 +30,84 @@ const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
 String ESPName = "Suhu Ruang | " + loc;
 String deviceID = "IoT-" + ip;
 
+/* Mendeklarasikan DHT21
+  @param DHTPIN = Pin DHT
+  @param DHTTYPE = Tipe DHT
+  @param dht = Variabel DHT
+  @param temperature = Variabel Suhu
+  @param humidity = Variabel Kelembaban
+*/
 #define DHTPIN 34
 #define DHTTYPE DHT21
-
-#define POTPIN 15
-int potValue;
-#define LCDADDR 0x27
-
-float temperature, humidity;
-
 DHT dht(DHTPIN, DHTTYPE);
+float temperature, humidity, calTemp, calHum;
+
+/* Mendeklarasikan Potensiometer
+  @param POTPIN = Pin Potensiometer
+  @param potValue = Nilai Potensiometer
+  @param mappedPotValue = Nilai Mapped Potensiometer
+*/
+#define POTPIN 15
+int potValue, mappedPotValue;
+
+/* Mendeklarasikan LCD dengan alamat I2C 0x27
+  @param LCDADDR = Alamat I2C
+  @param lcd = Variabel LCD
+*/
+#define LCDADDR 0x27
+LiquidCrystal_I2C lcd(LCDADDR, 16, 2);
+
+/* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
+  ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
+  Gunakan tidak lebih dari 3 WiFi (WiFi Utama, WiFi Cadangan, WiFi Test)
+*/
+WiFiMulti wifiMulti;
+const char* ssid_a = "STTB1";
+const char* password_a = "Si4nt4r321";
+const char* ssid_b = "MT3";
+const char* password_b = "siantar321";
+const char* ssid_c = "STTB11";
+const char* password_c = "Si4nt4r321";
+const char* ssid_d = "Tester_ITB";
+const char* password_d = "Si4nt4r321";
+
+// Set IP to Static
+IPAddress staticIP(192, 168, 7, ip);
+IPAddress gateway(192, 168, 15, 250);
+IPAddress subnet(255, 255, 0, 0);
+IPAddress primaryDNS(8, 8, 8, 8);    //optional
+IPAddress secondaryDNS(8, 8, 4, 4);  //optional
+String ip_Address;
+
+// ===== NTP =====
+const char* ntpServer = "192.168.7.223";
+const long gmtOffsetSec = 7 * 3600;
+const int daylightOffsetSec = 0;
+String dateTime, dateFormat, timeFormat, lcdFormat;
+int year, month, day, hour, minute, second;
+bool ntpStatus;
 
 void readDHT() {
   temperature = dht.readTemperature();
   humidity = dht.readHumidity();
 }
 
+void readPot() {
+  potValue = analogRead(POTPIN);
+  mappedPotValue = map(potValue, 0, 4095, 0, 10);
+}
+
 void setup() {
   Serial.begin(115200);
   dht.begin();
+
+  
 }
 
 void loop() {
   readDHT();
-  Serial.print("Humidity: ");
-  Serial.print(humidity);
-  Serial.print(" %\t");
-  Serial.print("Temperature: ");
-  Serial.print(temperature);
-  Serial.println(" *C ");
-  delay(2000);
+  readPot();
+
+  calTemp = temperature + mappedPotValue;
+
 }
