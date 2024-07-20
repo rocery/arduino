@@ -260,7 +260,7 @@ void loop() {
     sendLogData();
     sendCounter++;
 
-    if (sendCounter % 60 == 0) {
+    if (sendCounter % 1800 == 0) {
       ESP.restart();
     }
   }
