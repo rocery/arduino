@@ -8,6 +8,8 @@
   3. Potensiometer 100K Ohm
   4. DHT21
 
+  PP = 18 Juli 2024
+
   Fungsi : Mengukur temperatur ruang dan kelembaban relatif (RH)
 */
 
@@ -23,12 +25,12 @@
   @param loc = Lokasi ruangan untuk diukur
   @param api = URL API
 */
-const String ip = "11";
+const int ip = 11;
 const String loc = "Kerupuk";
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
 
 String ESPName = "Suhu Ruang | " + loc;
-String deviceID = "IoT-" + ip;
+String deviceID = "IoT-" + String(ip);
 
 /* Mendeklarasikan DHT21
   @param DHTPIN = Pin DHT
@@ -259,7 +261,7 @@ void loop() {
   }
 
   if (readDHTCount % 1200 == 0) {
-    ESP.reset();
+    ESP.restart();
   }
   delay(2000);
 }
