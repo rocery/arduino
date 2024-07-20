@@ -1,6 +1,6 @@
 /*
   V. 0.0.1
-  Update Terakhir : 19-07-2024
+  Update Terakhir : 20-07-2024
 
   Komponen:
   1. ESP32
@@ -41,6 +41,7 @@ String deviceID = "IoT-" + ip;
 #define DHTTYPE DHT21
 DHT dht(DHTPIN, DHTTYPE);
 float temperature, humidity, calTemp;
+int readDHTCount;
 
 /* Mendeklarasikan Potensiometer
   @param POTPIN = Pin Potensiometer
@@ -56,6 +57,16 @@ int potValue, mappedPotValue;
 */
 #define LCDADDR 0x27
 LiquidCrystal_I2C lcd(LCDADDR, 16, 2);
+uint8_t degree[8] = {
+  0x08,
+  0x14,
+  0x14,
+  0x08,
+  0x00,
+  0x00,
+  0x00,
+  0x00
+};
 
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
   ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
@@ -77,7 +88,7 @@ IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
 IPAddress secondaryDNS(8, 8, 4, 4);  //optional
-String ip_Address;
+String ip_Address, postData;
 
 // ===== NTP =====
 const char* ntpServer = "192.168.7.223";
@@ -90,6 +101,7 @@ bool ntpStatus;
 void readDHT() {
   temperature = dht.readTemperature();
   humidity = dht.readHumidity();
+  readDHTCount++;
 }
 
 void readPot() {
@@ -145,12 +157,20 @@ void sendLogData() {
 }
 
 void printLCD(float temp, float hum) {
+  // Temperature
   lcd.setCursor(0, 0);
-  lcd.print("Temp: ");
+  lcd.print("T: ");
+  lcd.setCursor(3, 0);
   lcd.print(temp);
+  lcd.write(0);
+  lcd.print("C");
+
+  // Humidity
   lcd.setCursor(0, 1);
-  lcd.print("Hum: ");
+  lcd.print("H: ");
+  lcd.setCursor(3, 1);
   lcd.print(hum);
+  lcd.print("%");
 }
 
 void setup() {
@@ -161,6 +181,8 @@ void setup() {
   lcd.init();
   lcd.clear();
   lcd.backlight();
+  lcd.createChar(0, degree);
+  lcd.home();
 
   // WiFi
   lcd.setCursor(0, 0);
@@ -206,9 +228,38 @@ void setup() {
 void loop() {
   readDHT();
   readPot();
-
   calTemp = temperature + mappedPotValue;
   printLCD(calTemp, humidity);
-  sendLogData();
-  delay(1000);
+
+  if (wifiMulti.run() == WL_CONNECTED) {
+    lcd.setCursor(11, 0);
+    lcd.print(WiFi.SSID());
+    Serial.println(WiFi.SSID());
+    getLocalTime();
+  } else if (wifiMulti.run() != WL_CONNECTED) {
+    lcd.setCursor(12, 0);
+    lcd.print("Error");
+    wifiMulti.run();
+  }
+
+  if (ntpStatus == false) {
+    lcd.setCursor(11, 1);
+    lcd.print("Error");
+  } else {
+    lcd.setCursor(11, 1);
+    lcd.print(lcdFormat);
+  }
+
+  ip_Address = WiFi.localIP().toString();
+  postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip=" + ip_Address;
+  
+  if (readDHTCount % 30 == 0) {
+    sendLogData();
+    lcd.clear();
+  }
+
+  if (readDHTCount % 1200 == 0) {
+    ESP.reset();
+  }
+  delay(2000);
 }
