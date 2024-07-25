@@ -1,6 +1,7 @@
 /*
   V. 0.0.1
   Update Terakhir : 20-07-2024
+  FILE INI MERUPAKAN TEMPLATE JIKA ADA PENAMBAHAN PROJECT/ALAT SENSOR SUHU RUANGAN
 
   Komponen:
   1. ESP32
@@ -100,14 +101,36 @@ String dateTime, dateFormat, timeFormat, lcdFormat;
 int year, month, day, hour, minute, second;
 bool ntpStatus;
 
+/**
+ * @brief Reads the temperature and humidity data from the DHT sensor.
+ * 
+ * This function reads the temperature and humidity values from the DHT sensor
+ * and updates the temperature and humidity variables. It also increments the
+ * readDHTCount variable.
+ */
 void readDHT() {
+  // Read the temperature from the DHT sensor
   temperature = dht.readTemperature();
+
+  // Read the humidity from the DHT sensor
   humidity = dht.readHumidity();
+
+  // Increment the readDHTCount variable
   readDHTCount++;
 }
 
+/**
+ * @brief Reads the potentiometer value from the POTPIN pin.
+ * 
+ * This function reads the analog value from the POTPIN pin and maps it
+ * to a value between 0 and 10. The mapped value is stored in the mappedPotValue
+ * variable.
+ */
 void readPot() {
+  // Read the analog value from the POTPIN pin
   potValue = analogRead(POTPIN);
+
+  // Map the analog value to a value between 0 and 10
   mappedPotValue = map(potValue, 0, 4095, 0, 10);
 }
 
@@ -140,42 +163,69 @@ bool getLocalTime() {
   }
 }
 
+/**
+ * Sends log data to the local server.
+ *
+ * @param None
+ *
+ * @return None
+ *
+ * @throws None
+ */
 void sendLogData() {
   /* Mengirim data ke local server
   Ganti isi variabel api sesuai dengan form php
   */
+  // Begin HTTP client
   HTTPClient http;
   http.begin(api);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   int httpResponseCode = http.POST(postData);
 
+  // Add header for content type
   if (httpResponseCode > 0) {
+    // Send POST request with data
     String response = http.getString();
+    // Check if request is successful
     Serial.println(response);
+    // Get response from server
   } else {
     Serial.print("ERROR ON SENDING POST");
   }
+  // Print error message if request fails
   http.end();
 }
 
+// End HTTP client
+
 void printLCD(float temp, float hum) {
+  /*
+   * Print temperature and humidity data to LCD display.
+   *
+   * @param temp float temperature value
+   * @param hum float humidity value
+   */
   // Temperature
-  lcd.setCursor(0, 0);
-  lcd.print("T: ");
-  lcd.setCursor(3, 0);
-  lcd.print(temp);
-  lcd.write(0);
-  lcd.print("C");
+  lcd.setCursor(0, 0);  // Set cursor to position (0, 0)
+  lcd.print("T: ");     // Print "T: "
+  lcd.setCursor(3, 0);  // Set cursor to position (3, 0)
+  lcd.print(temp);      // Print temperature value
+  lcd.write(0);         // Print degree symbol (°C)
+  lcd.print("C");       // Print "C"
 
   // Humidity
-  lcd.setCursor(0, 1);
-  lcd.print("H: ");
-  lcd.setCursor(3, 1);
-  lcd.print(hum);
-  lcd.print("%");
+  lcd.setCursor(0, 1);  // Set cursor to position (0, 1)
+  lcd.print("H: ");     // Print "H: "
+  lcd.setCursor(3, 1);  // Set cursor to position (3, 1)
+  lcd.print(hum);       // Print humidity value
+  lcd.print("%");       // Print "%"
 }
 
 void setup() {
+  /*
+   * Initialize serial communication.
+   * The baud rate is set to 115200.
+   */
   Serial.begin(115200);
   dht.begin();
 
@@ -227,41 +277,64 @@ void setup() {
   lcd.clear();
 }
 
+/**
+ * The loop function to run in the ESP32
+ * This function will check if the ESP32 is connected to the WiFi network.
+ * If it is, it will collect data from the DHT21 and potentiometer.
+ * It will then calculate the temperature with the potentiometer value.
+ * After that, it will print the data to the LCD.
+ * If it's not connected to the WiFi, it will print error message to the LCD.
+ * It will also check if the NTP is connected correctly or not.
+ * If it is, it will print the time to the LCD.
+ * It will also send the data to the API if the time is up.
+ * And restart the ESP32 after every 1200 readings.
+ */
 void loop() {
+  static unsigned long lastSend = 0;
+  static const unsigned long sendInterval = 30000;  // 30 seconds
+
+  // Read data from DHT21 and potentiometer
   readDHT();
   readPot();
   calTemp = temperature + mappedPotValue;
   printLCD(calTemp, humidity);
 
+  // Calculate temperature with potentiometer value
   if (wifiMulti.run() == WL_CONNECTED) {
-    lcd.setCursor(11, 0);
-    lcd.print(WiFi.SSID());
-    Serial.println(WiFi.SSID());
-    getLocalTime();
-  } else if (wifiMulti.run() != WL_CONNECTED) {
-    lcd.setCursor(12, 0);
-    lcd.print("Error");
-    wifiMulti.run();
-  }
+    // Print data to LCD
+    if (millis() - lastSend >= sendInterval) {
+      // Check if WiFi is connected
+      lastSend = millis();
+      // If it is, check if the time is up
+      getLocalTime();
+      // If it is, get local time
+      ip_Address = WiFi.localIP().toString();
+      postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip_address=" + ip_Address;
+      sendLogData();
+      lcd.clear();
+    }
 
-  if (ntpStatus == false) {
-    lcd.setCursor(11, 1);
-    lcd.print("Error");
-  } else {
-    lcd.setCursor(11, 1);
-    lcd.print(lcdFormat);
-  }
+    // Check if NTP is connected correctly or not
+    // Check if the reading count is a multiple of 1200
+    // If it is, restart the ESP32
+    // Delay for 2 seconds
+    if (ntpStatus == false) {
+      lcd.setCursor(11, 1);
+      // Set up data to send to API
+      lcd.print("Error");
+      // Send data to API
+    } else {
+      // Clear LCD
+      lcd.setCursor(12, 0);
+      // Print error message to LCD
+      lcd.print("Error");
+      lcd.setCursor(11, 1);
+      lcd.print(lcdFormat);
+    }
 
-  ip_Address = WiFi.localIP().toString();
-  postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip_address=" + ip_Address;
-  
-  if (readDHTCount % 30 == 0) {
-    sendLogData();
-    lcd.clear();
+    if (readDHTCount % 1200 == 0) {
+      ESP.restart();
+    }
+    delay(2000);
   }
-
-  if (readDHTCount % 1200 == 0) {
-    ESP.restart();
-  }
-  delay(2000);
 }
