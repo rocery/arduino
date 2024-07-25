@@ -6,9 +6,11 @@ const char* ssid = "STTB7";
 const char* password = "Si4nt4r321";
 
 // MQTT broker information
-const char* mqtt_server = "192.168.7.10";
+const char* mqtt_server = "192.168.7.210";
 const int mqtt_port = 1883;
 const char* mqtt_topic = "suhuruangcalibrator/";
+
+float data0, data1;
 
 // Create WiFi and MQTT clients
 WiFiClient espClient;
@@ -28,6 +30,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
   payload[length] = '\0';                 // Null-terminate the payload
   receivedData = String((char*)payload);  // Convert payload to String
   Serial.println("Data received: " + receivedData);
+  int commaIndex = receivedData.indexOf(',');
+  data0 = receivedData.substring(0, commaIndex).toFloat();
+  data1 = receivedData.substring(commaIndex + 1).toFloat();
 }
 
 void setup() {
@@ -71,7 +76,12 @@ void loop() {
   // For example, print the data to Serial Monitor
   if (receivedData.length() > 0) {
     Serial.println("Processing received data: " + receivedData);
+    Serial.print("data0 = ");
+    Serial.println(data0);
+    Serial.print("data1 = ");
+    Serial.println(data1);
     // Clear receivedData after processing
     // receivedData = "";
   }
+  delay(1000);
 }

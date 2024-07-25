@@ -19,6 +19,7 @@
 #include <HTTPClient.h>
 #include <DHT.h>
 #include <LiquidCrystal_I2C.h>
+#include <PubSubClient.h>
 
 /*
   Isi variabel dibawah sebagai inisialisasi awal projek,
@@ -32,6 +33,22 @@ const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
 
 String ESPName = "Suhu Ruang | " + loc;
 String deviceID = "IoT-" + String(ip);
+
+/**
+ * Mendeklarasikan MQTT Broker
+ * @param mqtt_server = IP Address MQTT Broker
+ * @param mqtt_port = Port MQTT Broker
+ * @param mqtt_topic = Topic MQTT
+ * @param dataRawMQTT = Data Raw MQTT
+ * @param dataMQTT0 = Data MQTT 0
+ * @param dataMQTT1 = Data MQTT 1
+ * @param client = MQTT Client
+ */
+const char* mqtt_server = "192.168.7.210";
+const int mqtt_port = 1883;
+const char* mqtt_topic = "suhuruangcalibrator/";
+String dataRawMQTT, dataMQTT0, dataMQTT1;
+PubSubClient client(espClient);
 
 /* Mendeklarasikan DHT21
   @param DHTPIN = Pin DHT
@@ -273,6 +290,21 @@ void setup() {
       lcd.print("Getting Time");
     }
   }
+
+  // Connect to MQTT broker
+  // client.setServer(mqtt_server, mqtt_port);
+  // client.setCallback(callback);
+  // while (!client.connected()) {
+  //   Serial.println("Connecting to MQTT broker...");
+  //   if (client.connect("ESP32Subscriber")) {
+  //     Serial.println("Connected to MQTT broker");
+  //     client.subscribe(mqtt_topic);
+  //   } else {
+  //     Serial.print("Failed to connect. State: ");
+  //     Serial.print(client.state());
+  //     delay(2000);
+  //   }
+  // }
 
   lcd.clear();
 }
