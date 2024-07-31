@@ -86,6 +86,8 @@ const char* ssid_c = "STTB11";
 const char* password_c = "Si4nt4r321";
 const char* ssid_d = "Tester_ITB";
 const char* password_d = "Si4nt4r321";
+// MT1
+// STTB8
 
 // Set IP to Static
 IPAddress staticIP(192, 168, 7, ip);
