@@ -1,12 +1,15 @@
 /*
-  V. 0.0.1
-  Update Terakhir : 20-07-2024
+  V. 1.0.0
+  Update Terakhir : 31-07-2024
 
   Komponen:
   1. ESP32
   2. LCD 16x2 I2C
   3. Potensiometer 100K Ohm
   4. DHT21
+  5. Stepdown DC-DC
+  6. Adaptor
+  7. 
 
   PP = 18 Juli 2024
 
@@ -25,10 +28,9 @@
   @param loc = Lokasi ruangan untuk diukur
   @param api = URL API
 */
-const int ip = 11;
-const String loc = "Kerupuk";
+const int ip = 11; // Isi dengan IP Address ESP32
+const String loc = "Kerupuk"; // Isi dengan lokasi ruangan
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
-
 String ESPName = "Suhu Ruang | " + loc;
 String deviceID = "IoT-" + String(ip);
 
