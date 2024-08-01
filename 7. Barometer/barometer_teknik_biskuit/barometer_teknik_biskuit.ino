@@ -23,7 +23,7 @@
 #include <math.h>
 #include <ArduinoJson.h>
 
-String ESPName = "Tekanan Angin | Boiler-Kerupuk";
+String ESPName = "Tekanan Angin | Boiler-Biskuit";
 String deviceID = "IoT-252-TK0532";
 
 // ===== PRESSURE SENSOR =====
