@@ -307,6 +307,7 @@ void loop() {
   if (readPressureCounter % 30 == 0) {
     sendLogData();
     sendCounter++;
+    getStatus = false;
 
     if (sendCounter % 1800 == 0) {
       ESP.restart();

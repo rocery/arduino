@@ -90,7 +90,7 @@ TM1637Display tm1637(CLK, DIO);
 void readPressure(int calibration) {
   pressureValue = analogRead(pressureInput);
   pressureValue = ((pressureValue - pressureZero) * pressuremaxPSI) / (pressureMax - pressureZero);
-
+  Serial.println(pressureValue);
   // Calibrate here use value from database
   pressureValue = pressureValue + calibration;
   Serial.println(pressureValue);
@@ -307,6 +307,7 @@ void loop() {
   if (readPressureCounter % 30 == 0) {
     sendLogData();
     sendCounter++;
+    getStatus = false;
 
     if (sendCounter % 1800 == 0) {
       ESP.restart();
