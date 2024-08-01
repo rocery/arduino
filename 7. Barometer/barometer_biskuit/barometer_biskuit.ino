@@ -38,6 +38,7 @@ float pressureValue = 0;
 float barValue = 0;
 const float psiToBar = 14.5037738;  // Nilai konversi pembagi psi ke bar
 int readPressureCounter = 0;
+int calPSI = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
 Total kolom 16
@@ -56,8 +57,8 @@ const char* ssid_b = "MT3";
 const char* password_b = "siantar321";
 const char* ssid_c = "STTB11";
 const char* password_c = "Si4nt4r321";
-const char* ssid_d = "Tester_ITB";
-const char* password_d = "Si4nt4r321";
+const char* ssid_d = "MT1";
+const char* password_d = "siantar321";
 
 // Set IP to Static
 IPAddress staticIP(192, 168, 7, 253);
@@ -86,12 +87,13 @@ String postData, api = "http://192.168.7.223/barometer_api/save_tekanan.php";
 #define DIO 18
 TM1637Display tm1637(CLK, DIO);
 
-void readPressure() {
+void readPressure(int calibration) {
   pressureValue = analogRead(pressureInput);
-  Serial.println(pressureValue);
   pressureValue = ((pressureValue - pressureZero) * pressuremaxPSI) / (pressureMax - pressureZero);
 
   // Calibrate here use value from database
+  pressureValue = pressureValue + calibration;
+  Serial.println(pressureValue);
 
   barValue = pressureValue / psiToBar;
   Serial.print(pressureValue, 1);
@@ -101,7 +103,7 @@ void readPressure() {
   readPressureCounter++;
 }
 
-int getLogData() {
+int getCalibrationData() {
   /* Untung mendapatkan data terakhir dari DB, 
   saat ini tidak digunakan karena sudah menggunakan SD Card
   Kode dibawah mohon untuk tidak dihapus.
@@ -249,7 +251,7 @@ void setup() {
 }
 
 void loop() {
-  readPressure();
+  readPressure(calPSI);
 
   float bar = barValue * 100;
   int roundBar = round(bar);
@@ -278,6 +280,12 @@ void loop() {
     lcd.print(WiFi.SSID());
     Serial.println(WiFi.SSID());
     getLocalTime();
+
+    if (getStatus == false) {
+      calPSI = getCalibrationData();
+      getStatus = true;
+    }
+
   } else if (wifiMulti.run() != WL_CONNECTED) {
     lcd.setCursor(12, 0);
     lcd.print("Error");

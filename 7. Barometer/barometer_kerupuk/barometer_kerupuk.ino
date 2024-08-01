@@ -21,9 +21,10 @@
 #include <Arduino.h>
 #include <TM1637Display.h>
 #include <math.h>
+#include <ArduinoJson.h>
 
 String ESPName = "Tekanan Angin | Kerupuk";
-String deviceID = "IoT-254";
+String deviceID = "IoT-254-KR0532";
 
 // ===== PRESSURE SENSOR =====
 const int pressureInput = 34;    // Pin pada mikrokontroller yang digunakan
@@ -37,6 +38,7 @@ float pressureValue = 0;
 float barValue = 0;
 const float psiToBar = 14.5037738;  // Nilai konversi pembagi psi ke bar
 int readPressureCounter = 0;
+int calPSI = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
 Total kolom 16
@@ -85,16 +87,56 @@ String postData, api = "http://192.168.7.223/barometer_api/save_tekanan.php";
 #define DIO 18
 TM1637Display tm1637(CLK, DIO);
 
-void readPressure() {
+void readPressure(int calibration) {
   pressureValue = analogRead(pressureInput);
-  Serial.println(pressureValue);
   pressureValue = ((pressureValue - pressureZero) * pressuremaxPSI) / (pressureMax - pressureZero);
+
+  // Calibrate here use value from database
+  pressureValue = pressureValue + calibration;
+  Serial.println(pressureValue);
+
   barValue = pressureValue / psiToBar;
   Serial.print(pressureValue, 1);
   Serial.println(" PSI");
   Serial.print(barValue, 1);
   Serial.println(" BAR");
   readPressureCounter++;
+}
+
+int getCalibrationData() {
+  /* Untung mendapatkan data terakhir dari DB, 
+  saat ini tidak digunakan karena sudah menggunakan SD Card
+  Kode dibawah mohon untuk tidak dihapus.
+  */
+  HTTPClient http;
+  String getData = "http://192.168.7.223/barometer_api/get_tekanan.php?device_id=" + deviceID;
+  http.begin(getData);
+  int httpCode = http.GET();
+
+  int psiValueDB = 0;
+
+  if (httpCode > 0) {
+    String payload = http.getString();
+    StaticJsonDocument<200> doc;
+    DeserializationError error = deserializeJson(doc, payload);
+
+    if (!error) {
+      if (doc.containsKey("psi_calibration_value")) {
+        psiValueDB = doc["psi_calibration_value"].as<int>();
+      } else {
+        Serial.println("Key 'psi_calibration_value' not found in JSON");
+      }
+    } else {
+      Serial.print("Error parsing JSON: ");
+      Serial.println(error.c_str());
+    }
+  } else {
+    Serial.print("Error get log: ");
+    Serial.println(httpCode);
+  }
+
+  http.end();
+  return psiValueDB;
 }
 
 void testTM1637() {
@@ -209,7 +251,7 @@ void setup() {
 }
 
 void loop() {
-  readPressure();
+  readPressure(calPSI);
 
   float bar = barValue * 100;
   int roundBar = round(bar);
@@ -238,6 +280,12 @@ void loop() {
     lcd.print(WiFi.SSID());
     Serial.println(WiFi.SSID());
     getLocalTime();
+
+    if (getStatus == false) {
+      calPSI = getCalibrationData();
+      getStatus = true;
+    }
+
   } else if (wifiMulti.run() != WL_CONNECTED) {
     lcd.setCursor(12, 0);
     lcd.print("Error");
@@ -260,7 +308,7 @@ void loop() {
     sendLogData();
     sendCounter++;
 
-    if (sendCounter % 60 == 0) {
+    if (sendCounter % 1800 == 0) {
       ESP.restart();
     }
   }
