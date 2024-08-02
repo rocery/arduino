@@ -108,7 +108,6 @@ bool ntpStatus;
 void readDHT() {
   temperature = dht.readTemperature();
   humidity = dht.readHumidity();
-  readDHTCount++;
 }
 
 void readPot() {
@@ -276,8 +275,9 @@ void loop() {
   }
   delay(2000);
 
-  if (readDHTCount % 10 == 0) {
+  if (readDHTCount % 30 == 0) {
     sendLogData();
+    readDHTCount++;
     lcd.clear();
   }
 }
