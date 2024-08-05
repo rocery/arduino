@@ -41,9 +41,9 @@ struct CalibrationData {
 const int ip = 12;
 const String loc = "Kerupuk";
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
-const String getData = "http://192.168.7.223/iot/api/get_suhu_rh_calibration.php?device_id=" + deviceID;
 String ESPName = "Suhu Ruang | " + loc;
 String deviceID = "IoT-" + String(ip);
+const String getData = "http://192.168.7.223/iot/api/get_suhu_rh_calibration.php?device_id=" + deviceID;
 
 /* Mendeklarasikan DHT21
   @param DHTPIN = Pin DHT
@@ -60,7 +60,7 @@ String deviceID = "IoT-" + String(ip);
 #define DHTTYPE DHT21
 DHT dht(DHTPIN, DHTTYPE);
 float temperature, humidity, calTemp;
-int readDHTCount;
+int readDHTCount, readNan;
 float tempFromDB = 0.0;
 float humFromDB = 0.0;
 
@@ -132,6 +132,7 @@ void readDHT() {
   // If the temperature reading is not a number, set it to 950
   if (isnan(temperature)) {
     temperature = 950;
+    readNan++;
   }
 
   // Read the humidity from the DHT sensor
@@ -140,6 +141,7 @@ void readDHT() {
   // If the humidity reading is not a number, set it to 950
   if (isnan(humidity)) {
     humidity = 950;
+    readNan++;
   }
 
   // Increment the counter for the number of times the DHT sensor has been read
@@ -151,7 +153,7 @@ void readDHT() {
  * 
  * This function reads the analog value from the potentiometer using the `analogRead()` function.
  * The read value is then mapped to a temperature range using the `map()` function.
- * The temperature range is [-5, 10] degrees Celsius.
+ * The temperature range is [-5, 5] degrees Celsius.
  * The `POTPIN` constant is used to specify the analog pin connected to the potentiometer.
  * 
  * The `potValue` variable stores the raw analog value read from the potentiometer.
@@ -162,7 +164,7 @@ void readPot() {
   potValue = analogRead(POTPIN);
 
   // Map the analog value to a temperature range
-  mappedPotValue = map(potValue, 0, 4095, -5, 10);
+  mappedPotValue = map(potValue, 0, 4095, -5, 5);
 }
 
 void getLocalTime() {
@@ -394,7 +396,7 @@ void loop() {
   postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip_address=" + ip_Address;
 
   // Restart the device every 1200 readings of the DHT sensor
-  if (readDHTCount % 1200 == 0) {
+  if (readDHTCount % 1200 == 0 || readNan >= 10) {
     ESP.restart();
   }
 
