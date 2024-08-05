@@ -21,6 +21,13 @@
 #include <HTTPClient.h>
 #include <DHT.h>
 #include <LiquidCrystal_I2C.h>
+#include <ArduinoJson.h>
+
+// Struct to hold the calibration data
+struct CalibrationData {
+  float temperature;
+  float humidity;
+};
 
 /*
   Isi variabel dibawah sebagai inisialisasi awal projek,
@@ -28,8 +35,8 @@
   @param loc = Lokasi ruangan untuk diukur
   @param api = URL API
 */
-const int ip = 11; // Isi dengan IP Address ESP32
-const String loc = "Kerupuk"; // Isi dengan lokasi ruangan
+const int ip = 12;             // Isi dengan IP Address ESP32
+const String loc = "Kerupuk";  // Isi dengan lokasi ruangan
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
 String ESPName = "Suhu Ruang | " + loc;
 String deviceID = "IoT-" + String(ip);
@@ -46,6 +53,8 @@ String deviceID = "IoT-" + String(ip);
 DHT dht(DHTPIN, DHTTYPE);
 float temperature, humidity, calTemp;
 int readDHTCount;
+float tempFromDB = 0.0;
+float humFromDB = 0.0;
 
 /* Mendeklarasikan Potensiometer
   @param potPin = Pin Potensiometer
@@ -78,7 +87,7 @@ uint8_t degree[8] = {
   Gunakan tidak lebih dari 3 WiFi (WiFi Utama, WiFi Cadangan, WiFi Test)
 */
 WiFiMulti wifiMulti;
-const char* ssid_a = "STTB1";
+const char* ssid_a = "STTB8";
 const char* password_a = "Si4nt4r321";
 const char* ssid_b = "MT3";
 const char* password_b = "siantar321";
@@ -103,11 +112,19 @@ const long gmtOffsetSec = 7 * 3600;
 const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat, lcdFormat;
 int year, month, day, hour, minute, second;
-bool ntpStatus;
+bool ntpStatus, getStatus;
 
 void readDHT() {
   temperature = dht.readTemperature();
   humidity = dht.readHumidity();
+  if (isnan(temperature)) {
+    temperature = 950;
+  }
+
+  if (isnan(humidity)) {
+    humidity = 950;
+  }
+  readDHTCount++;
 }
 
 void readPot() {
@@ -162,6 +179,43 @@ void sendLogData() {
   http.end();
 }
 
+CalibrationData getCalibrationData() {
+  /* Untung mendapatkan data terakhir dari DB, 
+  saat ini tidak digunakan karena sudah menggunakan SD Card
+  Kode dibawah mohon untuk tidak dihapus.
+  */
+  HTTPClient http;
+  String getData = "http://192.168.7.223/iot/api/get_suhu_rh_calibration.php?device_id=" + deviceID;
+  http.begin(getData);
+  int httpCode = http.GET();
+
+  CalibrationData calibrationData = { 0.0, 0.0 };  // Initialize with default values
+
+  if (httpCode > 0) {
+    String payload = http.getString();
+    StaticJsonDocument<200> doc;
+    DeserializationError error = deserializeJson(doc, payload);
+
+    if (!error) {
+      if (doc.containsKey("temperature") && doc.containsKey("humidity")) {
+        calibrationData.temperature = doc["temperature"].as<float>();
+        calibrationData.humidity = doc["humidity"].as<float>();
+      } else {
+        Serial.println("Keys 'temperature' and/or 'humidity' not found in JSON");
+      }
+    } else {
+      Serial.print("Error parsing JSON: ");
+      Serial.println(error.c_str());
+    }
+  } else {
+    Serial.print("Error get log: ");
+    Serial.println(httpCode);
+  }
+
+  http.end();
+  return calibrationData;
+}
+
 void printLCD(char* temp, char* hum) {
   // Temperature
   lcd.setCursor(0, 0);
@@ -182,6 +236,8 @@ void printLCD(char* temp, char* hum) {
 void setup() {
   Serial.begin(115200);
   dht.begin();
+
+  getStatus = false;
 
   // LCD
   lcd.init();
@@ -233,19 +289,22 @@ void loop() {
   readPot();
   Serial.print("Mapped Value: ");
   Serial.println(mappedPotValue);
+  Serial.println(tempFromDB);
+  Serial.println(humFromDB);
   lcd.setCursor(14, 1);
   lcd.print(mappedPotValue);
 
   readDHT();
 
-  calTemp = temperature + mappedPotValue;
+  calTemp = temperature + mappedPotValue + tempFromDB;
+  humidity = humidity + humFromDB;
   // Convert float a to a string with 1 decimal place
   char bufferCalTemp[6];
-  dtostrf(calTemp, 4, 1, bufferCalTemp); // Convert float to string: 4 is the width, 1 is the number of decimals
+  dtostrf(calTemp, 4, 1, bufferCalTemp);  // Convert float to string: 4 is the width, 1 is the number of decimals
 
   // Convert float b to a string with 1 decimal place
-  char bufferHumidity[6];       // Buffer to hold the formatted string for b
-  dtostrf(humidity, 4, 1, bufferHumidity); // Convert float to string: 4 is the width, 1 is the number of decimals
+  char bufferHumidity[6];                   // Buffer to hold the formatted string for b
+  dtostrf(humidity, 4, 1, bufferHumidity);  // Convert float to string: 4 is the width, 1 is the number of decimals
 
   printLCD(bufferCalTemp, bufferHumidity);
 
@@ -253,6 +312,14 @@ void loop() {
     lcd.setCursor(9, 0);
     lcd.print(WiFi.SSID());
     getLocalTime();
+
+    if (getStatus == false) {
+      CalibrationData data = getCalibrationData();
+      tempFromDB = data.temperature;
+      humFromDB = data.humidity;
+      getStatus = true;
+    }
+
   } else if (wifiMulti.run() != WL_CONNECTED) {
     lcd.setCursor(9, 0);
     lcd.print("Error");
@@ -277,7 +344,7 @@ void loop() {
 
   if (readDHTCount % 30 == 0) {
     sendLogData();
-    readDHTCount++;
+    getStatus = false;
     lcd.clear();
   }
 }
