@@ -1,6 +1,10 @@
 /*
-  V. 1.0.0
-  Update Terakhir : 31-07-2024
+  File .ino ini merupakan file template dari projek IoT Sensor Suhu
+  Ruangan yang akan dibuat.
+  IP Address yang bisa digunakan: 11 - 25
+
+  V. 1.0.1
+  Update Terakhir : 05-08-2024
 
   Komponen:
   1. ESP32
@@ -8,12 +12,10 @@
   3. Potensiometer 100K Ohm
   4. DHT21
   5. Stepdown DC-DC
-  6. Adaptor
-  7. 
+  6. Adaptor 6-24 V DC
+  7. Micro USB
 
-  PP = 18 Juli 2024
-
-  Fungsi : Mengukur temperatur ruang dan kelembaban relatif (RH)
+  Fungsi : Mengukur temperature ruang dan kelembaban relatif (RH)
 */
 
 #include <WiFi.h>
@@ -33,11 +35,13 @@ struct CalibrationData {
   Isi variabel dibawah sebagai inisialisasi awal projek,
   @param ip = IP Address ESP32
   @param loc = Lokasi ruangan untuk diukur
-  @param api = URL API
+  @param api = URL API Menyimpan data ke Database
+  @param getData = URL API Mengambil data kalibrasi dari Database
 */
-const int ip = 12;             // Isi dengan IP Address ESP32
-const String loc = "Kerupuk";  // Isi dengan lokasi ruangan
+const int ip = 12;
+const String loc = "Kerupuk";
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
+const String getData = "http://192.168.7.223/iot/api/get_suhu_rh_calibration.php?device_id=" + deviceID;
 String ESPName = "Suhu Ruang | " + loc;
 String deviceID = "IoT-" + String(ip);
 
@@ -47,6 +51,10 @@ String deviceID = "IoT-" + String(ip);
   @param dht = Variabel DHT
   @param temperature = Variabel Suhu
   @param humidity = Variabel Kelembaban
+  @param calTemp = Variabel Kalibrasi
+  @param readDHTCount = Variabel Hitung
+  @param tempFromDB = Variabel Kalibrasi Suhu dari DB
+  @param humFromDB = Variabel Kalibrasi Kelembaban dari DB
 */
 #define DHTPIN 14
 #define DHTTYPE DHT21
@@ -95,8 +103,6 @@ const char* ssid_c = "STTB11";
 const char* password_c = "Si4nt4r321";
 const char* ssid_d = "Tester_ITB";
 const char* password_d = "Si4nt4r321";
-// MT1
-// STTB8
 
 // Set IP to Static
 IPAddress staticIP(192, 168, 7, ip);
@@ -114,21 +120,48 @@ String dateTime, dateFormat, timeFormat, lcdFormat;
 int year, month, day, hour, minute, second;
 bool ntpStatus, getStatus;
 
+/**
+ * @brief Reads the temperature and humidity from the DHT sensor.
+ * If the temperature or humidity reading is not a number, it sets the value to 950.
+ * Increments the counter for the number of times the DHT sensor has been read.
+ */
 void readDHT() {
+  // Read the temperature from the DHT sensor
   temperature = dht.readTemperature();
-  humidity = dht.readHumidity();
+
+  // If the temperature reading is not a number, set it to 950
   if (isnan(temperature)) {
     temperature = 950;
   }
 
+  // Read the humidity from the DHT sensor
+  humidity = dht.readHumidity();
+
+  // If the humidity reading is not a number, set it to 950
   if (isnan(humidity)) {
     humidity = 950;
   }
+
+  // Increment the counter for the number of times the DHT sensor has been read
   readDHTCount++;
 }
 
+/**
+ * @brief Reads the analog value from the potentiometer and maps it to a temperature range.
+ * 
+ * This function reads the analog value from the potentiometer using the `analogRead()` function.
+ * The read value is then mapped to a temperature range using the `map()` function.
+ * The temperature range is [-5, 10] degrees Celsius.
+ * The `POTPIN` constant is used to specify the analog pin connected to the potentiometer.
+ * 
+ * The `potValue` variable stores the raw analog value read from the potentiometer.
+ * The `mappedPotValue` variable stores the mapped temperature value.
+ */
 void readPot() {
+  // Read the analog value from the potentiometer
   potValue = analogRead(POTPIN);
+
+  // Map the analog value to a temperature range
   mappedPotValue = map(potValue, 0, 4095, -5, 10);
 }
 
@@ -185,7 +218,6 @@ CalibrationData getCalibrationData() {
   Kode dibawah mohon untuk tidak dihapus.
   */
   HTTPClient http;
-  String getData = "http://192.168.7.223/iot/api/get_suhu_rh_calibration.php?device_id=" + deviceID;
   http.begin(getData);
   int httpCode = http.GET();
 
@@ -285,34 +317,54 @@ void setup() {
   lcd.clear();
 }
 
+/**
+ * @brief The main loop function
+ * 
+ * This function reads the potentiometer value, reads the DHT sensor, calculates the temperature and humidity
+ * with calibration values, prints the values to the LCD, and sends the data to the server. It also handles
+ * WiFi connectivity and NTP time synchronization.
+ * 
+ */
 void loop() {
+  // Read potentiometer value
   readPot();
+
+  // Print mapped potentiometer value to Serial
   Serial.print("Mapped Value: ");
   Serial.println(mappedPotValue);
+
+  // Print temperature and humidity calibration values to Serial
   Serial.println(tempFromDB);
   Serial.println(humFromDB);
+
+  // Print mapped potentiometer value to LCD
   lcd.setCursor(14, 1);
   lcd.print(mappedPotValue);
 
+  // Read DHT sensor values
   readDHT();
 
+  // Calculate the temperature and humidity with calibration values
   calTemp = temperature + mappedPotValue + tempFromDB;
   humidity = humidity + humFromDB;
-  // Convert float a to a string with 1 decimal place
+
+  // Convert float values to string with 1 decimal place
   char bufferCalTemp[6];
   dtostrf(calTemp, 4, 1, bufferCalTemp);  // Convert float to string: 4 is the width, 1 is the number of decimals
 
-  // Convert float b to a string with 1 decimal place
   char bufferHumidity[6];                   // Buffer to hold the formatted string for b
   dtostrf(humidity, 4, 1, bufferHumidity);  // Convert float to string: 4 is the width, 1 is the number of decimals
 
+  // Print temperature and humidity values to LCD
   printLCD(bufferCalTemp, bufferHumidity);
 
+  // Handle WiFi connectivity
   if (wifiMulti.run() == WL_CONNECTED) {
     lcd.setCursor(9, 0);
     lcd.print(WiFi.SSID());
     getLocalTime();
 
+    // Get calibration data from server if not already retrieved
     if (getStatus == false) {
       CalibrationData data = getCalibrationData();
       tempFromDB = data.temperature;
@@ -326,6 +378,7 @@ void loop() {
     wifiMulti.run();
   }
 
+  // Handle NTP time synchronization
   if (ntpStatus == false) {
     lcd.setCursor(8, 1);
     lcd.print("Error");
@@ -334,14 +387,19 @@ void loop() {
     lcd.print(lcdFormat);
   }
 
+  // Get local IP address
   ip_Address = WiFi.localIP().toString();
+
+  // Prepare data to be sent to the server
   postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip_address=" + ip_Address;
 
+  // Restart the device every 1200 readings of the DHT sensor
   if (readDHTCount % 1200 == 0) {
     ESP.restart();
   }
-  delay(2000);
 
+  // Send data to the server every 30 readings of the DHT sensor
+  delay(2000);
   if (readDHTCount % 30 == 0) {
     sendLogData();
     getStatus = false;
