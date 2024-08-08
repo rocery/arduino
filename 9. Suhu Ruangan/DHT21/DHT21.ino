@@ -1,19 +1,20 @@
 /*
-  File .ino ini merupakan file template dari projek IoT Sensor Suhu
-  Ruangan yang akan dibuat.
+  GANTI VARIABEL ip DAN loc SESUAI DENGAN SESUAI DENGAN KEBUTUHAN
+
+  File .ino ini merupakan file template dari projek IoT Sensor Suhu Ruangan yang akan dibuat.
   IP Address yang bisa digunakan: 11 - 25
 
   V. 1.0.1
   Update Terakhir : 05-08-2024
 
   Komponen:
-  1. ESP32
-  2. LCD 16x2 I2C
-  3. Potensiometer 100K Ohm
-  4. DHT21
-  5. Stepdown DC-DC
-  6. Adaptor 6-24 V DC
-  7. Micro USB
+  1. ESP32                    | 
+  2. LCD 16x2 I2C             | I2C
+  3. Potensiometer 100K Ohm   | 34 3V
+  4. DHT21                    | 14
+  5. Stepdown DC-DC           |
+  6. Adaptor 6-24 V DC        |
+  7. Micro USB                |
 
   Fungsi : Mengukur temperature ruang dan kelembaban relatif (RH)
 */
