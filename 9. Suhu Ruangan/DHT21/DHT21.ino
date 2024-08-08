@@ -250,7 +250,7 @@ CalibrationData getCalibrationData() {
   return calibrationData;
 }
 
-void printLCD(char* temp, char* hum) {
+void printLCD(char* temp, char* hum, int pot) {
   // Temperature
   lcd.setCursor(0, 0);
   lcd.print("T: ");
@@ -265,6 +265,10 @@ void printLCD(char* temp, char* hum) {
   lcd.setCursor(2, 1);
   lcd.print(hum);
   lcd.print("%");
+
+  // Print mapped potentiometer value to LCD
+  lcd.setCursor(14, 1);
+  lcd.print(pot);
 }
 
 void setup() {
@@ -339,10 +343,6 @@ void loop() {
   Serial.println(tempFromDB);
   Serial.println(humFromDB);
 
-  // Print mapped potentiometer value to LCD
-  lcd.setCursor(14, 1);
-  lcd.print(mappedPotValue);
-
   // Read DHT sensor values
   readDHT();
 
@@ -358,7 +358,7 @@ void loop() {
   dtostrf(humidity, 4, 1, bufferHumidity);  // Convert float to string: 4 is the width, 1 is the number of decimals
 
   // Print temperature and humidity values to LCD
-  printLCD(bufferCalTemp, bufferHumidity);
+  printLCD(bufferCalTemp, bufferHumidity, mappedPotValue);
 
   // Handle WiFi connectivity
   if (wifiMulti.run() == WL_CONNECTED) {
