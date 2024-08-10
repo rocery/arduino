@@ -39,8 +39,10 @@ struct CalibrationData {
   @param api = URL API Menyimpan data ke Database
   @param getData = URL API Mengambil data kalibrasi dari Database
 */
+// ========= INISIALISASI AWAL =========
 const int ip = 12;
 const String loc = "Kerupuk";
+// =====================================
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
 String ESPName = "Suhu Ruang | " + loc;
 String deviceID = "IoT-" + String(ip);
