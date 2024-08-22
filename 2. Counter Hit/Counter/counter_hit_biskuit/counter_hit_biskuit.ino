@@ -7,7 +7,7 @@
   1. Micro Controller : ESP32
   2. LCD I2C 20x4                               (3.3v, GND, I2C (22 = SCL, 21 = SDA))
   3. DS3231                                     (3.3v, GND, I2C (22 = SCL, 21 = SDA))
-  4. IR Sensor E18-D80NK                        (5v/Vin, GND, 26)
+  4. IR Sensor E18-D80NK                        (5v/Vin, GND, 26) -> 5V Brown/Red, GND Blue, Out Black
   5. Module SD Card + SD Card (FAT32 1-16 GB)   (3.3v, GND, SPI(Mosi 23, Miso 19, CLK 18, CS 5))
   6. Tacticle Button 1x1 cm @3                  (3.3v, GND, 34, 35, 25)
   -- Belum diimplementasikan --
@@ -65,7 +65,7 @@ const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
 const char* ssid_a = "STTB8";
 const char* password_a = "siantar123";
-const char* ssid_it = "Tester_ITB";
+const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
 
 // Set IP to Static

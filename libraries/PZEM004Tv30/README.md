@@ -1,29 +1,43 @@
 PZEM-004T v3.0
 ================
-Arduino library for Peacefair **PZEM-004T-10A** and [**PZEM-004T-100A v3.0**](https://innovatorsguru.com/pzem-004t-v3/) Energy monitor using the ModBUS interface.
-
 [![GitHub issues](https://img.shields.io/github/issues/mandulaj/PZEM-004T-v30)](https://github.com/avaldebe/mandulaj/PZEM-004T-v30)
 [![GitHub license](https://img.shields.io/github/license/mandulaj/PZEM-004T-v30)](https://github.com/mandulaj/PZEM-004T-v30/blob/master/LICENSE)
 [![PlatformIO Build](https://github.com/mandulaj/PZEM-004T-v30/actions/workflows/platformio_build.yml/badge.svg)](https://github.com/mandulaj/PZEM-004T-v30/actions/workflows/platformio_build.yml)
+[![Buy me a Beer](https://img.shields.io/badge/Buy%20me%20a%20Beer-%245-orange)](https://www.buymeacoffee.com/mandula)
+
+
+__[LINKS & REFs](LINKS.md)__
+
+
+Arduino library for Peacefair **PZEM-004T-10A** and [**PZEM-004T-100A v3.0**](https://innovatorsguru.com/pzem-004t-v3/) Energy monitor using the ModBUS interface.
 
 
 The Version 3.0 PZEM is an upgraded version of the older PZEM-004T for which you can find the library [Here](https://github.com/olehs/PZEM004T) 
 
-## Main features
+### Main features
  * Measures Voltage, Current, Power, Energy, **Power Factor** and **Frequency** (New in Version 3.0)
  * 247 unique programmable slave addresses
-    * Enables multiple slaves to use the same Serial interface [PZEM MulitDevice Demo](examples/PZEMMultiDevice/PZEMMultiDevice.ino)
+    * Enables multiple slaves to use the same Serial interface [PZEM MultiDevice Demo](examples/PZEMMultiDevice/PZEMMultiDevice.ino)
+      (May need to use external transistors to drive multiple devices on one bus due to GPIO current limitations)
  * Internal Energy counter up to 9999.99kWh
 
-## Other features
+
+
+## Common issues: READ FIRST BEFORE OPENING NEW ISSUE!
+* Make sure the PZEM device is **connected to the 230V AC power**! The 5V pin only powers the optocouplers, not the actual chip. 
+* Make sure the **5V and GND are BOTH connected**! They are essential for the optocouplers!
+* If you are getting `NaN`s and only the TX LED is blinking, try **swapping the RX/TX wires**.
+* Make sure you are using the correct custom address (change with [PZEMChangeAddress](https://github.com/mandulaj/PZEM-004T-v30/tree/master/examples/PZEMChangeAddress)) or you are using the default address `PZEM_DEFAULT_ADDR` = `0xF8` (only works for 1 device on ModBus)
+* If you want to use multiple devices on the same ModBus, please set a custom address for each and use [PZEMMultiDevice](https://github.com/mandulaj/PZEM-004T-v30/blob/master/examples/PZEMMultiDevice/PZEMMultiDevice.ino)
+* If the current is much higher than you would expect (eg. 0.5A for a 60W device), don't panic, welcome to the world of AC! You are probably dealing with a device with bad powerfactor <1. In such cases the classic `P=V*I` does not apply. You can read more about this here: [Power Factor](https://en.wikipedia.org/wiki/Power_factor)
+* Please be safe, AC is dangerous! If you don't know what you are doing, you can **die**! You are responsible for your own safety.
+
+
+### Other features
   * Over power alarm
   * Energy counter reset
   * CRC16 checksum
   * Better, but not perfect mains isolation
-
-
-### Common issue:
-Make sure the device is connected to the AC power! The 5V only power the optocouplers, not the actual chip. Also please be safe, AC is dangerous! If you don't know what you are doing, you can **die**! You are responsible for your own stupidity. **So don't be stupid.**
 
 
 # The module
@@ -80,7 +94,7 @@ void setup() {
     Serial.begin(115200);
 
     // Uncomment in order to reset the internal energy counter
-    // pzem.resetEnergy()
+    // pzem.resetEnergy();
 }
 
 void loop() {
@@ -210,7 +224,11 @@ Frequency: 50.0Hz
 PF: 0.19
 ```
 
+# Links
+Check [LINKS & REFs](LINKS.md) page for additional DOC's and related links
+
 # Contributing
+Many thanks to all the other contributors that add new features, find bugs and generally keep this project afloa.
  * [@mandulaj](https://github.com/mandulaj)
  * [@FXeio](https://github.com/FXeio)
  * [@ste94pz](https://github.com/ste94pz)
