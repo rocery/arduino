@@ -112,7 +112,7 @@ String productCodeThree = "P-1023-00282", nameProductThree = "NO GORIORIO VAN 2"
 String productCodeFour = "P-1023-00283", nameProductFour = "NO GORIORIO COK 2";
 String productCodeFive = "P-1122-00260", nameProductFive = "NO GORIORIO VAN 4";
 String productCodeSix = "P-1222-00263", nameProductSix = "NO GORIORIO COK 4";
-String productCodeSeven = "Test Mode_218", nameProductSeven = "Test Mode_218";
+String productCodeSeven = "Test_Mode_218", nameProductSeven = "Test_Mode_218";
 
 // == SD Card ==
 String line, logName, logData;
@@ -197,13 +197,13 @@ void sendLogData() {
   http.end();
 }
 
-void getLogData() {
+int getLogData(String product) {
   /* Untung mendapatkan data terakhir dari DB, 
   saat ini tidak digunakan karena sudah menggunakan SD Card
   Kode dibawah mohon untuk tidak dihapus.
   */
   HTTPClient http;
-  String getData = "http://192.168.7.223/counter_hit_api/getDataLastCounter.php?kode_product=" + productSelected;
+  String getData = "http://192.168.7.223/counter_hit_api/getDataLastCounter.php?kode_product=" + product;
   http.begin(getData);
   int httpCode = http.GET();
 
@@ -212,6 +212,7 @@ void getLogData() {
     JSONVar myArray = JSON.parse(payload);
     counterFromDB = myArray["counter"];
     counterValueDB = atoi(counterFromDB);
+    return counterValueDB;
   } else {
     Serial.print("Error get log");
   }
@@ -227,16 +228,25 @@ void resetESP() {
     lcd.print("Loading...");
 
     // Get Data from SD
-    readLastLineSDCard(logName);
-    postData = "kode_product=" + productSelectedSD + "&counter=" + counterSD + "&date=" + dateTimeSD + "&ip_address=" + ipAddressSD;
-
-    // Send Data to DB
+    if (!statusSD) {
+      // Jika gagal membaca SD Card, maka data yang dikirim adalah data real time
+      // Jika alat mati, maka data tidak disimpan
+      postData = "kode_product=" + productSelected + "&counter=" + String(counter) + "&date=" + dateTime + "&ip_address=" + ip_Address;
+    } else {
+      readLastLineSDCard(logName);
+      postData = "kode_product=" + productSelectedSD + "&counter=" + counterSD + "&date=" + dateTimeSD + "&ip_address=" + ipAddressSD;
+    }
     sendLogData();
     lcd.setCursor(1, 1);
     lcd.print("Send Update to DB");
 
     // Send Reset Status to DB
-    postData = "kode_product=" + ESPName + "&counter=" + String(0) + "&date=" + String(0) + "&ip_address=" + ip_Address;
+    String data = ESPName + "-" + productSelected;
+    postData = "kode_product=" + data + "&counter=" + String(counter) + "&date=" + dateTime + "&ip_address=" + ip_Address;
+    sendLogData();
+    delay(1000);
+
+    postData = "kode_product=" + ESPName + "&counter=" + String(0) + "&date=" + dateTime + "&ip_address=" + ip_Address;
     sendLogData();
 
     // Delete Data from SD
@@ -480,6 +490,7 @@ void setup() {
   menuSelect = false;
   readStatusSD = false;
   statusUpdateRTC = false;
+  statusSD = false;
 
   pinMode(upButton, INPUT);
   pinMode(downButton, INPUT);
@@ -495,7 +506,6 @@ void setup() {
     Serial.println("Card Mount Failed");
     lcd.setCursor(0, 0);
     lcd.print("Card Mount Failed");
-    return;
   } else if (SD.begin()) {
     Serial.println("Card Mounted");
     lcd.setCursor(0, 0);
@@ -575,10 +585,13 @@ void setup() {
       myFile.close();
     }
 
+    statusSD = true;
+
   } else {
     lcd.setCursor(0, 3);
     lcd.print("SD Card Failed");
-    delay(5000);
+    delay(1000);
+    statusSD = false;
   }
 
   xTaskCreatePinnedToCore(
@@ -590,6 +603,8 @@ void setup() {
     &Task1,     /* Handle tugas. */
     0           /* Core tempat tugas harus dijalankan */
   );
+
+  lcd.clear();
 }
 
 void loop() {
@@ -654,12 +669,17 @@ void loop() {
     Kode dibawah mohon untuk tidak dihapus.
     */
   // Get Data Here
-  // if (counter == 0) {
-  //   getLogData();
-  //   if (counterValueDB != 0) {
-  //     counter = counterValueDB;
-  //   }
-  // }
+  if (counter == 0 && statusSD == false) {
+    int a = getLogData(productSelected);
+    String check = ESPName + "-" + productSelected;
+    int b = getLogData(check);
+    if (a != 0 && a == b) {
+      counter = 0;
+    }
+    else {
+      counter = a;
+    }
+  }
 
   /* Jika dibutuhkan, baris program dibawah memungkinkan otomatis reset nilai counter
     Jika ingin mereset alat, panggil fungsi ResetESP().

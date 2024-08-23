@@ -404,7 +404,7 @@ void loop() {
   }
 
   // Send data to the server every 30 readings of the DHT sensor
-  delay(2000);
+  delay(5000);
   if (readDHTCount % 30 == 0) {
     sendLogData();
     getStatus = false;
