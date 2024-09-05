@@ -1,0 +1,6 @@
+JST 6 : https://www.snapeda.com/parts/B6B-XH-A%28LF%29%28SN%29/JST%20Sales/view-part/?ref=search&t=jst
+JST 4 : https://www.snapeda.com/parts/B4B-XH-A%20%28LF%29%28SN%29/JST%20Sales/view-part/?ref=search&t=b4b-XH
+JST 3 : https://www.snapeda.com/parts/B3B-XH-A%20%28LF%29%28SN%29/JST%20Sales%20America%20Inc./view-part/?ref=search&t=b3b-XH
+JST 2 : https://www.snapeda.com/parts/B2B-XH-A%28LF%29%28SN%29/JST%20Sales%20America%20Inc./view-part/?ref=search&t=b2b-XH
+
+ESP32-DEVKIT-V1 : https://www.snapeda.com/parts/ESP32-DEVKIT-V1/Do%20it/view-part/
