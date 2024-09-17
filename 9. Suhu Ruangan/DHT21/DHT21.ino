@@ -59,7 +59,7 @@ const String getData = "http://192.168.7.223/iot/api/get_suhu_rh_calibration.php
   @param tempFromDB = Variabel Kalibrasi Suhu dari DB
   @param humFromDB = Variabel Kalibrasi Kelembaban dari DB
 */
-#define DHTPIN 14
+#define DHTPIN 33
 #define DHTTYPE DHT21
 DHT dht(DHTPIN, DHTTYPE);
 float temperature, humidity, calTemp;
@@ -171,7 +171,8 @@ void readPot() {
   potValue = analogRead(POTPIN);
 
   // Map the analog value to a temperature range
-  mappedPotValue = map(potValue, 0, 4095, -5, 5);
+  // mappedPotValue = map(potValue, 0, 4095, -5, 5);
+  mappedPotValue = 0;
 }
 
 void getLocalTime() {
@@ -274,8 +275,8 @@ void printLCD(char* temp, char* hum, int pot) {
   lcd.print("%");
 
   // Print mapped potentiometer value to LCD
-  lcd.setCursor(14, 1);
-  lcd.print(pot);
+  // lcd.setCursor(14, 1);
+  // lcd.print(pot);
 }
 
 void setup() {
@@ -345,12 +346,8 @@ void loop() {
   readPot();
 
   // Print mapped potentiometer value to Serial
-  Serial.print("Mapped Value: ");
-  Serial.println(mappedPotValue);
-
-  // Print temperature and humidity calibration values to Serial
-  Serial.println(tempFromDB);
-  Serial.println(humFromDB);
+  // Serial.print("Mapped Value: ");
+  // Serial.println(mappedPotValue);
 
   // Read DHT sensor values
   readDHT();
@@ -358,6 +355,10 @@ void loop() {
   // Calculate the temperature and humidity with calibration values
   calTemp = temperature + mappedPotValue + tempFromDB;
   humidity = humidity + humFromDB;
+
+  // Print temperature and humidity calibration values to Serial
+  // Serial.println(calTemp);
+  // Serial.println(humidity);
 
   // Convert float values to string with 1 decimal place
   char bufferCalTemp[6];
@@ -371,7 +372,7 @@ void loop() {
 
   // Handle WiFi connectivity
   if (wifiMulti.run() == WL_CONNECTED) {
-    lcd.setCursor(9, 0);
+    lcd.setCursor(10, 0);
     lcd.print(WiFi.SSID());
     getLocalTime();
 
@@ -384,17 +385,17 @@ void loop() {
     }
 
   } else if (wifiMulti.run() != WL_CONNECTED) {
-    lcd.setCursor(9, 0);
+    lcd.setCursor(10, 0);
     lcd.print("Error");
     wifiMulti.run();
   }
 
   // Handle NTP time synchronization
   if (ntpStatus == false) {
-    lcd.setCursor(8, 1);
+    lcd.setCursor(10, 1);
     lcd.print("Error");
   } else {
-    lcd.setCursor(8, 1);
+    lcd.setCursor(10, 1);
     lcd.print(lcdFormat);
   }
 
