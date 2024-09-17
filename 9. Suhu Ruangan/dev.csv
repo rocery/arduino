@@ -1,0 +1,5 @@
+ip,device_id,device_name
+192.168.7.11,IoT-11,Suhu Ruang | Cream
+192.168.7.12,IoT-12,Suhu Ruang | Packing Kerupuk
+192.168.7.13,IoT-13,Suhu Ruang | Packing Gorio
+192.168.7.14,IoT-14,Suhu Ruang | Middle Up Kerupuk

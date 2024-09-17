@@ -41,7 +41,7 @@ struct CalibrationData {
 */
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 12;             /**/
-/**/ const String loc = "Kerupuk";  /**/
+/**/ const String loc = "Packing Potato";  /**/
 // =====================================
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
 String ESPName = "Suhu Ruang | " + loc;
