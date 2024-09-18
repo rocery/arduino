@@ -40,7 +40,7 @@ struct CalibrationData {
   @param getData = URL API Mengambil data kalibrasi dari Database
 */
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 13;             /**/
+/**/ const int ip = 12;             /**/
 /**/ const String loc = "Packing Potato";  /**/
 // =====================================
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
