@@ -1,13 +1,13 @@
 /*
-  V. 0.1.5
-  Update Terakhir : 15-04-2024
+  V. 1.0.5
+  Update Terakhir : 25-06-2024
 
   PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
   Komponen:
   1. Micro Controller : ESP32
   2. LCD I2C 20x4                               (3.3v, GND, I2C (22 = SCL, 21 = SDA))
   3. RTC DS3231                                 (3.3v, GND, I2C (22 = SCL, 21 = SDA))
-  4. IR Sensor Laser & LDR                      (5v/Vin, GND, 2)
+  4. IR Sensor                                  (5v/Vin, GND, 13)
   5. Module SD Card + SD Card (FAT32 1-16 GB)   (3.3v, GND, SPI(Mosi 23, Miso 19, CLK 18, CS 5))
   6. Tacticle Button 1x1 cm @3                  (3.3v, GND, 34, 35, 25)
   -- Belum diimplementasikan --
@@ -19,7 +19,7 @@
 
   Semua fungsi Serial.print() pada program ini sebenarnya bisa dihapus/di-comment,
   masih dipertahankan untuk fungsi debuging. Akan di-comment/dihapus pada saat final
-  program sudah tercapai demi menghemat rosource pada ESP32.
+  program sudah tercapai demi menghemat resource pada ESP32.
 */
 
 // == Deklarasi semua Library yang digunakan ==
@@ -34,11 +34,11 @@
 #include <RTClib.h>
 #include "time.h"
 
-String ESPName = "Counter Kerupuk - Tic Tic";
+String ESPName = "Counter-Tic Tic";
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
-  Total kolom 20
-  Total baris 4 */
+   Total kolom 20
+   Total baris 4 */
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 // Terdapat 3 tombol pada project ini, up, down, select
@@ -46,35 +46,39 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define downButton 34
 #define selectButton 32
 
-#define sensorPin 13
+// Sensor IR disambungkan ke pin 13
+#define sensorPin 25
+#define sensorReject 26
 
 // == WiFi Config ==
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
-ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
+   ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
 */
 WiFiMulti wifiMulti;
-const char* ssid_a = "STTB1";
+const char* ssid_a = "STTB4";
 const char* password_a = "Si4nt4r321";
+const char* ssid_d = "STTB1";
+const char* password_d = "Si4nt4r321";
 const char* ssid_b = "MT1";
 const char* password_b = "siantar321";
 const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
-const char* ssid_d = "STTB4";
-const char* password_d = "Si4nt4r321";
 const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
 
-// Set IP to Static
+// Atur IP Static yang digunakan
 IPAddress staticIP(192, 168, 7, 213);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
-IPAddress primaryDNS(8, 8, 8, 8);    //optional
-IPAddress secondaryDNS(8, 8, 4, 4);  //optional
+// Optional
+IPAddress primaryDNS(8, 8, 8, 8);
+IPAddress secondaryDNS(8, 8, 4, 4);
 String ip_Address;
 
 // == Get NTP/RTC ==
 const char* ntpServer = "192.168.7.223";
-const long gmtOffsetSec = 7 * 3600;  // Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
+// Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
+const long gmtOffsetSec = 7 * 3600;
 const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat;
 int year, rtcYear;
@@ -89,7 +93,7 @@ bool ntpStatus, statusUpdateRTC;
 
 // == Counter ==
 TaskHandle_t Task1;
-int counter, newCounter, oldCounter;
+int counter, newCounter, oldCounter, counterReject;
 
 // == Data Send/Get ==
 bool sendStatus, getStatus;
@@ -103,38 +107,78 @@ bool menuSelect;
 int menu = 1;
 String productSelected, nameProductSelected;
 String productCodeOne = "P-0722-00239";
-String productCodeTwo = "P-0922-00257";
-String productCodeThree = "Test Mode_213";
-String productCodeFour = "4";
 String nameProductOne = "Tic Tic Bwg 2000";
+String productCodeTwo = "P-0922-00257";
 String nameProductTwo = "Tic Tic Bwg 5000";
+String productCodeThree = "Test Mode_213";
 String nameProductThree = "Test Mode_213";
-String nameProductFour = "d";
 
 // == SD Card ==
-String line, logName, logData;
 int lineAsInt;
-String dateTimeSD, productSelectedSD, counterSD, ipAddressSD;
+String dateTimeSD, productSelectedSD, counterSD, ipAddressSD, line, logName, logData;
 bool statusSD, readStatusSD, insertLastLineSDCardStatus;
+
+// void counterHit(void* parameter) {
+//   for (;;) {
+//     // IR Counter
+//     pinMode(sensorPin, INPUT_PULLUP);
+//     static int lastIRState = HIGH;
+//     int irState = digitalRead(sensorPin);
+//     if (irState == LOW && lastIRState == HIGH) {
+//       counter++;
+//     }
+//     lastIRState = irState;
+//     delay(50);
+
+//     // IR Reject
+//     pinMode(sensorReject, INPUT_PULLUP);
+//     static int lastIRStateReject = HIGH;
+//     int irStateReject = digitalRead(sensorReject);
+//     if (irStateReject == LOW && lastIRStateReject == HIGH) {
+//       counterReject++;
+//     }
+//     lastIRStateReject = irStateReject;
+//     delay(50);
+
+//     Serial.print("Counter 1:" );
+//     Serial.println(counter);
+//     Serial.print("Counter 2: ");
+//     Serial.println(counterReject);
+//   }
+// }
 
 void counterHit(void* parameter) {
   for (;;) {
-    // Deklarasi mode pin sensor
+    // IR Counter
     pinMode(sensorPin, INPUT_PULLUP);
-    static int lastLDRState = HIGH;
-    // Membaca output Sensor
-    int ldrState = digitalRead(sensorPin);
-    if (ldrState == LOW && lastLDRState == HIGH) {
+    static int lastIRState = LOW;
+    int irState = digitalRead(sensorPin);
+    if (irState == HIGH && lastIRState == LOW) {
       counter++;
     }
-    lastLDRState = ldrState;
+    lastIRState = irState;
     delay(50);
+
+    // IR Reject
+    pinMode(sensorReject, INPUT_PULLUP);
+    static int lastIRStateReject = LOW;
+    int irStateReject = digitalRead(sensorReject);
+    if (irStateReject == HIGH && lastIRStateReject == LOW) {
+      counterReject++;
+    }
+    lastIRStateReject = irStateReject;
+    delay(50);
+
+    Serial.print("Counter 1:" );
+    Serial.println(counter);
+    Serial.print("Counter 2: ");
+    Serial.println(counterReject);
   }
 }
 
 void getLocalTime() {
   /* Fungsi bertujuan menerima update waktu
-     lokal dari ntp.pool.org */
+     lokal dari ntp server */
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) {
     ntpStatus = false;
@@ -202,7 +246,7 @@ void getLogData() {
   Kode dibawah mohon untuk tidak dihapus.
   */
   HTTPClient http;
-  String getData = "http://192.168.15.221/counter_hit_api/getDataLastCounter.php?kode_product=" + productSelected;
+  String getData = "http://192.168.7.223/counter_hit_api/getDataLastCounter.php?kode_product=" + productSelected;
   http.begin(getData);
   int httpCode = http.GET();
 
@@ -233,6 +277,7 @@ void resetESP() {
     sendLogData();
     lcd.setCursor(1, 1);
     lcd.print("Send Update to DB");
+    delay(100);
 
     // Send Reset Status to DB
     postData = "kode_product=" + ESPName + "&counter=" + String(0) + "&date=" + String(0) + "&ip_address=" + ip_Address;
@@ -245,6 +290,7 @@ void resetESP() {
 
     lcd.setCursor(1, 3);
     lcd.print("Resetting...");
+    delay(1000);
 
     ESP.restart();
   }
@@ -293,8 +339,6 @@ void updateMenu() {
       lcd.print(nameProductTwo);
       lcd.setCursor(1, 3);
       lcd.print("WiFi : " + WiFi.SSID());
-      //      lcd.setCursor(1, 3);
-      //      lcd.print(nameProductThree);
       break;
     case 2:
       lcd.clear();
@@ -306,8 +350,6 @@ void updateMenu() {
       lcd.print(">" + nameProductTwo);
       lcd.setCursor(1, 3);
       lcd.print("WiFi : " + WiFi.SSID());
-      //      lcd.setCursor(1, 3);
-      //      lcd.print(nameProductThree);
       break;
     case 3:
       lcd.clear();
@@ -346,61 +388,88 @@ void menuSelected() {
       delay(1000);
       lcd.clear();
       break;
-      //    case 4:
-      //      productSelected = productCodeFour;
-      //      nameProductSelected = nameProductFour;
-      //      delay(1000);
-      //      lcd.clear();
-      //      break;
   }
 }
 
+/**
+ * Reads the last line of a file from the SD card and extracts information from it.
+ * @param path The path of the file to read.
+ */
 void readLastLineSDCard(String path) {
+  // Open the file for reading
   File file = SD.open(path);
+
+  // Check if file opened successfully
   if (!file || file.isDirectory()) {
     Serial.println("Failed to open file for reading");
     readStatusSD = false;
     return;
-  } else if (file || file.isDirectory()) {
+  } else {
     readStatusSD = true;
   }
 
+  // Read the last line of the file
   while (file.available()) {
     line = file.readStringUntil('\n');
   }
   file.close();
+
+  // Print the data read from the file
   Serial.print("Data dari SD : ");
   Serial.println(line);
+
+  // Extract product selected from the line
   int firstCommaIndex = line.indexOf(',');
   productSelectedSD = line.substring(0, firstCommaIndex);
 
+  // Extract counter value from the line
   line = line.substring(firstCommaIndex + 1);
   int secondCommaIndex = line.indexOf(',');
   counterSD = line.substring(0, secondCommaIndex);
 
+  // Extract date and time from the line
   line = line.substring(secondCommaIndex + 1);
   int thirdCommaIndex = line.indexOf(',');
   dateTimeSD = line.substring(0, thirdCommaIndex);
 
+  // Extract IP address from the line
   ipAddressSD = line.substring(thirdCommaIndex + 1);
 }
 
+/**
+ * Writes a line of text to the end of a file on the SD card.
+ *
+ * @param path The path of the file to write to.
+ * @param line The line of text to write.
+ */
 void insertLastLineSDCard(String path, String line) {
+  // Open the file for writing
   File file = SD.open(path, FILE_WRITE);
+  
+  // Check if file opened successfully
   if (!file) {
+    // Print error message if failed to open
     Serial.println("Failed to open file for writing");
     insertLastLineSDCardStatus = false;
     return;
-  } else if (file) {
+  } else {
+    // Set insertLastLineSDCardStatus to true if file opened successfully
     insertLastLineSDCardStatus = true;
   }
 
+  // Write the line of text to the file
   if (file.println(line)) {
+    // Print success message if line written successfully
     Serial.println("Line written");
   } else {
+    // Print error message if write failed
     Serial.println("Write failed");
   }
+  
+  // Close the file
   file.close();
+  
+  // Print the data written to the SD card
   Serial.print("Data ke SD : ");
   Serial.println(line);
 }
@@ -532,9 +601,13 @@ void setup() {
 void loop() {
   // Print Counter Hit
   lcd.setCursor(1, 2);
-  lcd.print("Total : ");
-  lcd.setCursor(9, 2);
+  lcd.print("Total:");
+  lcd.setCursor(7, 2);
   lcd.print(counter);
+  lcd.setCursor(11, 2);
+  lcd.print(" | ");
+  lcd.setCursor(14, 2);
+  lcd.print(counterReject);
 
   // Print Produk
   lcd.setCursor(1, 0);
@@ -611,7 +684,7 @@ void loop() {
   // }
 
   /* Simpan data SD
-      Data akan disimpan setiap kali nilai counter bertambah
+     Data akan disimpan setiap kali nilai counter bertambah
     */
   logData = productSelected + ',' + String(counter) + ',' + dateTime + ',' + ip_Address;
   newCounter = counter;
