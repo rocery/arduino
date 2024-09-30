@@ -99,7 +99,7 @@ int counter, newCounter, oldCounter, counterReject;
 bool sendStatus, getStatus;
 const char* counterFromDB;
 int counterValueDB;
-String postData;
+String postData,
 
 // == Product/Menu Related Section ==
 // Add Menu Here
@@ -115,7 +115,7 @@ String nameProductThree = "Test Mode_213";
 
 // == SD Card ==
 int lineAsInt;
-String dateTimeSD, productSelectedSD, counterSD, ipAddressSD, line, logName, logData;
+String dateTimeSD, productSelectedSD, counterSD, counterRejectSD, ipAddressSD, line, logName, logData;
 bool statusSD, readStatusSD, insertLastLineSDCardStatus;
 
 // void counterHit(void* parameter) {
@@ -240,6 +240,27 @@ void sendLogData() {
   http.end();
 }
 
+// void sendLogReject() {
+//   /* Mengirim data ke local server
+//       Ganti isi variabel api sesuai dengan form php
+//   */
+//   String api = "http://192.168.7.223/counter_hit_api/saveCounterReject.php";
+//   HTTPClient http;
+//   http.begin(api);
+//   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+//   int httpResponseCode = http.POST(postDataReject);
+
+//   if (httpResponseCode > 0) {
+//     String response = http.getString();
+//     Serial.println(response);
+//   } else {
+//     String response = http.getString();
+//     Serial.println(response);
+//     Serial.print("Error on sending POST data Reject");
+//   }
+//   http.end();
+// }
+
 void getLogData() {
   /* Untung mendapatkan data terakhir dari DB, 
   saat ini tidak digunakan karena sudah menggunakan SD Card
@@ -271,7 +292,7 @@ void resetESP() {
 
     // Get Data from SD
     readLastLineSDCard(logName);
-    postData = "kode_product=" + productSelectedSD + "&counter=" + counterSD + "&date=" + dateTimeSD + "&ip_address=" + ipAddressSD;
+    postData = "kode_product=" + productSelectedSD + "&counter=" + counterSD + "&rejector=" + counterRejectSD + "&date=" + dateTimeSD + "&ip_address=" + ipAddressSD;
 
     // Send Data to DB
     sendLogData();
@@ -280,7 +301,7 @@ void resetESP() {
     delay(100);
 
     // Send Reset Status to DB
-    postData = "kode_product=" + ESPName + "&counter=" + String(0) + "&date=" + String(0) + "&ip_address=" + ip_Address;
+    postData = "kode_product=" + ESPName + "&counter=" + String(0) + "&rejector=" + String(0) + "&date=" + String(0) + "&ip_address=" + ip_Address;
     sendLogData();
 
     // Delete Data from SD
@@ -427,13 +448,18 @@ void readLastLineSDCard(String path) {
   int secondCommaIndex = line.indexOf(',');
   counterSD = line.substring(0, secondCommaIndex);
 
-  // Extract date and time from the line
+  // Extract reject from the line
   line = line.substring(secondCommaIndex + 1);
   int thirdCommaIndex = line.indexOf(',');
-  dateTimeSD = line.substring(0, thirdCommaIndex);
+  counterRejectSD = line.substring(0, thirdCommaIndex);
+
+  // Extract date and time from the line
+  line = line.substring(thirdCommaIndex + 1);
+  int fourthCommaIndex = line.indexOf(',');
+  dateTimeSD = line.substring(0, fourthCommaIndex);
 
   // Extract IP address from the line
-  ipAddressSD = line.substring(thirdCommaIndex + 1);
+  ipAddressSD = line.substring(fourthCommaIndex + 1);
 }
 
 /**
@@ -686,7 +712,7 @@ void loop() {
   /* Simpan data SD
      Data akan disimpan setiap kali nilai counter bertambah
     */
-  logData = productSelected + ',' + String(counter) + ',' + dateTime + ',' + ip_Address;
+  logData = productSelected + ',' + String(counter) + ',' + String(counterReject) + ',' + dateTime + ',' + ip_Address;
   newCounter = counter;
   if (oldCounter != newCounter) {
     insertLastLineSDCard(logName, logData);
@@ -703,10 +729,10 @@ void loop() {
     if (!SD.begin()) {
       // Jika gagal membaca SD Card, maka data yang dikirim adalah data real time
       // Jika alat mati, maka data tidak disimpan
-      postData = "kode_product=" + productSelected + "&counter=" + String(counter) + "&date=" + dateTime + "&ip_address=" + ip_Address;
+      postData = "kode_product=" + productSelected + "&counter=" + String(counter) + "&rejector=" + String(counterReject) + "&date=" + dateTime + "&ip_address=" + ip_Address;
     } else if (SD.begin()) {
       readLastLineSDCard(logName);
-      postData = "kode_product=" + productSelectedSD + "&counter=" + counterSD + "&date=" + dateTimeSD + "&ip_address=" + ipAddressSD;
+      postData = "kode_product=" + productSelectedSD + "&counter=" + counterSD + "&rejector=" + counterRejectSD +"&date=" + dateTimeSD + "&ip_address=" + ipAddressSD;
     }
     sendLogData();
     sendStatus = true;
