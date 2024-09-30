@@ -42,8 +42,8 @@ String ESPName = "Counter-Tic Tic";
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 // Terdapat 3 tombol pada project ini, up, down, select
-#define upButton 35
-#define downButton 34
+#define upButton 34
+#define downButton 35
 #define selectButton 32
 
 // Sensor IR disambungkan ke pin 13
@@ -99,7 +99,7 @@ int counter, newCounter, oldCounter, counterReject;
 bool sendStatus, getStatus;
 const char* counterFromDB;
 int counterValueDB;
-String postData,
+String postData;
 
 // == Product/Menu Related Section ==
 // Add Menu Here
@@ -597,6 +597,7 @@ void setup() {
     while (readStatusSD == false && tryUpdateStatusSD <= 5) {
       readLastLineSDCard(logName);
       counter = counterSD.toInt();
+      counterReject = counterRejectSD.toInt();
       tryUpdateStatusSD++;
     }
 
