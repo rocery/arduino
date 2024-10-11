@@ -168,7 +168,7 @@ void counterHit(void* parameter) {
     }
     lastIRStateReject = irStateReject;
     delay(50);
-
++
     Serial.print("Counter 1:" );
     Serial.println(counter);
     Serial.print("Counter 2: ");
