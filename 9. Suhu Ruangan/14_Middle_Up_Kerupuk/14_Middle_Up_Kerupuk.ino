@@ -98,18 +98,12 @@ uint8_t degree[8] = {
   Gunakan tidak lebih dari 3 WiFi (WiFi Utama, WiFi Cadangan, WiFi Test)
 */
 WiFiMulti wifiMulti;
-const char* ssid_a = "STTB8";
-const char* password_a = "Si4nt4r321";
-const char* ssid_b = "MT3";
+const char* ssid_a = "STTB4";
+const char* password_a = "siantar123";
+const char* ssid_b = "MT1";
 const char* password_b = "siantar321";
-const char* ssid_c = "STTB11";
-const char* password_c = "Si4nt4r321";
-const char* ssid_d = "STTB4";
-const char* password_d = "Si4nt4r321";
-const char* ssid_e = "MT1";
-const char* password_e = "siantar321";
-const char* ssid_f = "STTB1";
-const char* password_f = "Si4nt4r321";
+const char* ssid_c = "MT3";
+const char* password_c = "siantar321";
 
 // Set IP to Static
 IPAddress staticIP(192, 168, 7, ip);
@@ -298,9 +292,6 @@ void setup() {
   wifiMulti.addAP(ssid_a, password_a);
   wifiMulti.addAP(ssid_b, password_b);
   wifiMulti.addAP(ssid_c, password_c);
-  wifiMulti.addAP(ssid_d, password_d);
-  wifiMulti.addAP(ssid_e, password_e);
-  wifiMulti.addAP(ssid_f, password_f);
 
   if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
     Serial.println("STA Failed to configure");
