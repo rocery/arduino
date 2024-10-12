@@ -63,7 +63,8 @@ const String getData = "http://192.168.7.223/iot/api/get_suhu_rh_calibration.php
 #define DHTTYPE DHT21
 DHT dht(DHTPIN, DHTTYPE);
 float temperature, humidity, calTemp;
-int readDHTCount, readNan;
+int readDHTCount;
+int readNan = 0;
 float tempFromDB = 0.0;
 float humFromDB = 0.0;
 
@@ -397,7 +398,7 @@ void loop() {
   postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip_address=" + ip_Address;
 
   // Restart the device every 1200 readings of the DHT sensor
-  if (readDHTCount % 1200 == 0 || readNan >= 10) {
+  if (readDHTCount % 1200 == 0 || readNan >= 100) {
     ESP.restart();
   }
 
