@@ -42,12 +42,12 @@ String ESPName = "Ctr-Mie Kotak";
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 // Terdapat 3 tombol pada project ini, up, down, select
-#define upButton 35
-#define downButton 34
-#define selectButton 32
+#define upButton 33
+#define downButton 35
+#define selectButton 34
 
 // Sensor IR disambungkan ke pin 13
-#define sensorPin 13
+#define sensorPin 27
 
 // == WiFi Config ==
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
@@ -745,4 +745,8 @@ void loop() {
   }
 
   resetESP();
+
+  Serial.print("UP: "); Serial.println(digitalRead(33));
+  Serial.print("DN: "); Serial.println(digitalRead(35));
+  Serial.print("RS: "); Serial.println(digitalRead(34));
 }
