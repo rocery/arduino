@@ -105,20 +105,16 @@ String postData;
 bool menuSelect;
 int menu = 1;
 String productSelected, nameProductSelected;
-String productCodeOne = "P-0722-00245";
-String nameProductOne = "SP MG BBQ";
-String productCodeTwo = "P-0722-00247";
-String nameProductTwo = "SP MG Smbl Balado";
-String productCodeThree = "P-0124-00287";
-String nameProductThree = "SP SB Mie Chicken";
-String productCodeFour = "P-0124-00285";
-String nameProductFour = "SP SB Mie Potato";
-String productCodeFive = "P-0124-00286";
-String nameProductFive = "SP SB Mie Balado";
-String productCodeSix = "P-0722-00246";
-String nameProductSix = "SK Mie St Aym Kcp";
-String productCodeSeven = "Test 219 Mie Hancur";
-String nameProductSeven = "Test Mode_219";
+String productCodeOne = "P-0722-00248";
+String nameProductOne = "MIE GEMEZ 1000";
+String productCodeTwo = "P-0823-00277";
+String nameProductTwo = "MIE GEMEZ 2000";
+String productCodeThree = "P-0324-00289";
+String nameProductThree = "MIE AYAM GRG 1000";
+String productCodeFour = "P-0224-00288";
+String nameProductFour = "MIE AYAM PGG 1000";
+String productCodeFive = "Test 220 Mie Kotak";
+String nameProductFive = "Test Mode_220";
 
 // == SD Card ==
 int lineAsInt;
@@ -336,7 +332,7 @@ void updateMenu() {
       lcd.setCursor(1, 2);
       lcd.print(nameProductFive);
       lcd.setCursor(1, 3);
-      lcd.print(nameProductSix);
+      lcd.print("WiFi : " + WiFi.SSID());
       break;
     case 5:
       lcd.clear();
@@ -347,32 +343,10 @@ void updateMenu() {
       lcd.setCursor(0, 2);
       lcd.print(">" + nameProductFive);
       lcd.setCursor(1, 3);
-      lcd.print(nameProductSix);
+      lcd.print("WiFi : " + WiFi.SSID());
       break;
     case 6:
-      lcd.clear();
-      lcd.setCursor(2, 0);
-      lcd.print("==PILIH PRODUK==");
-      lcd.setCursor(1, 1);
-      lcd.print(nameProductFour);
-      lcd.setCursor(1, 2);
-      lcd.print(nameProductFive);
-      lcd.setCursor(0, 3);
-      lcd.print(">" + nameProductSix);
-      break;
-    case 7:
-      lcd.clear();
-      lcd.setCursor(2, 0);
-      lcd.print("==PILIH PRODUK==");
-      lcd.setCursor(1, 1);
-      lcd.print(nameProductFive);
-      lcd.setCursor(1, 2);
-      lcd.print(nameProductSix);
-      lcd.setCursor(0, 3);
-      lcd.print(">" + nameProductSeven);
-      break;
-    case 8:
-      menu = 7;
+      menu = 5;
       break;
   }
 }
@@ -406,18 +380,6 @@ void menuSelected() {
     case 5:
       productSelected = productCodeFive;
       nameProductSelected = nameProductFive;
-      delay(1000);
-      lcd.clear();
-      break;
-    case 6:
-      productSelected = productCodeSix;
-      nameProductSelected = nameProductSix;
-      delay(1000);
-      lcd.clear();
-      break;
-    case 7:
-      productSelected = productCodeSeven;
-      nameProductSelected = nameProductSeven;
       delay(1000);
       lcd.clear();
       break;
@@ -745,8 +707,4 @@ void loop() {
   }
 
   resetESP();
-
-  Serial.print("UP: "); Serial.println(digitalRead(33));
-  Serial.print("DN: "); Serial.println(digitalRead(35));
-  Serial.print("RS: "); Serial.println(digitalRead(34));
 }
