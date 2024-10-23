@@ -1,5 +1,6 @@
 /*
   GANTI VARIABEL ip DAN loc SESUAI DENGAN SESUAI DENGAN KEBUTUHAN
+  GANTI WIFI SESUAI DENGAN KEBUTUHAN
 
   File .ino ini merupakan file template dari projek IoT Sensor Suhu Ruangan yang akan dibuat.
   IP Address yang bisa digunakan: 11 - 25
@@ -17,6 +18,22 @@
   7. Micro USB                |
 
   Fungsi : Mengukur temperature ruang dan kelembaban relatif (RH)
+
+  IP, Lokasi, Produksi:
+  11 = Cream, Biskuit
+  12 = Packing Potato, Biskuit
+  13 = Packing Gorio Line 1, Biskuit
+  14 = Middle Up Kerupuk, Kerupuk
+  15 = Pengolahan Mie, Mie
+  16 = Gorengan Mie, Mie
+  17 = Giling Gula, Biskuit
+  18 = Middle Low Lerupuk, Kerupuk
+  19 = Packing Line 3 Mie, Mie
+  20 = Packing Line 1 Mie, Mie
+  21 = Maddock Twistko, Kerupuk
+  22 = Packing Gorio Line 2, Biskuit
+  23 = 
+  24 = 
 */
 
 #include <WiFi.h>
@@ -34,19 +51,41 @@ struct CalibrationData {
 
 /*
   Isi variabel dibawah sebagai inisialisasi awal projek,
-  @param ip = IP Address ESP32
-  @param loc = Lokasi ruangan untuk diukur
+  @param ip = IP Address ESP32 ==> 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24
+  @param loc = Lokasi ruangan untuk diukur  ==> Produksi Kerupuk, Line Gorio, etc
+  @param prod = Lokasi Produksi ==> Kerupuk, Biskuit, Mie, dll
   @param api = URL API Menyimpan data ke Database
   @param getData = URL API Mengambil data kalibrasi dari Database
 */
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 15;             /**/
-/**/ const String loc = "Test";  /**/
+/**/ const int ip = 17;
+/**/ const String loc = "Giling Gula";
+/**/ const String prod = "Biskuit";
 // =====================================
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
 String ESPName = "Suhu Ruang | " + loc;
 String deviceID = "IoT-" + String(ip);
 const String getData = "http://192.168.7.223/iot/api/get_suhu_rh_calibration.php?device_id=" + deviceID;
+
+/* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
+  ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
+  Gunakan tidak lebih dari 3 WiFi (WiFi Utama, WiFi Cadangan, WiFi Test)
+*/
+WiFiMulti wifiMulti;
+const char* ssid_a_biskuit_mie = "STTB8";
+const char* password_a_biskuit_mie = "Si4nt4r321";
+const char* ssid_b_biskuit_mie = "STTB1";
+const char* password_b_biskuit_mie = "Si4nt4r321";
+const char* ssid_c_biskuit_mie = "MT3";
+const char* password_c_biskuit_mie = "siantar321";
+const char* ssid_a_kerupuk = "STTB4";
+const char* password_a_kerupuk = "siantar123";
+const char* ssid_b_kerupuk = "Amano_2";
+const char* password_b_kerupuk = "Si4nt4r321";
+const char* ssid_c_kerupuk = "MT1";
+const char* password_c_kerupuk = "siantar321";
+const char* ssid_it = "STTB11";
+const char* password_it = "Si4nt4r321";
 
 /* Mendeklarasikan DHT21
   @param DHTPIN = Pin DHT
@@ -93,24 +132,6 @@ uint8_t degree[8] = {
   0x00
 };
 
-/* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
-  ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
-  Gunakan tidak lebih dari 3 WiFi (WiFi Utama, WiFi Cadangan, WiFi Test)
-*/
-WiFiMulti wifiMulti;
-const char* ssid_a = "STTB8";
-const char* password_a = "Si4nt4r321";
-const char* ssid_b = "MT3";
-const char* password_b = "siantar321";
-const char* ssid_c = "STTB11";
-const char* password_c = "Si4nt4r321";
-const char* ssid_d = "STTB4";
-const char* password_d = "Si4nt4r321";
-const char* ssid_e = "MT1";
-const char* password_e = "siantar321";
-const char* ssid_f = "STTB1";
-const char* password_f = "Si4nt4r321";
-
 // Set IP to Static
 IPAddress staticIP(192, 168, 7, ip);
 IPAddress gateway(192, 168, 15, 250);
@@ -136,19 +157,19 @@ void readDHT() {
   // Read the temperature from the DHT sensor
   temperature = dht.readTemperature();
 
-  // If the temperature reading is not a number, set it to 950
-  if (isnan(temperature)) {
-    temperature = 950;
-    readNan++;
-  }
-
   // Read the humidity from the DHT sensor
   humidity = dht.readHumidity();
 
-  // If the humidity reading is not a number, set it to 950
-  if (isnan(humidity)) {
-    humidity = 950;
+  // If the temperature or humidity reading is not a number, add readNan
+  if (isnan(humidity) || isnan(temperature)) {
     readNan++;
+
+    // Re-inisialisasi sensor
+    dht.begin();
+    Serial.println("Sensor di-inisialisasi ulang.");
+    
+    // Opsional: Tambahkan sedikit delay agar sensor punya waktu untuk reset
+    delay(1000);
   }
 
   // Increment the counter for the number of times the DHT sensor has been read
@@ -273,10 +294,6 @@ void printLCD(char* temp, char* hum, int pot) {
   lcd.setCursor(2, 1);
   lcd.print(hum);
   lcd.print("%");
-
-  // Print mapped potentiometer value to LCD
-  // lcd.setCursor(14, 1);
-  // lcd.print(pot);
 }
 
 void setup() {
@@ -295,12 +312,19 @@ void setup() {
   // WiFi
   lcd.setCursor(0, 0);
   lcd.print("Connecting..");
-  wifiMulti.addAP(ssid_a, password_a);
-  wifiMulti.addAP(ssid_b, password_b);
-  wifiMulti.addAP(ssid_c, password_c);
-  wifiMulti.addAP(ssid_d, password_d);
-  wifiMulti.addAP(ssid_e, password_e);
-  wifiMulti.addAP(ssid_f, password_f);
+  if (prod == "Biskuit" || prod == "Mie") {
+    wifiMulti.addAP(ssid_a_biskuit_mie, password_a_biskuit_mie);
+    wifiMulti.addAP(ssid_b_biskuit_mie, password_b_biskuit_mie);
+    wifiMulti.addAP(ssid_c_biskuit_mie, password_c_biskuit_mie);
+  } else if (prod == "Kerupuk") {
+    wifiMulti.addAP(ssid_a_kerupuk, password_a_kerupuk);
+    wifiMulti.addAP(ssid_b_kerupuk, password_b_kerupuk);
+    wifiMulti.addAP(ssid_c_kerupuk, password_c_kerupuk);
+  } else {
+    lcd.setCursor(0, 0);
+    lcd.print("Error, Call IT");
+  }
+  wifiMulti.addAP(ssid_it, password_it);
 
   if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
     Serial.println("STA Failed to configure");
