@@ -73,7 +73,7 @@ const String getData = "http://192.168.7.223/iot/api/get_suhu_rh_calibration.php
 */
 WiFiMulti wifiMulti;
 const char* ssid_a_biskuit_mie = "STTB8";
-const char* password_a_biskuit_mie = "Si4nt4r321";
+const char* password_a_biskuit_mie = "siantar321";
 const char* ssid_b_biskuit_mie = "STTB1";
 const char* password_b_biskuit_mie = "Si4nt4r321";
 const char* ssid_c_biskuit_mie = "MT3";
