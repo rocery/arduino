@@ -36,6 +36,7 @@
   24 = 
 */
 
+#include <esp_system.h>
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
@@ -169,7 +170,7 @@ void readDHT() {
     Serial.println("Sensor di-inisialisasi ulang.");
     
     // Opsional: Tambahkan sedikit delay agar sensor punya waktu untuk reset
-    delay(1000);
+    delay(5000);
   }
 
   // Increment the counter for the number of times the DHT sensor has been read
@@ -244,10 +245,6 @@ void sendLogData() {
 }
 
 CalibrationData getCalibrationData() {
-  /* Untung mendapatkan data terakhir dari DB, 
-  saat ini tidak digunakan karena sudah menggunakan SD Card
-  Kode dibawah mohon untuk tidak dihapus.
-  */
   HTTPClient http;
   http.begin(getData);
   int httpCode = http.GET();
