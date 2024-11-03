@@ -1,4 +1,23 @@
 /*
+  toDo:
+  Add WiFi error handler ==> Restart ESP
+
+      // Software Reset
+    void softwareReset() {
+        Serial.println("Performing software reset...");
+        ESP.restart();
+    }
+
+    // Hardware Reset (if you have a control pin for power)
+    const int POWER_CONTROL_PIN = 4;  // Example pin
+
+    void hardwareReset() {
+        Serial.println("Performing hardware reset...");
+        digitalWrite(POWER_CONTROL_PIN, LOW);  // Cut power
+        delay(1000);                          // Wait for discharge
+        digitalWrite(POWER_CONTROL_PIN, HIGH); // Restore power
+    }
+
   GANTI VARIABEL ip DAN loc SESUAI DENGAN SESUAI DENGAN KEBUTUHAN
   GANTI WIFI SESUAI DENGAN KEBUTUHAN
 
