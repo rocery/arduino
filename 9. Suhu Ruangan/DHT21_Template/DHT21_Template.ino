@@ -3,7 +3,7 @@
   GANTI WIFI SESUAI DENGAN KEBUTUHAN
 
   File .ino ini merupakan file template dari projek IoT Sensor Suhu Ruangan yang akan dibuat.
-  IP Address yang bisa digunakan: 11 - 25
+  IP Address yang bisa digunakan: 11 - 24
 
   V. 1.0.1
   Update Terakhir : 05-08-2024
@@ -62,13 +62,13 @@ struct DeviceData {
   @param api = URL API Menyimpan data ke Database
   @param getCal = URL API Mengambil data kalibrasi dari Database
   @param getData = URL API mengambil data last dari 'device'
-  @param verbose = Stat untuk melihat error
+  @param verbose = Variabel untuk melihat error
 */
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 18;
 /**/ const String loc = "Middle Low Lerupuk";
 /**/ const String prod = "Kerupuk";
-/**/ const bool verbose = false;
+/**/ const bool verbose = true;
 // =====================================
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
 String ESPName = "Suhu Ruang | " + loc;
