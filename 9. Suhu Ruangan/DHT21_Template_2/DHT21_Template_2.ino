@@ -11,10 +11,11 @@
   Komponen:
   1. ESP32                    | 
   2. LCD 16x2 I2C             | I2C
-  3. DHT21                    | 14
-  4. Stepdown DC-DC           |
-  5. Adaptor 6-24 V DC        |
-  6. Micro USB                |
+  3. Potensiometer 100K Ohm   | 34 3V
+  4. DHT21                    | 14
+  5. Stepdown DC-DC           |
+  6. Adaptor 6-24 V DC        |
+  7. Micro USB                |
 
   Fungsi : Mengukur temperature ruang dan kelembaban relatif (RH)
 
@@ -49,11 +50,6 @@ struct CalibrationData {
   float humidity;
 };
 
-struct DeviceData {
-  float temperature;
-  float humidity;
-};
-
 /*
   Isi variabel dibawah sebagai inisialisasi awal projek,
   @param ip = IP Address ESP32 ==> 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24
@@ -63,15 +59,14 @@ struct DeviceData {
   @param getData = URL API Mengambil data kalibrasi dari Database
 */
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 18;
-/**/ const String loc = "Middle Low Lerupuk";
-/**/ const String prod = "Kerupuk";
+/**/ const int ip = 17;
+/**/ const String loc = "Giling Gula";
+/**/ const String prod = "Biskuit";
 // =====================================
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
 String ESPName = "Suhu Ruang | " + loc;
 String deviceID = "IoT-" + String(ip);
-const String getCal = "http://192.168.7.223/iot/api/get_suhu_rh_calibration.php?device_id=" + deviceID;
-const String getData = "http://192.168.7.223/iot/api/get_suhu_rh.php?device_id=" + deviceID;
+const String getData = "http://192.168.7.223/iot/api/get_suhu_rh_calibration.php?device_id=" + deviceID;
 
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
   ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
@@ -111,8 +106,15 @@ float temperature, humidity, calTemp;
 int readDHTCount, readNan, errorWiFiCount;
 float tempFromDB = 0.0;
 float humFromDB = 0.0;
-float tempDB = 0.0;
-float humDB = 0.0;
+
+/* Mendeklarasikan Potensiometer
+  @param potPin = Pin Potensiometer
+  @param potValue = Nilai Potensiometer
+  @param mappedPotValue = Nilai Mapped Potensiometer
+*/
+#define POTPIN 34
+int potValue = 0;
+int mappedPotValue = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
   @param LCDADDR = Alamat I2C
@@ -161,12 +163,7 @@ void readDHT() {
 
   // If the temperature or humidity reading is not a number, add readNan
   if (isnan(humidity) || isnan(temperature)) {
-    readNan++;
-    
-    // Ambil data terakhir dari database 'device'
-    DeviceData dataDevice = getDeviceData();
-    tempDB = dataDevice.temperature;
-    humDB = dataDevice.humidity;
+    readNan++; 
 
     // Re-inisialisasi sensor
     dht.begin();
@@ -178,6 +175,26 @@ void readDHT() {
 
   // Increment the counter for the number of times the DHT sensor has been read
   readDHTCount++;
+}
+
+/**
+ * @brief Reads the analog value from the potentiometer and maps it to a temperature range.
+ * 
+ * This function reads the analog value from the potentiometer using the `analogRead()` function.
+ * The read value is then mapped to a temperature range using the `map()` function.
+ * The temperature range is [-5, 5] degrees Celsius.
+ * The `POTPIN` constant is used to specify the analog pin connected to the potentiometer.
+ * 
+ * The `potValue` variable stores the raw analog value read from the potentiometer.
+ * The `mappedPotValue` variable stores the mapped temperature value.
+ */
+void readPot() {
+  // Read the analog value from the potentiometer
+  potValue = analogRead(POTPIN);
+
+  // Map the analog value to a temperature range
+  // mappedPotValue = map(potValue, 0, 4095, -5, 5);
+  mappedPotValue = 0;
 }
 
 void getLocalTime() {
@@ -229,7 +246,7 @@ void sendLogData() {
 
 CalibrationData getCalibrationData() {
   HTTPClient http;
-  http.begin(getCal);
+  http.begin(getData);
   int httpCode = http.GET();
 
   CalibrationData calibrationData = { 0.0, 0.0 };  // Initialize with default values
@@ -259,39 +276,7 @@ CalibrationData getCalibrationData() {
   return calibrationData;
 }
 
-DeviceData getDeviceData() {
-  HTTPClient http;
-  http.begin(getData);
-  int httpCode = http.GET();
-
-  DeviceData deviceData = { 0.0, 0.0 };  // Initialize with default values
-
-  if (httpCode > 0) {
-    String payload = http.getString();
-    StaticJsonDocument<200> doc;
-    DeserializationError error = deserializeJson(doc, payload);
-
-    if (!error) {
-      if (doc.containsKey("temperature") && doc.containsKey("humidity")) {
-        deviceData.temperature = doc["temperature"].as<float>();
-        deviceData.humidity = doc["humidity"].as<float>();
-      } else {
-        Serial.println("Keys 'temperature' and/or 'humidity' not found in JSON");
-      }
-    } else {
-      Serial.print("Error parsing JSON: ");
-      Serial.println(error.c_str());
-    }
-  } else {
-    Serial.print("Error get log: ");
-    Serial.println(httpCode);
-  }
-
-  http.end();
-  return deviceData;
-}
-
-void printLCD(char* temp, char* hum) {
+void printLCD(char* temp, char* hum, int pot) {
   // Temperature
   lcd.setCursor(0, 0);
   lcd.print("T: ");
@@ -376,16 +361,24 @@ void setup() {
 /**
  * @brief The main loop function
  * 
+ * This function reads the potentiometer value, reads the DHT sensor, calculates the temperature and humidity
  * with calibration values, prints the values to the LCD, and sends the data to the server. It also handles
  * WiFi connectivity and NTP time synchronization.
  * 
  */
 void loop() {
+  // Read potentiometer value
+  readPot();
+
+  // Print mapped potentiometer value to Serial
+  // Serial.print("Mapped Value: ");
+  // Serial.println(mappedPotValue);
+
   // Read DHT sensor values
   readDHT();
 
   // Calculate the temperature and humidity with calibration values
-  calTemp = temperature + tempFromDB;
+  calTemp = temperature + mappedPotValue + tempFromDB;
   humidity = humidity + humFromDB;
 
   // Print temperature and humidity calibration values to Serial
@@ -400,7 +393,7 @@ void loop() {
   dtostrf(humidity, 4, 1, bufferHumidity);  // Convert float to string: 4 is the width, 1 is the number of decimals
 
   // Print temperature and humidity values to LCD
-  printLCD(bufferCalTemp, bufferHumidity);
+  printLCD(bufferCalTemp, bufferHumidity, mappedPotValue);
 
   // Handle WiFi connectivity
   if (wifiMulti.run() == WL_CONNECTED) {
@@ -438,7 +431,7 @@ void loop() {
   postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip_address=" + ip_Address;
 
   // Restart the device every 1200 readings of the DHT sensor
-  if (readDHTCount % 1200 == 0 || readNan >= 10 || errorWiFiCount >= 5) {
+  if (readDHTCount % 1200 == 0 || readNan >= 10 || errorWiFiCount >= 10) {
     ESP.restart();
   }
 
