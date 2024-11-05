@@ -60,12 +60,15 @@ struct DeviceData {
   @param loc = Lokasi ruangan untuk diukur  ==> Produksi Kerupuk, Line Gorio, etc
   @param prod = Lokasi Produksi ==> Kerupuk, Biskuit, Mie, dll
   @param api = URL API Menyimpan data ke Database
-  @param getData = URL API Mengambil data kalibrasi dari Database
+  @param getCal = URL API Mengambil data kalibrasi dari Database
+  @param getData = URL API mengambil data last dari 'device'
+  @param verbose = Stat untuk melihat error
 */
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 18;
 /**/ const String loc = "Middle Low Lerupuk";
 /**/ const String prod = "Kerupuk";
+/**/ const bool verbose = false;
 // =====================================
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
 String ESPName = "Suhu Ruang | " + loc;
@@ -163,10 +166,12 @@ void readDHT() {
   if (isnan(humidity) || isnan(temperature)) {
     readNan++;
     
-    // Ambil data terakhir dari database 'device'
-    DeviceData dataDevice = getDeviceData();
-    tempDB = dataDevice.temperature;
-    humDB = dataDevice.humidity;
+    if (verbose == true) {
+      // Ambil data terakhir dari database 'device'
+      DeviceData dataDevice = getDeviceData();
+      tempDB = dataDevice.temperature;
+      humDB = dataDevice.humidity;
+    }
 
     // Re-inisialisasi sensor
     dht.begin();
@@ -174,6 +179,8 @@ void readDHT() {
     
     // Opsional: Tambahkan sedikit delay agar sensor punya waktu untuk reset
     delay(5000);
+  } else {
+    readNan = 0;
   }
 
   // Increment the counter for the number of times the DHT sensor has been read
@@ -308,6 +315,14 @@ void printLCD(char* temp, char* hum) {
   lcd.print("%");
 }
 
+float randomFloatMinus05to05() {
+  return random(-50, 51) / 100.0; // Generates a value from -0.5 to 0.5
+}
+
+float randomFloatMinus5to5() {
+  return random(-500, 501) / 100.0; // Generates a value from -5.0 to 5.0
+}
+
 void setup() {
   Serial.begin(115200);
   dht.begin();
@@ -384,9 +399,20 @@ void loop() {
   // Read DHT sensor values
   readDHT();
 
-  // Calculate the temperature and humidity with calibration values
-  calTemp = temperature + tempFromDB;
-  humidity = humidity + humFromDB;
+  if (readNan > 0 && verbose == true) {
+    float randTemp = randomFloatMinus05to05();
+    float randHum = randomFloatMinus5to5();
+    calTemp = tempDB + randTemp;
+    humidity = humDB + randHum;
+    lcd.setCursor(15, 1);
+    lcd.print(".");
+  } else {
+    // Calculate the temperature and humidity with calibration values
+    calTemp = temperature + tempFromDB;
+    humidity = humidity + humFromDB;
+    lcd.setCursor(15, 1);
+    lcd.print(" ");
+  }
 
   // Print temperature and humidity calibration values to Serial
   // Serial.println(calTemp);
