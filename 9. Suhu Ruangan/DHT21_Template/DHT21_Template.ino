@@ -122,7 +122,7 @@ const char* password_it = "Si4nt4r321";
 #define DHTTYPE DHT21
 DHT dht(DHTPIN, DHTTYPE);
 float temperature, humidity, calTemp;
-int readDHTCount, readNan;
+int readDHTCount, readNan, errorWiFiCount;
 float tempFromDB = 0.0;
 float humFromDB = 0.0;
 
@@ -182,7 +182,7 @@ void readDHT() {
 
   // If the temperature or humidity reading is not a number, add readNan
   if (isnan(humidity) || isnan(temperature)) {
-    readNan++;
+    readNan++; 
 
     // Re-inisialisasi sensor
     dht.begin();
@@ -315,8 +315,12 @@ void printLCD(char* temp, char* hum, int pot) {
 void setup() {
   Serial.begin(115200);
   dht.begin();
+  delay(2500);
 
   getStatus = false;
+  readDHTCount = 0; 
+  readNan = 0;
+  errorWiFiCount = 0;
 
   // LCD
   lcd.init();
@@ -427,7 +431,7 @@ void loop() {
   } else if (wifiMulti.run() != WL_CONNECTED) {
     lcd.setCursor(10, 0);
     lcd.print("Error");
-    wifiMulti.run();
+    errorWiFiCount++;
   }
 
   // Handle NTP time synchronization
@@ -446,7 +450,7 @@ void loop() {
   postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip_address=" + ip_Address;
 
   // Restart the device every 1200 readings of the DHT sensor
-  if (readDHTCount % 1200 == 0 || readNan >= 10) {
+  if (readDHTCount % 1200 == 0 || readNan >= 10 || errorWiFiCount >= 10) {
     ESP.restart();
   }
 
