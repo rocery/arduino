@@ -40,7 +40,7 @@ void setup() {
   */
   rtc_cpu_freq_config_t config;
   rtc_clk_cpu_freq_get_config(&config);
-  rtc_clk_cpu_freq_to_config(RTC_CPU_FREQ_80M, &config);
+  rtc_clk_cpu_freq_to_config(RTC_XTAL_FREQ_40M, &config);
   rtc_clk_cpu_freq_set_config_fast(&config);
 
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);

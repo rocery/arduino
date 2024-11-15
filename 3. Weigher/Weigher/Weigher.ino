@@ -25,10 +25,11 @@
 #include <Arduino.h>
 #include "soc/rtc.h"
 #include "HX711.h"
+// #define RTC_CPU_FREQ_80M 80000000L
 
 // HX711 Wiring
-const int LOADCELL_DOUT_PIN = 16;  // Pin RX2
-const int LOADCELL_SCK_PIN = 4;
+const int LOADCELL_DOUT_PIN = 26;  // Pin RX2
+const int LOADCELL_SCK_PIN = 27;
 
 HX711 scale;
 
@@ -40,7 +41,7 @@ void setup() {
   */
   rtc_cpu_freq_config_t config;
   rtc_clk_cpu_freq_get_config(&config);
-  rtc_clk_cpu_freq_to_config(RTC_CPU_FREQ_80M, &config);
+  rtc_clk_cpu_freq_to_config(RTC_XTAL_FREQ_40M, &config);
   rtc_clk_cpu_freq_set_config_fast(&config);
 
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
