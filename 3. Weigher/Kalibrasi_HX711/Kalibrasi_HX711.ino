@@ -20,8 +20,6 @@
      ke program Weigher
 */
 
-#include <Arduino.h>
-#include "soc/rtc.h"
 #include "HX711.h"
 
 // HX711 Wiring
@@ -34,14 +32,6 @@ float calibrationFactor;
 
 void setup() {
   Serial.begin(115200);
-
-  /* Dikarenakan CPU ESP32 yang terlalu cepat, maka frekuensinya harus dikurangi
-  Dalam beberapa kasus, hal ini tidak perlu dilakukan, maka comment baris program ini
-  */
-  rtc_cpu_freq_config_t config;
-  rtc_clk_cpu_freq_get_config(&config);
-  rtc_clk_cpu_freq_to_config(RTC_XTAL_FREQ_40M, &config);
-  rtc_clk_cpu_freq_set_config_fast(&config);
 
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 }
