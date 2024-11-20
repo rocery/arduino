@@ -56,10 +56,8 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB8";
 const char* password_a = "siantar123";
-const char* ssid_d = "STTB1";
-const char* password_d = "Si4nt4r321";
-const char* ssid_b = "MT1";
-const char* password_b = "siantar321";
+const char* ssid_b = "STTB1";
+const char* password_b = "Si4nt4r321";
 const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
 const char* ssid_it = "STTB11";
@@ -106,15 +104,19 @@ bool menuSelect;
 int menu = 1;
 String productSelected, nameProductSelected;
 String productCodeOne = "P-0722-00248";
-String nameProductOne = "MIE GEMEZ 1000";
+String nameProductOne = "MIE GEMEZ ENK 1K";
 String productCodeTwo = "P-0823-00277";
-String nameProductTwo = "MIE GEMEZ 2000";
+String nameProductTwo = "MIE GEMEZ ENK 2K";
 String productCodeThree = "P-0324-00289";
-String nameProductThree = "MIE AYAM GRG 1000";
+String nameProductThree = "MIE AYAM GRG 1K";
 String productCodeFour = "P-0224-00288";
-String nameProductFour = "MIE AYAM PGG 1000";
-String productCodeFive = "Test 220 Mie Kotak";
-String nameProductFive = "Test Mode_220";
+String nameProductFour = "MIE AYAM PGG 1K";
+String productCodeFive = "P-1124-00297";
+String nameProductFive = "BOYKI MIE GRG 1K";
+String productCodeSix = "P-1124-00296";
+String nameProductSix = "GEMEZ ENK SPC 1K";
+String productCodeSeven = "Test 220 Mie Kotak";
+String nameProductSeven = "Test Mode_220";
 
 // == SD Card ==
 int lineAsInt;
@@ -346,7 +348,29 @@ void updateMenu() {
       lcd.print("WiFi : " + WiFi.SSID());
       break;
     case 6:
-      menu = 5;
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(1, 1);
+      lcd.print(nameProductFour);
+      lcd.setCursor(0, 2);
+      lcd.print(nameProductFive);
+      lcd.setCursor(1, 3);
+      lcd.print(">" + nameProductSix);
+      break;
+    case 7:
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(1, 1);
+      lcd.print(nameProductFive);
+      lcd.setCursor(0, 2);
+      lcd.print(nameProductSix);
+      lcd.setCursor(1, 3);
+      lcd.print(">" + nameProductSeven);
+      break;
+    case 8:
+      menu = 7;
       break;
   }
 }
@@ -380,6 +404,18 @@ void menuSelected() {
     case 5:
       productSelected = productCodeFive;
       nameProductSelected = nameProductFive;
+      delay(1000);
+      lcd.clear();
+      break;
+    case 6:
+      productSelected = productCodeSix;
+      nameProductSelected = nameProductSix;
+      delay(1000);
+      lcd.clear();
+      break;
+    case 7:
+      productSelected = productCodeSeven;
+      nameProductSelected = nameProductSeven;
       delay(1000);
       lcd.clear();
       break;
@@ -511,7 +547,6 @@ void setup() {
   wifiMulti.addAP(ssid_a, password_a);
   wifiMulti.addAP(ssid_b, password_b);
   wifiMulti.addAP(ssid_c, password_c);
-  wifiMulti.addAP(ssid_d, password_d);
   wifiMulti.addAP(ssid_it, password_it);
 
   if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
