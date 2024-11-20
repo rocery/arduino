@@ -353,7 +353,7 @@ void updateMenu() {
       lcd.print("==PILIH PRODUK==");
       lcd.setCursor(1, 1);
       lcd.print(nameProductFour);
-      lcd.setCursor(0, 2);
+      lcd.setCursor(1, 2);
       lcd.print(nameProductFive);
       lcd.setCursor(1, 3);
       lcd.print(">" + nameProductSix);
@@ -364,7 +364,7 @@ void updateMenu() {
       lcd.print("==PILIH PRODUK==");
       lcd.setCursor(1, 1);
       lcd.print(nameProductFive);
-      lcd.setCursor(0, 2);
+      lcd.setCursor(1, 2);
       lcd.print(nameProductSix);
       lcd.setCursor(1, 3);
       lcd.print(">" + nameProductSeven);
@@ -380,43 +380,36 @@ void menuSelected() {
     case 1:
       productSelected = productCodeOne;
       nameProductSelected = nameProductOne;
-      delay(1000);
       lcd.clear();
       break;
     case 2:
       productSelected = productCodeTwo;
       nameProductSelected = nameProductTwo;
-      delay(1000);
       lcd.clear();
       break;
     case 3:
       productSelected = productCodeThree;
       nameProductSelected = nameProductThree;
-      delay(1000);
       lcd.clear();
       break;
     case 4:
       productSelected = productCodeFour;
       nameProductSelected = nameProductFour;
-      delay(1000);
       lcd.clear();
       break;
     case 5:
       productSelected = productCodeFive;
       nameProductSelected = nameProductFive;
-      delay(1000);
       lcd.clear();
       break;
     case 6:
       productSelected = productCodeSix;
       nameProductSelected = nameProductSix;
-      delay(1000);
       lcd.clear();
       break;
     case 7:
       productSelected = productCodeSeven;
       nameProductSelected = nameProductSeven;
-      delay(1000);
       lcd.clear();
       break;
   }
