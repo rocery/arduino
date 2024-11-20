@@ -31,8 +31,8 @@
   20 = Packing Line 1 Mie, Mie
   21 = Maddock Twistko, Kerupuk
   22 = Packing Gorio Line 2, Biskuit
-  23 = 
-  24 = 
+  23 = Mesin Soontru No. 43-54
+  24 = Pengolahan Gorengan dan Oven Kerupuk
 */
 
 #include <esp_system.h>
@@ -65,8 +65,8 @@ struct DeviceData {
   @param verbose = Variabel untuk melihat error
 */
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 18;
-/**/ const String loc = "Middle Low Lerupuk";
+/**/ const int ip = 24;
+/**/ const String loc = "Pengolahan Gorengan dan Oven Kerupuk";
 /**/ const String prod = "Kerupuk";
 /**/ const bool verbose = true;
 // =====================================
