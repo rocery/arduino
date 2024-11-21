@@ -1,107 +1,59 @@
-/*
-  V. 0.0.1 Beta
-  Update Terakhir : 22-12-2023
-  Last Change Log {
-
-  }
-
-  
-
-  Komponen :
-  1. ESP32
-  2. Load Cell 5 Kg
-  3. HX711
-  4. LCD I2C 20x4
-
-  Program ini berfungsi mengukur berat objek dengan maksimal 5 Kg
-  Output dari program ini adalah rejector*
-
-  Tidak dibuat tim IT
-  Fitur:
-  1. Pilih Produk
-  2. Kalibrasi
-  3. 
-*/
-
-// == Deklarasi semua Library yang digunakan ==
 #include <Arduino.h>
-#include "soc/rtc.h"
 #include "HX711.h"
 
-// HX711 Wiring
-const int LOADCELL_DOUT_PIN = 27;  // Pin RX2
-const int LOADCELL_SCK_PIN = 26;
+// HX711 circuit wiring
+const int LOADCELL_DOUT_PIN = 26; // Data pin
+const int LOADCELL_SCK_PIN = 27;   // Clock pin
 
 HX711 scale;
 
 void setup() {
   Serial.begin(115200);
-
-  /* Dikarenakan CPU ESP32 yang terlalu cepat, maka frekuensinya harus dikurangi
-  Dalam beberapa kasus, hal ini tidak perlu dilakukan, maka comment baris program ini
-  */
-  rtc_cpu_freq_config_t config;
-  rtc_clk_cpu_freq_get_config(&config);
-  rtc_clk_cpu_freq_to_config(RTC_CPU_FREQ_80M, &config);
-  rtc_clk_cpu_freq_set_config_fast(&config);
+  Serial.println("HX711 Demo");
+  Serial.println("Initializing the scale");
 
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 
-  // print a raw reading from the ADC
+  // Display initial readings before calibration
   Serial.println("Before setting up the scale:");
-  Serial.print("read: \t\t");
-  Serial.println(scale.read());
+  Serial.print("Raw read: \t\t");
+  Serial.println(scale.read()); // Print a raw reading from the ADC
 
-  // print the average of 20 readings from the ADC
-  Serial.print("read average: \t\t");
-  Serial.println(scale.read_average(20));
+  Serial.print("Average read: \t\t");
+  Serial.println(scale.read_average(20)); // Average of 20 readings
 
-  // print the average of 5 readings from the ADC minus the tare weight (not set yet)
-  Serial.print("get value: \t\t");
-  Serial.println(scale.get_value(5));
+  Serial.print("Get value: \t\t");
+  Serial.println(scale.get_value(5)); // Average of 5 readings (not calibrated yet)
 
-  // print the average of 5 readings from the ADC minus tare weight (not set) divided
-  // by the SCALE parameter (not set yet)
-  Serial.print("get units: \t\t");
-  Serial.println(scale.get_units(5), 1);
+  Serial.print("Get units: \t\t");
+  Serial.println(scale.get_units(5), 1); // Average of 5 readings (not calibrated yet)
 
-
-  // this value is obtained by calibrating the scale with known weights; see the README for details
-  // scale.set_scale(-471.497);
-  // scale.set_scale(INSERT YOUR CALIBRATION FACTOR);
-  scale.tare();  // reset the scale to 0
+  // Set the scale factor (calibration factor)
+  scale.set_scale(-459.542); // Replace with your calibration factor
+  scale.tare(); // Reset the scale to 0
 
   Serial.println("After setting up the scale:");
-  // print a raw reading from the ADC
-  Serial.print("read: \t\t");
-  Serial.println(scale.read());
 
-  // print the average of 20 readings from the ADC
-  Serial.print("read average: \t\t");
-  Serial.println(scale.read_average(20));
+  Serial.print("Raw read: \t\t");
+  Serial.println(scale.read()); // Print a raw reading from the ADC
 
-  // print the average of 5 readings from the ADC minus the tare weight, set with tare()
-  Serial.print("get value: \t\t");
-  Serial.println(scale.get_value(5));
+  Serial.print("Average read: \t\t");
+  Serial.println(scale.read_average(20)); // Average of 20 readings
 
-  // print the average of 5 readings from the ADC minus tare weight, divided
-  // by the SCALE parameter set with set_scale
-  Serial.print("get units: \t\t");
+  Serial.print("Get value: \t\t");
+  Serial.println(scale.get_value(5)); // Average of 5 readings minus tare
 
-
-  
-  Serial.println(scale.get_units(5), 1);
+  Serial.print("Get units: \t\t");
+  Serial.println(scale.get_units(5), 1); // Average of 5 readings divided by scale
 
   Serial.println("Readings:");
 }
 
 void loop() {
-  Serial.print("one reading:\t");
-  Serial.print(scale.get_units(), 1);
-  Serial.print("\t| average:\t");
-  Serial.println(scale.get_units(10), 5);
+  Serial.print("One reading:\t");
+  Serial.print(scale.get_units(), 1); // Single reading
+  Serial.print("\t| Average:\t");
+  Serial.println(scale.get_units(10), 5); // Average of 10 readings
 
-  scale.power_down();  // put the ADC in sleep mode
-  delay(5000);
-  scale.power_up();
+  delay(5000); // Delay for readability
 }
