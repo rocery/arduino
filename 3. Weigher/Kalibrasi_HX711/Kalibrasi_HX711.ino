@@ -15,9 +15,9 @@
   2. Setelah 5 detik, timbang barang yang sudah diketahui beratnya, misal 100 g
   3. Catat nilai dari hasil timbangan, biasanya bernilai minus.
   4. Calibrarion Factor = Nilai Hasil Timbang/Berat Barang
-     Contoh : -141449/300 = -471.479
-     Maka nilai kalibrasi adalah -471.479, cacat nilai ini untuk dimasukan
-     ke program Weigher
+    Contoh : -141449/300 = -471.479
+    Maka nilai kalibrasi adalah -471.479, cacat nilai ini untuk dimasukan
+    ke program Weigher
 */
 
 #include "HX711.h"

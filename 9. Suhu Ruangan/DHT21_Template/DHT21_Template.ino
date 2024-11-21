@@ -465,6 +465,7 @@ void loop() {
 
   // Restart the device every 1200 readings of the DHT sensor
   if (readDHTCount % 1200 == 0 || readNan >= 10 || errorWiFiCount >= 5) {
+    sendLogData();
     ESP.restart();
   }
 
