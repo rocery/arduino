@@ -65,8 +65,8 @@ struct DeviceData {
   @param verbose = Variabel untuk melihat error
 */
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 24;
-/**/ const String loc = "Pengolahan Gorengan dan Oven Kerupuk";
+/**/ const int ip = 23;
+/**/ const String loc = "Mesin Soontru No. 43-54";
 /**/ const String prod = "Kerupuk";
 /**/ const bool verbose = true;
 // =====================================
@@ -464,8 +464,9 @@ void loop() {
   postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip_address=" + ip_Address;
 
   // Restart the device every 1200 readings of the DHT sensor
-  if (readDHTCount % 1200 == 0 || readNan >= 10 || errorWiFiCount >= 5) {
+  if (readDHTCount % 1200 == 0 || readNan >= 25 || errorWiFiCount >= 10) {
     sendLogData();
+    delay(1000);
     ESP.restart();
   }
 
