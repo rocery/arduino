@@ -1,3 +1,10 @@
+/*
+ * Normal Mode:
+ * - Timbangan 
+ * 
+ *
+*/
+
 #include <HX711.h>
 
 const int LOADCELL_DOUT_PIN = 27;
@@ -7,6 +14,9 @@ HX711 scale;
 #define buttonUp 34
 #define buttonDown 35
 #define buttonSelect 32
+
+bool isCalibrating = false;
+bool isSelecting = false;
 
 void setup() {
   Serial.begin(9600);
