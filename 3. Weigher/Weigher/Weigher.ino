@@ -31,7 +31,27 @@ void setup() {
 }
 
 void loop() {
-  isButtonPressed(buttonUp);
+  if (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
+    isCalibrating = true;
+  }
+
+  if (isButtonPressed(buttonSelect)) {
+    isSelecting = true;
+  }
+
+  if (isCalibrating) {
+    Serial.println("Kosongkan timbangan");
+    delay(5000);
+    scale.tare();
+    Serial.println("Tare done...");
+    Serial.print("Taruh barang yang sudah diketahui beratnya");
+    delay(5000);
+    long reading = scale.get_units(10);
+    Serial.print("Hasil : ");
+    Serial.println(reading);
+    isCalibrating = false;
+  }
+  
 
   if (scale.is_ready()) {
     long reading = scale.get_units(10);
