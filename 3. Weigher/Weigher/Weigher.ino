@@ -6,10 +6,13 @@
 */
 
 #include <HX711.h>
+#include <LiquidCrystal_I2C.h>
 
 const int LOADCELL_DOUT_PIN = 27;
 const int LOADCELL_SCK_PIN = 26;
 HX711 scale;
+
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 #define buttonUp 34
 #define buttonDown 35
@@ -23,9 +26,14 @@ void setup() {
   
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
   
-  pinMode(buttonUp, INPUT_PULLUP);
-  pinMode(buttonDown, INPUT_PULLUP);
-  pinMode(buttonSelect, INPUT_PULLUP);
+  pinMode(buttonUp, INPUT);
+  pinMode(buttonDown, INPUT);
+  pinMode(buttonSelect, INPUT);
+
+  // LCD
+  lcd.init();
+  lcd.clear();
+  lcd.backlight();
 
   scale.tare();
 }
