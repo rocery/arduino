@@ -1,6 +1,5 @@
 #include <HX711.h>
 
-// HX711 Wiring
 const int LOADCELL_DOUT_PIN = 27;
 const int LOADCELL_SCK_PIN = 26;
 HX711 scale;
@@ -30,8 +29,18 @@ void loop() {
     Serial.println("HX711 not found.");
   }
   delay(1000);
+  Serial.print(isButtonPressed(buttonUp));
 }
 
 bool isButtonPressed(int buttonPin) {
   return !digitalRead(buttonPin);
+}
+
+void readAllButtons() {
+  Serial.print("Button Up: ");
+  Serial.println(isButtonPressed(buttonUp));
+  Serial.print("Button Down: ");
+  Serial.println(isButtonPressed(buttonDown));
+  Serial.print("Button Select: ");
+  Serial.println(isButtonPressed(buttonSelect));
 }
