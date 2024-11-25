@@ -31,6 +31,8 @@ void setup() {
 }
 
 void loop() {
+  isButtonPressed(buttonUp);
+
   if (scale.is_ready()) {
     long reading = scale.get_units(10);
     Serial.print("Hasil : ");
