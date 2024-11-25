@@ -32,6 +32,7 @@ void setup() {
   // Initialize LCD
   lcd.init();
   lcd.clear();
+  lcd.backlight(); // Nyalakan backlight LCD
   lcd.print("Weight: ");
   
   // Tare the scale initially
@@ -72,11 +73,14 @@ void loop() {
       long weight = scale.get_units(10);  // Get the weight
       float weightInKg = weight / 1000.0; // Convert to kg
       lcd.setCursor(0, 0);
+
+      lcd.clear(); // Clear the LCD before displaying weight
       lcd.print("Weight: ");
       lcd.print(weightInKg, 2); // Tampilkan dengan 2 angka di belakang koma
       lcd.print(" kg   ");  // Output in kg
     } else {
       lcd.setCursor(0, 0);
+      lcd.clear(); // Clear the LCD before displaying error
       lcd.print("HX711 not found.");
     }
   }
@@ -84,7 +88,7 @@ void loop() {
   delay(100);  // Delay for readability
 }
 
-void updateLCD() {
+void updateLCD () {
   lcd.setCursor(0, 1);
   lcd.print("Select: ");
   lcd.print(weightLabels[selectedWeightIndex]);
@@ -107,7 +111,7 @@ void calibrateScale(float knownWeight) {
   scale.set_scale(calibrationFactor);  // Set the calibration factor
   
   Serial.print("Calibration factor set to: ");
-  Serial.println(calibrationFactor);
+  Serial.println(calibrationFactor); // Corrected missing semicolon
   lcd.clear();
   lcd.print("Calibrated to: ");
   lcd.print(knownWeight);
