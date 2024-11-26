@@ -7,12 +7,15 @@
 
 #include <HX711.h>
 #include <LiquidCrystal_I2C.h>
+#include <EEPROM.h>
 
 const int LOADCELL_DOUT_PIN = 27;
 const int LOADCELL_SCK_PIN = 26;
 HX711 scale;
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
+
+const int EEPROM_ADDRESS = 0;
 
 #define buttonUp 34
 #define buttonDown 35
@@ -34,6 +37,8 @@ void setup() {
   lcd.init();
   lcd.clear();
   lcd.backlight();
+
+  EEPROM.begin(512);
 
   scale.tare();
 }
@@ -83,4 +88,21 @@ void readAllButtons() {
   Serial.println(isButtonPressed(buttonDown));
   Serial.print("Button Select: ");
   Serial.println(isButtonPressed(buttonSelect));
+}
+
+void updateFloatInEEPROM(int address, float newValue) {
+  float currentValue = readFloatFromEEPROM(address);
+
+  if (currentValue != newValue) {
+    EEPROM.put(address, newValue);
+    Serial.println("Value updated in EEPROM.");
+  } else {
+    Serial.println("Value is already up-to-date, no write needed.");
+  }
+}
+
+float readFloatFromEEPROM(int address) {
+  float value;
+  EEPROM.get(address, value);
+  return value;
 }
