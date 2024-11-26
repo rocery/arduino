@@ -23,15 +23,15 @@
 #include "HX711.h"
 
 // HX711 Wiring
-const int LOADCELL_DOUT_PIN = 27;  // Pin RX2
-const int LOADCELL_SCK_PIN = 26;
+const int LOADCELL_DOUT_PIN = 26;  // Pin RX2
+const int LOADCELL_SCK_PIN = 27;
 
 HX711 scale;
-float beratBarang = 300;  // Contoh 300 g, sesuaikan dengan barang yang ada
+float beratBarang = 71800;  // Contoh 300 g, sesuaikan dengan barang yang ada
 float calibrationFactor;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 }
@@ -54,5 +54,5 @@ void loop() {
   } else {
     Serial.println("HX711 not found.");
   }
-  delay(1000);
+  delay(5000);
 }
