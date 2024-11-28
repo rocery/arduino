@@ -20,8 +20,9 @@
     ke program Weigher
 */
 
-#include "HX711.h"
-#include "LiquidCrystal_I2C.h"
+#include <HX711.h>
+#include <LiquidCrystal_I2C.h>
+#include <EEPROM.h>
 
 // HX711 Wiring
 const int LOADCELL_DOUT_PIN = 26;
@@ -54,11 +55,16 @@ void setup() {
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
   scale.tare();
 
+  delay(500);
   if (digitalRead(buttonUp) && digitalRead(buttonDown))
   { 
     while (digitalRead(buttonUp) == HIGH && digitalRead(buttonDown) == HIGH);
     calibrationProcess(); 
   }
+
+  // WiFi
+
+
 }
 
 void loop() {
