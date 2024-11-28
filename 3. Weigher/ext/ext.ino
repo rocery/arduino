@@ -21,7 +21,7 @@ const char* weightLabels[] = {"1 kg", "5 kg", "10 kg", "20 kg"};
 bool inCalibrationMode = false; // Flag to indicate if in calibration mode
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
   
   // Setup button pins

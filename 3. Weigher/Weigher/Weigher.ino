@@ -24,6 +24,25 @@ const int EEPROM_ADDRESS = 0;
 bool isCalibrating = false;
 bool isSelecting = false;
 
+float readFloatFromEEPROM(int address) {
+  float value;
+  EEPROM.get(address, value);
+  return value;
+}
+
+// updateFloatInEEPROM(EEPROM_ADDRESS, newValue);
+void updateFloatInEEPROM(int address, float newValue) {
+  float currentValue = readFloatFromEEPROM(address);
+
+  if (currentValue != newValue) {
+    EEPROM.put(address, newValue);
+    EEPROM.commit();
+    Serial.println("Value updated in EEPROM.");
+  } else {
+    Serial.println("Value is already up-to-date, no write needed.");
+  }
+}
+
 void setup() {
   Serial.begin(9600);
   
@@ -40,6 +59,7 @@ void setup() {
 
   EEPROM.begin(512);
 
+  scale.set_scale(readFloatFromEEPROM(EEPROM_ADDRESS));
   scale.tare();
 }
 
