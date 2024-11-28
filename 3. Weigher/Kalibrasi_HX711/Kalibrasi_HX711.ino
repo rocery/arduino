@@ -24,7 +24,7 @@
 #include "LiquidCrystal_I2C.h"
 
 // HX711 Wiring
-const int LOADCELL_DOUT_PIN = 26;  // Pin RX2
+const int LOADCELL_DOUT_PIN = 26;
 const int LOADCELL_SCK_PIN = 27;
 
 HX711 scale;
@@ -56,8 +56,8 @@ void setup() {
 
   if (digitalRead(buttonUp) && digitalRead(buttonDown))
   { 
-  while (digitalRead(buttonUp) == HIGH && digitalRead(buttonDown) == HIGH);
-  calibrationProcess(); 
+    while (digitalRead(buttonUp) == HIGH && digitalRead(buttonDown) == HIGH);
+    calibrationProcess(); 
   }
 }
 
