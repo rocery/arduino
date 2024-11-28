@@ -81,7 +81,6 @@ void loop() {
   if (isCalibrating) {
     calibrationProcess();
   }
-  
 
   if (scale.is_ready()) {
     long reading = scale.get_units(10);
@@ -137,12 +136,13 @@ void calibrationProcess() {
   lcd.print("KOSONGKAN");
   lcd.setCursor(0, 1);
   lcd.print("TIMBANGAN");
-  int timerStep2 = 5;
+  int timerStep2 = 3;
   for (int i = 0; i <= timerStep2; i++) {
     lcd.setCursor(12, 0);
     lcd.print(timerStep2 - i);
+    // scale.set_scale(0);
     scale.tare();
-    delay(800);
+    delay(600);
   }
   lcd.setCursor(11, 1);
   lcd.print("OKE");
@@ -169,7 +169,7 @@ void calibrationProcess() {
   // Wait for user to finish weighing the item
   while (true) {
     // Tare the scale and get the reading
-    long reading = scale.get_units(10); // Get the reading with averaging of 20 samples
+    long reading = scale.get_units(10); // Get the reading with averaging of 10 samples
     calibrationFactor = (float)reading / (values[currentValueIndex] * 1000); // Calculate calibration factor
     lcd.setCursor(10, 1);
     lcd.print(calibrationFactor);
@@ -178,7 +178,6 @@ void calibrationProcess() {
     scale.power_up();
 
     int buttonDownState = digitalRead(buttonDown);
-    int buttonSelectState = digitalRead(buttonSelect);
 
     // If buttonDown is pressed, move to the next step
     if (buttonDownState == HIGH) {
@@ -203,7 +202,7 @@ void calibrationProcess() {
     // If buttonSelect is pressed, exit the calibration process
     if (buttonSelectState == HIGH) {
       while (digitalRead(buttonSelect) == HIGH);
-      isCalibrated = true;
+      
       return; // Exit the function
     }
 

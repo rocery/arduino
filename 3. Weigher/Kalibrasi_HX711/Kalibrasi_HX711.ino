@@ -53,6 +53,12 @@ void setup() {
   pinMode(buttonSelect, INPUT);
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
   scale.tare();
+
+  if (digitalRead(buttonUp) && digitalRead(buttonDown))
+  { 
+  while (digitalRead(buttonUp) == HIGH && digitalRead(buttonDown) == HIGH);
+  calibrationProcess(); 
+  }
 }
 
 void loop() {
@@ -65,6 +71,19 @@ void loop() {
     lcd.setCursor(0, 0);
     lcd.print(calibrationFactor);
     delay(100);
+
+    if (digitalRead(buttonDown)) {
+      Serial.println("Tare");
+      while (digitalRead(buttonDown) == HIGH);
+      scale.set_scale(46.19);
+      scale.tare();
+    }
+
+    float a = scale.get_units(5);
+    Serial.print(a, 1);
+    float kg = a/1000;
+    Serial.print("\tkg:\t");
+    Serial.println(kg, 2);
     // if (!isCalibrated) {
     // scale.set_scale(calibrationFactor);                      // this value is obtained by calibrating the scale with known weights; see the README for details
     // scale.tare();
@@ -129,12 +148,13 @@ void calibrationProcess() {
   lcd.print("KOSONGKAN");
   lcd.setCursor(0, 1);
   lcd.print("TIMBANGAN");
-  int timerStep2 = 5;
+  int timerStep2 = 3;
   for (int i = 0; i <= timerStep2; i++) {
     lcd.setCursor(12, 0);
     lcd.print(timerStep2 - i);
+    // scale.set_scale(0);
     scale.tare();
-    delay(800);
+    delay(600);
   }
   lcd.setCursor(11, 1);
   lcd.print("OKE");
@@ -170,7 +190,6 @@ void calibrationProcess() {
     scale.power_up();
 
     int buttonDownState = digitalRead(buttonDown);
-    int buttonSelectState = digitalRead(buttonSelect);
 
     // If buttonDown is pressed, move to the next step
     if (buttonDownState == HIGH) {
@@ -195,7 +214,7 @@ void calibrationProcess() {
     // If buttonSelect is pressed, exit the calibration process
     if (buttonSelectState == HIGH) {
       while (digitalRead(buttonSelect) == HIGH);
-      isCalibrated = true;
+      
       return; // Exit the function
     }
 
