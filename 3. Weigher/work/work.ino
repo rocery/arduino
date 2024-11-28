@@ -75,9 +75,9 @@ void loop() {
   Serial.print(a, 1);
   float kg = a/1000;
   Serial.print("\tkg:\t");
-  Serial.println(kg, 1);
+  Serial.println(kg, 2);
 
-  scale.power_down();			        // put the ADC in sleep mode
+  scale.power_down();
   delay(1000);
   scale.power_up();
 }
