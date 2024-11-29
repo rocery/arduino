@@ -6,6 +6,7 @@ const int LOADCELL_DOUT_PIN = 26;
 const int LOADCELL_SCK_PIN = 27;
 HX711 scale;
 float calibrationFactor;
+int digitScale;
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
@@ -72,6 +73,7 @@ void setup() {
 
   // Load calibration factor from EEPROM then tare
   calibrationFactor = readFloatFromEEPROM(EEPROM_ADDRESS);
+  digitScale = readFloatFromEEPROM(EEPROM_ADDRESS + 4);
   scale.set_scale(calibrationFactor);
   scale.tare();
 
@@ -84,7 +86,7 @@ void loop() {
   float absValuekgLoadCell = fabs(kgLoadCell);
 
   char kgLoadCellPrint[10];
-  dtostrf(absValuekgLoadCell, 6, 2, kgLoadCellPrint);
+  dtostrf(absValuekgLoadCell, 6, digitScale, kgLoadCellPrint);
 
   lcd.setCursor(0, 0);
   // lcd.print("Hasil : ");
@@ -96,14 +98,24 @@ void loop() {
   lcd.print("Calib : ");
   lcd.print(calibrationFactor);
 
-  // scale.power_down();
-  // delay(1000);
-  // scale.power_up();
-  // Serial.println(readFloatFromEEPROM(EEPROM_ADDRESS));
+  if (isButtonPressed(buttonDown)) {
+    while (isButtonPressed(buttonDown)) {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("   TARE   ");
+    }
+
+    tareScale();
+  }
 }
 
 bool isButtonPressed(int buttonPin) {
   return digitalRead(buttonPin);
+}
+
+void tareScale() {
+  scale.set_scale(calibrationFactor);
+  scale.tare();
 }
 
 void calibrationProcess() {
@@ -113,6 +125,9 @@ void calibrationProcess() {
 
   int values[] = { 1, 2, 5, 10, 20, 40 };
   int currentValueIndex = 0;
+
+  int digit[] = { 0, 1, 2, 3, 4 };
+  int currentDigitIndex = 0;
 
   // Step 1: Select weight
   while (true) {
@@ -175,9 +190,8 @@ void calibrationProcess() {
   lcd.setCursor(1, 1);
   lcd.print(values[currentValueIndex]);
   lcd.print(" KG");
-  delay(2000);  // Display for 2 seconds
+  delay(2000);
 
-  // Wait for user to finish weighing the item
   while (true) {
     // Tare the scale and get the reading
     long reading = scale.get_units(10);
@@ -198,7 +212,36 @@ void calibrationProcess() {
     }
   }
 
-  // Step 4: Confirm calibration
+  // Step 4: Set Digit
+  while (true) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("  SET DIGIT  ");
+    lcd.setCursor(0, 1);
+    lcd.print("DIGIT: ");
+    lcd.print(values[currentDigitIndex]);
+    
+    int buttonUpState = digitalRead(buttonUp);
+    int buttonDownState = digitalRead(buttonDown);
+
+    // If buttonUp is pressed
+    if (buttonUpState == HIGH) {
+      while (digitalRead(buttonUp) == HIGH)
+        ;
+      currentDigitIndex = (currentDigitIndex + 1) % 6;
+      delay(200);
+    }
+
+    // If buttonDown is pressed, move to the next step
+    if (buttonDownState == HIGH) {
+      while (digitalRead(buttonDown) == HIGH)
+        ;
+      digitScale = values[currentDigitIndex];
+      break;
+    }
+  }
+
+  // Step 5: Confirm calibration
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("KALIBRASI");
@@ -216,6 +259,7 @@ void calibrationProcess() {
       while (digitalRead(buttonSelect) == HIGH)
         ;
       updateFloatInEEPROM(EEPROM_ADDRESS, calibrationFactor);
+      updateFloatInEEPROM(EEPROM_ADDRESS + 4, digitScale);
       lcd.clear();
       return;
     }
