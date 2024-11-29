@@ -9,8 +9,10 @@
 const int LOADCELL_DOUT_PIN = 26;
 const int LOADCELL_SCK_PIN = 27;
 HX711 scale;
+
 float calibrationFactor;
 int digitScale;
+String productSelected;
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
@@ -21,6 +23,11 @@ int digitScale;
 const String api = "http://192.168.7.223/iot/api/weigher/save_weigher.php";
 String ESPName = "Weigher | " + loc;
 String deviceID = "IoT-" + String(ip);
+
+int values[] = { 1, 2, 5, 10, 20, 40 };
+int digit[] = { 0, 1, 2, 3, 4 };
+String product[] = { "Product 1", "Product 2" };
+#define ARRAY_LENGTH(arr) (sizeof(arr) / sizeof(arr[0]))
 
 WiFiMulti wifiMulti;
 const char* ssid_a_biskuit_mie = "STTB8";
@@ -64,9 +71,6 @@ const int EEPROM_ADDRESS = 0;
 int buttonUpState = 0;
 int buttonDownState = 0;
 int buttonSelectState = 0;
-
-bool isCalibrating = false;
-bool isSelecting = false;
 
 float readFloatFromEEPROM(int address) {
   float value = EEPROM.get(address, value);
@@ -167,6 +171,8 @@ void setup() {
   scale.tare();
 
   // Choose Product
+  chooseProduct();  
+
 
   lcd.clear();
 }
@@ -180,13 +186,16 @@ void loop() {
   dtostrf(absValuekgLoadCell, 5, digitScale, kgLoadCellPrint);
 
   lcd.setCursor(0, 0);
+  lcd.print(productSelected);
+  
+  lcd.setCursor(0, 1);
   // lcd.print("Hasil : ");
   lcd.print(kgLoadCellPrint);
   lcd.print(" KG");
   // Serial.println(kgLoadCell, 2);
 
   if (isButtonPressed(buttonDown)) {
-    while (digitalRead(buttonDown == HIGH)) {
+    while (isButtonPressed(buttonDown)) {
       lcd.setCursor(0, 0);
       lcd.print("      TARE      ");
       lcd.setCursor(0, 1);
@@ -196,13 +205,13 @@ void loop() {
   }
 
   if (isButtonPressed(buttonSelect)) {
-    while (digitalRead(buttonSelect == HIGH)) {
+    while (isButtonPressed(buttonSelect)) {
       // dataSave();
     }
   }
 
   if (isButtonPressed(buttonUp)) {
-    while (digitalRead(buttonUp == HIGH)) {
+    while (isButtonPressed(buttonUp)) {
       lcd.setCursor(0, 0);
       lcd.print("      INFO      ");
     }
@@ -216,18 +225,14 @@ bool isButtonPressed(int buttonPin) {
 void tareScale() {
   scale.set_scale(calibrationFactor);
   scale.tare();
-  lcd.clear();
 }
 
 void calibrationProcess() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("  BERAT BARANG  ");
-
-  int values[] = { 1, 2, 5, 10, 20, 40 };
+  
   int currentValueIndex = 0;
-
-  int digit[] = { 0, 1, 2, 3, 4 };
   int currentDigitIndex = 0;
 
   // Step 1: Select weight
@@ -244,7 +249,7 @@ void calibrationProcess() {
     if (buttonUpState == HIGH) {
       while (digitalRead(buttonUp) == HIGH)
         ;
-      currentValueIndex = (currentValueIndex + 1) % 6;
+      currentValueIndex = (currentValueIndex + 1) % ARRAY_LENGTH(values);
       delay(200);
     }
 
@@ -332,7 +337,7 @@ void calibrationProcess() {
     if (buttonUpState == HIGH) {
       while (digitalRead(buttonUp) == HIGH)
         ;
-      currentDigitIndex = (currentDigitIndex + 1) % 5;
+      currentDigitIndex = (currentDigitIndex + 1) % ARRAY_LENGTH(digit);
       delay(200);
     }
 
@@ -373,6 +378,39 @@ void calibrationProcess() {
       while (digitalRead(buttonDown) == HIGH)
         ;
       calibrationProcess();
+      break;
+    }
+  }
+}
+
+void chooseProduct() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("  PILIH PRODUK ");
+
+  int currentProductIndex = 0;
+
+  // Step 1: Select weight
+  while (true) {
+    lcd.setCursor(0, 1);
+    lcd.print(product[currentProductIndex]);
+
+    int buttonUpState = digitalRead(buttonUp);
+    int buttonDownState = digitalRead(buttonDown);
+
+    // If buttonUp is pressed
+    if (buttonUpState == HIGH) {
+      while (digitalRead(buttonUp) == HIGH)
+        ;
+      currentProductIndex = (currentProductIndex + 1) % ARRAY_LENGTH(product);
+      delay(200);
+    }
+
+    // If buttonDown is pressed, move to the next step
+    if (buttonDownState == HIGH) {
+      while (digitalRead(buttonDown) == HIGH)
+        ;
+      productSelected = product[currentProductIndex];
       break;
     }
   }
