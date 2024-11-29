@@ -45,7 +45,7 @@ void setup() {
   Serial.println(scale.get_units(5), 1);	// print the average of 5 readings from the ADC minus tare weight (not set) divided
 						// by the SCALE parameter (not set yet)
 
-  scale.set_scale(46.18f);                      // this value is obtained by calibrating the scale with known weights; see the README for details
+  scale.set_scale(46.19f);                      // this value is obtained by calibrating the scale with known weights; see the README for details
   scale.tare();				        // reset the scale to 0
 
   Serial.println("After setting up the scale:");
@@ -71,7 +71,7 @@ void loop() {
   Serial.print("one reading:\t");
   Serial.print(scale.get_units(), 1);
   Serial.print("\t| average:\t");
-  float a = scale.get_units(5);
+  float a = scale.get_units(10);
   Serial.print(a, 1);
   float kg = a/1000;
   Serial.print("\tkg:\t");

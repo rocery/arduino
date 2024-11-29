@@ -1,17 +1,11 @@
-/*
- * Normal Mode:
- * - Timbangan 
- * 
- *
-*/
-
 #include <HX711.h>
 #include <LiquidCrystal_I2C.h>
 #include <EEPROM.h>
 
-const int LOADCELL_DOUT_PIN = 27;
-const int LOADCELL_SCK_PIN = 26;
+const int LOADCELL_DOUT_PIN = 26;
+const int LOADCELL_SCK_PIN = 27;
 HX711 scale;
+float calibrationFactor;
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
@@ -28,8 +22,7 @@ bool isCalibrating = false;
 bool isSelecting = false;
 
 float readFloatFromEEPROM(int address) {
-  float value;
-  EEPROM.get(address, value);
+  float value = EEPROM.get(address, value);
   return value;
 }
 
@@ -48,9 +41,8 @@ void updateFloatInEEPROM(int address, float newValue) {
 
 void setup() {
   Serial.begin(9600);
-  
-  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
-  
+
+  // Setup button pins
   pinMode(buttonUp, INPUT);
   pinMode(buttonDown, INPUT);
   pinMode(buttonSelect, INPUT);
@@ -60,41 +52,57 @@ void setup() {
   lcd.clear();
   lcd.backlight();
 
+  // EEPROM
   EEPROM.begin(512);
 
-  scale.set_scale(readFloatFromEEPROM(EEPROM_ADDRESS));
-  scale.tare();
-}
+  // HX711
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 
-void loop() {
-  lcd.clear();
+
+  // Calibration
   if (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
-    isCalibrating = true;
-  } else {
-    isCalibrating = false;
-  }
 
-  if (isButtonPressed(buttonSelect)) {
-    isSelecting = true;
-  }
+    while (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
+      lcd.setCursor(0, 0);
+      lcd.print("   KALIBRASI   ");
+    }
 
-  if (isCalibrating) {
     calibrationProcess();
   }
 
-  if (scale.is_ready()) {
-    long reading = scale.get_units(10);
-    Serial.print("Hasil : ");
-    Serial.println(reading);
-  } else {
-    Serial.println("HX711 not found.");
-  }
-  delay(1000);
-  Serial.print(isButtonPressed(buttonUp));
+  // Load calibration factor from EEPROM then tare
+  calibrationFactor = readFloatFromEEPROM(EEPROM_ADDRESS);
+  scale.set_scale(calibrationFactor);
+  scale.tare();
+
+  lcd.clear();
+}
+
+void loop() {
+  double rawLoadCell = scale.get_units(10);
+  float kgLoadCell = rawLoadCell / 1000;
+  float absValuekgLoadCell = fabs(kgLoadCell);
+
+  char kgLoadCellPrint[10];
+  dtostrf(absValuekgLoadCell, 6, 2, kgLoadCellPrint);
+
+  lcd.setCursor(0, 0);
+  // lcd.print("Hasil : ");
+  lcd.print(kgLoadCellPrint);
+  lcd.print(" KG");
+  // Serial.println(kgLoadCell, 2);
+
+  lcd.setCursor(0, 1);
+  lcd.print("Calib : ");
+  lcd.print(calibrationFactor);
+
+  // scale.power_down();
+  // delay(1000);
+  // scale.power_up();
+  // Serial.println(readFloatFromEEPROM(EEPROM_ADDRESS));
 }
 
 bool isButtonPressed(int buttonPin) {
-  Serial.println(buttonPin);
   return digitalRead(buttonPin);
 }
 
@@ -102,8 +110,8 @@ void calibrationProcess() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("  BERAT BARANG  ");
-  
-  int values[] = {1, 2, 5, 10, 20, 40}; // Weight options in KG
+
+  int values[] = { 1, 2, 5, 10, 20, 40 };
   int currentValueIndex = 0;
 
   // Step 1: Select weight
@@ -112,21 +120,23 @@ void calibrationProcess() {
     lcd.print("BERAT: ");
     lcd.print(values[currentValueIndex]);
     lcd.print(" KG");
-    
+
     int buttonUpState = digitalRead(buttonUp);
     int buttonDownState = digitalRead(buttonDown);
 
     // If buttonUp is pressed
     if (buttonUpState == HIGH) {
-      while (digitalRead(buttonUp) == HIGH);
-      currentValueIndex = (currentValueIndex + 1) % 6; // Update index
-      delay(200); // Debounce delay
+      while (digitalRead(buttonUp) == HIGH)
+        ;
+      currentValueIndex = (currentValueIndex + 1) % 6;
+      delay(200);
     }
 
     // If buttonDown is pressed, move to the next step
     if (buttonDownState == HIGH) {
-      while (digitalRead(buttonDown) == HIGH);
-      break; // Exit the loop to proceed to the next step
+      while (digitalRead(buttonDown) == HIGH)
+        ;
+      break;
     }
   }
 
@@ -152,8 +162,9 @@ void calibrationProcess() {
 
     // If buttonDown is pressed, move to the next step
     if (buttonDownState == HIGH) {
-      while (digitalRead(buttonDown) == HIGH);
-      break; // Exit the loop to proceed to the next step
+      while (digitalRead(buttonDown) == HIGH)
+        ;
+      break;
     }
   }
 
@@ -164,13 +175,13 @@ void calibrationProcess() {
   lcd.setCursor(1, 1);
   lcd.print(values[currentValueIndex]);
   lcd.print(" KG");
-  delay(2000); // Display for 2 seconds
+  delay(2000);  // Display for 2 seconds
 
   // Wait for user to finish weighing the item
   while (true) {
     // Tare the scale and get the reading
-    long reading = scale.get_units(10); // Get the reading with averaging of 10 samples
-    calibrationFactor = (float)reading / (values[currentValueIndex] * 1000); // Calculate calibration factor
+    long reading = scale.get_units(10);
+    calibrationFactor = (float)reading / (values[currentValueIndex] * 1000);
     lcd.setCursor(10, 1);
     lcd.print(calibrationFactor);
     scale.power_down();
@@ -181,8 +192,9 @@ void calibrationProcess() {
 
     // If buttonDown is pressed, move to the next step
     if (buttonDownState == HIGH) {
-      while (digitalRead(buttonDown) == HIGH);
-      break; // Exit the loop to proceed to the next step
+      while (digitalRead(buttonDown) == HIGH)
+        ;
+      break;
     }
   }
 
@@ -201,16 +213,19 @@ void calibrationProcess() {
 
     // If buttonSelect is pressed, exit the calibration process
     if (buttonSelectState == HIGH) {
-      while (digitalRead(buttonSelect) == HIGH);
-      
-      return; // Exit the function
+      while (digitalRead(buttonSelect) == HIGH)
+        ;
+      updateFloatInEEPROM(EEPROM_ADDRESS, calibrationFactor);
+      lcd.clear();
+      return;
     }
 
     // If buttonDown is pressed, restart the calibration
     if (buttonDownState == HIGH) {
-      while (digitalRead(buttonDown) == HIGH);
-      calibrationProcess(); // Restart the calibration process
-      break; // Exit the loop to start over
+      while (digitalRead(buttonDown) == HIGH)
+        ;
+      calibrationProcess();
+      break;
     }
   }
 }
