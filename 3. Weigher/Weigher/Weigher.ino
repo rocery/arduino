@@ -196,20 +196,16 @@ void loop() {
   }
 
   if (isButtonPressed(buttonSelect)) {
-    while (digitalRead(buttonSelect == HIGH))
-    {
+    while (digitalRead(buttonSelect == HIGH)) {
       // dataSave();
     }
-    
   }
 
   if (isButtonPressed(buttonUp)) {
-    while (digitalRead(buttonUp == HIGH))
-    {
+    while (digitalRead(buttonUp == HIGH)) {
       lcd.setCursor(0, 0);
       lcd.print("      INFO      ");
     }
-    
   }
 }
 
@@ -314,7 +310,7 @@ void calibrationProcess() {
       lcd.clear();
       while (digitalRead(buttonDown) == HIGH) {
         lcd.setCursor(0, 0);
-        lcd.print(" DATA DISIMPAN ")
+        lcd.print(" DATA DISIMPAN ");
       }
       lcd.clear();
       break;
@@ -328,7 +324,7 @@ void calibrationProcess() {
     lcd.setCursor(0, 1);
     lcd.print("DIGIT: ");
     lcd.print(digit[currentDigitIndex]);
-    
+
     int buttonUpState = digitalRead(buttonUp);
     int buttonDownState = digitalRead(buttonDown);
 
@@ -379,5 +375,34 @@ void calibrationProcess() {
       calibrationProcess();
       break;
     }
+  }
+}
+
+void getLocalTime() {
+  /* Fungsi bertujuan menerima update waktu
+  lokal dari ntpServer */
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    ntpStatus = false;
+  } else {
+    char timeStringBuff[50];
+    strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    dateTime = String(timeStringBuff);
+
+    // Save time data to variabel
+    year = timeinfo.tm_year + 1900;
+    month = timeinfo.tm_mon + 1;
+    day = timeinfo.tm_mday;
+    hour = timeinfo.tm_hour;
+    minute = timeinfo.tm_min;
+    second = timeinfo.tm_sec;
+    // YYYY-MM-DD
+    dateFormat = String(year) + '-' + String(month) + '-' + String(day);
+    // hh:mm:ss
+    timeFormat = String(hour) + ':' + String(minute) + ':' + String(second);
+    // hh:mm
+    lcdFormat = String(hour) + ':' + String(minute);
+
+    ntpStatus = true;
   }
 }
