@@ -1,6 +1,10 @@
 #include <HX711.h>
 #include <LiquidCrystal_I2C.h>
 #include <EEPROM.h>
+#include <esp_system.h>
+#include <WiFi.h>
+#include <WiFiMulti.h>
+#include <HTTPClient.h>
 
 const int LOADCELL_DOUT_PIN = 26;
 const int LOADCELL_SCK_PIN = 27;
@@ -8,7 +12,49 @@ HX711 scale;
 float calibrationFactor;
 int digitScale;
 
-LiquidCrystal_I2C lcd(0x27, 20, 4);
+// ========= INISIALISASI AWAL =========
+/**/ const int ip = 31;
+/**/ const String loc = "Giling Gula";
+/**/ const String prod = "Biskuit";
+// =====================================
+
+const String api = "http://192.168.7.223/iot/api/weigher/save_weigher.php";
+String ESPName = "Weigher | " + loc;
+String deviceID = "IoT-" + String(ip);
+
+WiFiMulti wifiMulti;
+const char* ssid_a_biskuit_mie = "STTB8";
+const char* password_a_biskuit_mie = "siantar321";
+const char* ssid_b_biskuit_mie = "STTB1";
+const char* password_b_biskuit_mie = "Si4nt4r321";
+const char* ssid_c_biskuit_mie = "MT3";
+const char* password_c_biskuit_mie = "siantar321";
+const char* ssid_a_kerupuk = "STTB4";
+const char* password_a_kerupuk = "siantar123";
+const char* ssid_b_kerupuk = "Amano2";
+const char* password_b_kerupuk = "Si4nt4r321";
+const char* ssid_c_kerupuk = "MT1";
+const char* password_c_kerupuk = "siantar321";
+const char* ssid_it = "STTB11";
+const char* password_it = "Si4nt4r321";
+
+// Set IP to Static
+IPAddress staticIP(192, 168, 7, ip);
+IPAddress gateway(192, 168, 15, 250);
+IPAddress subnet(255, 255, 0, 0);
+IPAddress primaryDNS(8, 8, 8, 8);
+IPAddress secondaryDNS(8, 8, 4, 4);
+String ip_Address, postData;
+
+// ===== NTP =====
+const char* ntpServer = "192.168.7.223";
+const long gmtOffsetSec = 7 * 3600;
+const int daylightOffsetSec = 0;
+String dateTime, dateFormat, timeFormat, lcdFormat;
+int year, month, day, hour, minute, second;
+bool ntpStatus, getStatus;
+
+LiquidCrystal_I2C lcd(0x27, 16, 4);
 
 const int EEPROM_ADDRESS = 0;
 
@@ -59,16 +105,59 @@ void setup() {
   // HX711
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 
-
   // Calibration
   if (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
-
     while (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
       lcd.setCursor(0, 0);
       lcd.print("   KALIBRASI   ");
     }
-
     calibrationProcess();
+  }
+
+  // WiFi
+  lcd.setCursor(0, 0);
+  lcd.print("Connecting..");
+  if (prod == "Biskuit" || prod == "Mie") {
+    wifiMulti.addAP(ssid_a_biskuit_mie, password_a_biskuit_mie);
+    wifiMulti.addAP(ssid_b_biskuit_mie, password_b_biskuit_mie);
+    wifiMulti.addAP(ssid_c_biskuit_mie, password_c_biskuit_mie);
+  } else if (prod == "Kerupuk") {
+    wifiMulti.addAP(ssid_a_kerupuk, password_a_kerupuk);
+    wifiMulti.addAP(ssid_b_kerupuk, password_b_kerupuk);
+    wifiMulti.addAP(ssid_c_kerupuk, password_c_kerupuk);
+  } else {
+    lcd.setCursor(0, 0);
+    lcd.print("Error, Call IT");
+  }
+  wifiMulti.addAP(ssid_it, password_it);
+
+  if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    lcd.setCursor(0, 0);
+    lcd.print("WiFi STA Fail");
+  }
+  wifiMulti.run();
+
+  // NTP
+  configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
+  if (wifiMulti.run() != WL_CONNECTED) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("WiFi Fail");
+    lcd.setCursor(0, 1);
+    lcd.print("Date/Time Error");
+    delay(2000);
+  } else {
+    lcd.setCursor(0, 0);
+    lcd.print("WiFi Connected");
+
+    int tryNTP = 0;
+    while (ntpStatus == false && tryNTP <= 2) {
+      lcd.setCursor(0, 1);
+      lcd.print("Getting Time");
+      getLocalTime();
+      tryNTP++;
+      delay(50);
+    }
   }
 
   // Load calibration factor from EEPROM then tare
@@ -76,6 +165,8 @@ void setup() {
   digitScale = readFloatFromEEPROM(EEPROM_ADDRESS + 4);
   scale.set_scale(calibrationFactor);
   scale.tare();
+
+  // Choose Product
 
   lcd.clear();
 }
@@ -86,7 +177,7 @@ void loop() {
   float absValuekgLoadCell = fabs(kgLoadCell);
 
   char kgLoadCellPrint[10];
-  dtostrf(absValuekgLoadCell, 6, digitScale, kgLoadCellPrint);
+  dtostrf(absValuekgLoadCell, 5, digitScale, kgLoadCellPrint);
 
   lcd.setCursor(0, 0);
   // lcd.print("Hasil : ");
@@ -94,18 +185,31 @@ void loop() {
   lcd.print(" KG");
   // Serial.println(kgLoadCell, 2);
 
-  lcd.setCursor(0, 1);
-  lcd.print("Calib : ");
-  lcd.print(calibrationFactor);
-
   if (isButtonPressed(buttonDown)) {
-    while (isButtonPressed(buttonDown)) {
-      lcd.clear();
+    while (digitalRead(buttonDown == HIGH)) {
       lcd.setCursor(0, 0);
-      lcd.print("   TARE   ");
+      lcd.print("      TARE      ");
+      lcd.setCursor(0, 1);
+      lcd.print("                ");
     }
-
     tareScale();
+  }
+
+  if (isButtonPressed(buttonSelect)) {
+    while (digitalRead(buttonSelect == HIGH))
+    {
+      // dataSave();
+    }
+    
+  }
+
+  if (isButtonPressed(buttonUp)) {
+    while (digitalRead(buttonUp == HIGH))
+    {
+      lcd.setCursor(0, 0);
+      lcd.print("      INFO      ");
+    }
+    
   }
 }
 
@@ -116,6 +220,7 @@ bool isButtonPressed(int buttonPin) {
 void tareScale() {
   scale.set_scale(calibrationFactor);
   scale.tare();
+  lcd.clear();
 }
 
 void calibrationProcess() {
@@ -206,20 +311,23 @@ void calibrationProcess() {
 
     // If buttonDown is pressed, move to the next step
     if (buttonDownState == HIGH) {
-      while (digitalRead(buttonDown) == HIGH)
-        ;
+      lcd.clear();
+      while (digitalRead(buttonDown) == HIGH) {
+        lcd.setCursor(0, 0);
+        lcd.print(" DATA DISIMPAN ")
+      }
+      lcd.clear();
       break;
     }
   }
 
   // Step 4: Set Digit
   while (true) {
-    lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("  SET DIGIT  ");
+    lcd.print("    SET DIGIT   ");
     lcd.setCursor(0, 1);
     lcd.print("DIGIT: ");
-    lcd.print(values[currentDigitIndex]);
+    lcd.print(digit[currentDigitIndex]);
     
     int buttonUpState = digitalRead(buttonUp);
     int buttonDownState = digitalRead(buttonDown);
@@ -228,7 +336,7 @@ void calibrationProcess() {
     if (buttonUpState == HIGH) {
       while (digitalRead(buttonUp) == HIGH)
         ;
-      currentDigitIndex = (currentDigitIndex + 1) % 6;
+      currentDigitIndex = (currentDigitIndex + 1) % 5;
       delay(200);
     }
 
@@ -236,7 +344,7 @@ void calibrationProcess() {
     if (buttonDownState == HIGH) {
       while (digitalRead(buttonDown) == HIGH)
         ;
-      digitScale = values[currentDigitIndex];
+      digitScale = digit[currentDigitIndex];
       break;
     }
   }
