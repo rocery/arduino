@@ -225,6 +225,7 @@ bool isButtonPressed(int buttonPin) {
 void tareScale() {
   scale.set_scale(calibrationFactor);
   scale.tare();
+  lcd.clear();
 }
 
 void calibrationProcess() {
