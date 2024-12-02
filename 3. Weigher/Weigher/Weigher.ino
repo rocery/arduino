@@ -16,20 +16,27 @@ String productSelected;
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
-/**/ const String loc = "Giling Gula";
-/**/ const String prod = "Biskuit";
+/**/ const String loc = "Test IT";
+/**/ const String prod = "Kerupuk";
 // =====================================
 
 const String api = "http://192.168.7.223/iot/api/weigher/save_weigher.php";
 String ESPName = "Weigher | " + loc;
 String deviceID = "IoT-" + String(ip);
+int sendDataCounter;
 
+/* Deklarasi array
+  @param values = Array Nilai
+  @param digit = Array Digit
+  @param product = Array Produk
+*/
 int values[] = { 1, 2, 5, 10, 20, 40 };
 int digit[] = { 0, 1, 2, 3, 4 };
-String product[] = { "Product 1", "Product 2" };
+String product[] = { "PRODUK TEST 1", "PRODUK TEST 2" };
 #define ARRAY_LENGTH(arr) (sizeof(arr) / sizeof(arr[0]))
 
 WiFiMulti wifiMulti;
+bool wiFiStatus;
 const char* ssid_a_biskuit_mie = "STTB8";
 const char* password_a_biskuit_mie = "siantar321";
 const char* ssid_b_biskuit_mie = "STTB1";
@@ -71,24 +78,6 @@ const int EEPROM_ADDRESS = 0;
 int buttonUpState = 0;
 int buttonDownState = 0;
 int buttonSelectState = 0;
-
-float readFloatFromEEPROM(int address) {
-  float value = EEPROM.get(address, value);
-  return value;
-}
-
-// updateFloatInEEPROM(EEPROM_ADDRESS, newValue);
-void updateFloatInEEPROM(int address, float newValue) {
-  float currentValue = readFloatFromEEPROM(address);
-
-  if (currentValue != newValue) {
-    EEPROM.put(address, newValue);
-    EEPROM.commit();
-    Serial.println("Value updated in EEPROM.");
-  } else {
-    Serial.println("Value is already up-to-date, no write needed.");
-  }
-}
 
 void setup() {
   Serial.begin(9600);
@@ -141,27 +130,40 @@ void setup() {
   }
   wifiMulti.run();
 
+  // Jalankan tugas WiFi pada Core 0
+  xTaskCreatePinnedToCore(
+    taskWiFiCore0,      // Fungsi tugas
+    "TaskWiFiCore0",    // Nama tugas
+    10000,              // Ukuran stack
+    NULL,               // Parameter
+    1,                  // Prioritas
+    NULL,               // Handle tugas
+    0                   // Jalankan di Core 0
+  );
+  
   // NTP
   configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
-  if (wifiMulti.run() != WL_CONNECTED) {
+  if (wifiMulti.run() == WL_CONNECTED) {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("WiFi Fail");
+    lcd.print("----------------");
     lcd.setCursor(0, 1);
-    lcd.print("Date/Time Error");
+    lcd.print("----------------");
     delay(2000);
   } else {
     lcd.setCursor(0, 0);
     lcd.print("WiFi Connected");
+    lcd.setCursor(0, 1);
+    lcd.print("Getting Time");
 
-    int tryNTP = 0;
-    while (ntpStatus == false && tryNTP <= 2) {
-      lcd.setCursor(0, 1);
-      lcd.print("Getting Time");
-      getLocalTime();
-      tryNTP++;
-      delay(50);
-    }
+    // int tryNTP = 0;
+    // while (ntpStatus == false && tryNTP <= 2) {
+    //   lcd.setCursor(0, 1);
+    //   lcd.print("Getting Time");
+    //   getLocalTime();
+    //   tryNTP++;
+    //   delay(50);
+    // }
   }
 
   // Load calibration factor from EEPROM then tare
@@ -171,8 +173,7 @@ void setup() {
   scale.tare();
 
   // Choose Product
-  chooseProduct();  
-
+  chooseProduct();
 
   lcd.clear();
 }
@@ -187,7 +188,7 @@ void loop() {
 
   lcd.setCursor(0, 0);
   lcd.print(productSelected);
-  
+
   lcd.setCursor(0, 1);
   // lcd.print("Hasil : ");
   lcd.print(kgLoadCellPrint);
@@ -202,18 +203,104 @@ void loop() {
       lcd.print("                ");
     }
     tareScale();
+    lcd.clear();
   }
 
   if (isButtonPressed(buttonSelect)) {
+    lcd.clear();
     while (isButtonPressed(buttonSelect)) {
-      // dataSave();
+      ip_Address = WiFi.localIP().toString();
+      postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + kgLoadCellPrint + "&date=" + dateTime + "&ip_address=" + ip_Address + "&wifi=" + WiFi.SSID();
+      lcd.setCursor(0, 0);
+      lcd.print("  SENDING DATA  ");
     }
+
+    if (!wiFiStatus) {
+      lcd.setCursor(0, 1);
+      lcd.print("X, WiFi ERROR");
+      delay(5000);
+    } else {
+      if (!sendData()) {
+        lcd.setCursor(0, 1);
+        lcd.print("X, HUBUNGI IT");
+        delay(5000);
+      } else {
+        lcd.setCursor(0, 1);
+        lcd.print(" BERHASIL : ");
+        sendDataCounter++;
+        lcd.print(sendDataCounter);
+        delay(1000);
+      }
+    }
+    lcd.clear();
   }
 
   if (isButtonPressed(buttonUp)) {
     while (isButtonPressed(buttonUp)) {
       lcd.setCursor(0, 0);
-      lcd.print("      INFO      ");
+      lcd.print(WiFi.SSID());
+      lcd.print("  ");
+      lcd.print(ip);
+      lcd.setCursor(0, 1);
+      lcd.print(lcdFormat);
+      lcd.print("  ");
+      lcd.print(sendDataCounter);
+    }
+    lcd.clear();
+  }
+
+  if (wiFiStatus) {
+    lcd.setCursor(15, 0);
+    lcd.print(".");
+  }
+  if (ntpStatus) {
+    getLocalTime();
+    lcd.setCursor(15, 1);
+    lcd.print(".");
+  }
+  
+}
+
+float readFloatFromEEPROM(int address) {
+  float value = EEPROM.get(address, value);
+  return value;
+}
+
+// updateFloatInEEPROM(EEPROM_ADDRESS, newValue);
+void updateFloatInEEPROM(int address, float newValue) {
+  float currentValue = readFloatFromEEPROM(address);
+
+  if (currentValue != newValue) {
+    EEPROM.put(address, newValue);
+    EEPROM.commit();
+    Serial.println("Value updated in EEPROM.");
+  } else {
+    Serial.println("Value is already up-to-date, no write needed.");
+  }
+}
+
+void taskWiFiCore0(void* parameter) {
+  while (true) {
+    if (WiFi.status() != WL_CONNECTED) {
+      wifiMulti.run();
+      wiFiStatus = false;
+    } else {
+      wiFiStatus = true;
+      int tryNTP = 0;
+      while (ntpStatus == false && tryNTP <= 2) {
+        getLocalTime();
+        tryNTP++;
+        delay(50);
+      }
+    }
+    delay(2000);
+
+    // Cek Time
+    int tryNTP = 0;
+    while (ntpStatus == false && tryNTP <= 2) {
+      getLocalTime();
+      tryNTP++;
+      delay(50);
     }
   }
 }
@@ -228,11 +315,33 @@ void tareScale() {
   lcd.clear();
 }
 
+bool sendData() {
+  /* Mengirim data ke local server
+   * Ganti isi variabel api sesuai dengan form php
+  */
+  HTTPClient http;
+  http.begin(api);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  int httpResponseCode = http.POST(postData);
+
+  if (httpResponseCode > 0) {
+    String response = http.getString();
+    Serial.println(response);
+    return true;
+  } else {
+    String response = http.getString();
+    Serial.println(response);
+    Serial.print("Error on sending POST");
+    return false;
+  }
+  http.end();
+}
+
 void calibrationProcess() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("  BERAT BARANG  ");
-  
+
   int currentValueIndex = 0;
   int currentDigitIndex = 0;
 
@@ -297,7 +406,7 @@ void calibrationProcess() {
   lcd.setCursor(1, 1);
   lcd.print(values[currentValueIndex]);
   lcd.print(" KG");
-  delay(2000);
+  delay(1000);
 
   while (true) {
     // Tare the scale and get the reading
@@ -440,7 +549,7 @@ void getLocalTime() {
     // hh:mm:ss
     timeFormat = String(hour) + ':' + String(minute) + ':' + String(second);
     // hh:mm
-    lcdFormat = String(hour) + ':' + String(minute);
+    lcdFormat = String(month) + '/' + String(day) + ' ' + String(hour) + ':' + String(minute);
 
     ntpStatus = true;
   }
