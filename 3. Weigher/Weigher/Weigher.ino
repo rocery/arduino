@@ -16,7 +16,7 @@ String productSelected;
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
-/**/ const String loc = "Test IT";
+/**/ const String loc = "Kerupuk 31";
 /**/ const String prod = "Kerupuk";
 // =====================================
 
@@ -32,7 +32,15 @@ int sendDataCounter;
 */
 int values[] = { 1, 2, 5, 10, 20, 40 };
 int digit[] = { 0, 1, 2, 3, 4 };
-String product[] = { "PRODUK TEST 1", "PRODUK TEST 2" };
+String product[] = { 
+  "TIC TIC CBP",
+  "LEANET BBQ",
+  "V-TOZ",
+  "LEANET TIC2 BWG",
+  "TIC TIC SAMCOL",
+  "FUJI CHIPS",
+  "TIC TIC BALADO"
+};
 #define ARRAY_LENGTH(arr) (sizeof(arr) / sizeof(arr[0]))
 
 WiFiMulti wifiMulti;
@@ -47,7 +55,7 @@ const char* ssid_a_kerupuk = "STTB4";
 const char* password_a_kerupuk = "siantar123";
 const char* ssid_b_kerupuk = "Amano2";
 const char* password_b_kerupuk = "Si4nt4r321";
-const char* ssid_c_kerupuk = "MT1";
+const char* ssid_c_kerupuk = "MT13";
 const char* password_c_kerupuk = "siantar321";
 const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
@@ -236,6 +244,7 @@ void loop() {
   }
 
   if (isButtonPressed(buttonUp)) {
+    lcd.clear();
     while (isButtonPressed(buttonUp)) {
       lcd.setCursor(0, 0);
       lcd.print(WiFi.SSID());
@@ -510,6 +519,8 @@ void chooseProduct() {
 
     // If buttonUp is pressed
     if (buttonUpState == HIGH) {
+      lcd.setCursor(0, 1);
+      lcd.print("                ");
       while (digitalRead(buttonUp) == HIGH)
         ;
       currentProductIndex = (currentProductIndex + 1) % ARRAY_LENGTH(product);
