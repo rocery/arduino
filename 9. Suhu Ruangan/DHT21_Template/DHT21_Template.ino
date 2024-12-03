@@ -31,8 +31,8 @@
   20 = Packing Line 1 Mie, Mie
   21 = Maddock Twistko, Kerupuk
   22 = Packing Gorio Line 2, Biskuit
-  23 = Mesin Soontru No. 43-54
-  24 = Pengolahan Gorengan dan Oven Kerupuk
+  23 = Middle Up Kerupuk 2, Kerupuk
+  24 = Pengolahan Gorengan dan Oven Kerupuk, Kerupuk
 */
 
 #include <esp_system.h>
@@ -65,8 +65,8 @@ struct DeviceData {
   @param verbose = Variabel untuk melihat error
 */
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 23;
-/**/ const String loc = "Mesin Soontru No. 43-54";
+/**/ const int ip = 24;
+/**/ const String loc = "Pengolahan Gorengan dan Oven Kerupuk";
 /**/ const String prod = "Kerupuk";
 /**/ const bool verbose = true;
 // =====================================
@@ -107,7 +107,7 @@ const char* password_it = "Si4nt4r321";
   @param tempFromDB = Variabel Kalibrasi Suhu dari DB
   @param humFromDB = Variabel Kalibrasi Kelembaban dari DB
 */
-#define DHTPIN 33
+#define DHTPIN 4
 #define DHTTYPE DHT21
 DHT dht(DHTPIN, DHTTYPE);
 float temperature, humidity, calTemp;
