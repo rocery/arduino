@@ -20,6 +20,7 @@ const char* serverName = "http://192.168.7.223/iot/api/weigher/save_weigher_test
 const char* serverAddress = "192.168.7.223";
 const int serverPort = 80;
 String ip_Address = "192.168.7." + ip;
+String postData;
 
 const int LOADCELL_DOUT_PIN = 26;
 const int LOADCELL_SCK_PIN = 27;
@@ -401,12 +402,12 @@ void loop() {
     if (!Ethernet.linkStatus() == LinkON) {
       lcd.setCursor(0, 1);
       lcd.print("X, LAN ERROR");
-      delay(5000);
+      delay(1000);
     } else {
       if (!sendData()) {
         lcd.setCursor(0, 1);
         lcd.print("X, HUBUNGI IT");
-        delay(5000);
+        delay(1000);
       } else {
         lcd.setCursor(0, 1);
         lcd.print(" BERHASIL : ");
@@ -421,12 +422,8 @@ void loop() {
   if (isButtonPressed(buttonUp)) {
     lcd.clear();
     while (isButtonPressed(buttonUp)) {
-      lcd.setCursor(0, 0);
-      lcd.print(WiFi.SSID());
       lcd.print("  ");
       lcd.print(ip);
-      lcd.setCursor(0, 1);
-      lcd.print(lcdFormat);
       lcd.print("  ");
       lcd.print(sendDataCounter);
     }
