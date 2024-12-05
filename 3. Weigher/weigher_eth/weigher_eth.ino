@@ -50,7 +50,7 @@ String product[] = {
 
 // Konfigurasi jaringan statis
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };  // Alamat MAC perangkat
-IPAddress ip(192, 168, 7, ip);  // IP statis
+IPAddress ipaddress(192, 168, 7, ip);  // IP statis
 IPAddress gateway(192, 168, 15, 250);  // Gateway
 IPAddress subnet(255, 255, 0, 0);  // Subnet mask
 
@@ -94,13 +94,11 @@ void tareScale() {
   lcd.clear();
 }
 
-void kirimDataKeServer() {
+bool sendData() {
   EthernetClient client;
   
   // Coba koneksi
   if (client.connect(serverAddress, serverPort)) {
-    Serial.println("Terhubung ke server");
-    
     // Kirim HTTP POST Request
     client.println("POST /iot/api/weigher/save_weigher_test.php HTTP/1.1");
     client.println("Host: 192.168.7.223");
@@ -123,8 +121,10 @@ void kirimDataKeServer() {
     }
     
     client.stop();
+    return true;
   } else {
     Serial.println("Koneksi gagal");
+    return false;
   }
 }
 
@@ -322,8 +322,7 @@ void chooseProduct() {
 void setup() {
   Serial.begin(9600);
 
-
-    // Setup button pins
+  // Setup button pins
   pinMode(buttonUp, INPUT);
   pinMode(buttonDown, INPUT);
   pinMode(buttonSelect, INPUT);
@@ -348,14 +347,14 @@ void setup() {
     calibrationProcess();
   }
 
-    // Load calibration factor from EEPROM then tare
+  // Load calibration factor from EEPROM then tare
   calibrationFactor = readFloatFromEEPROM(EEPROM_ADDRESS);
   digitScale = readFloatFromEEPROM(EEPROM_ADDRESS + 4);
   scale.set_scale(calibrationFactor);
   scale.tare();
 
   // Inisialisasi Ethernet dengan IP statis
-  Ethernet.begin(mac, ip, gateway, gateway, subnet);
+  Ethernet.begin(mac, ipaddress, gateway, gateway, subnet);
 
   // Choose Product
   chooseProduct();
@@ -394,15 +393,14 @@ void loop() {
   if (isButtonPressed(buttonSelect)) {
     lcd.clear();
     while (isButtonPressed(buttonSelect)) {
-      ip_Address = WiFi.localIP().toString();
-      postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + kgLoadCellPrint + "&date=" + dateTime + "&ip_address=" + ip_Address + "&wifi=" + WiFi.SSID();
+      postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + kgLoadCellPrint + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
       lcd.setCursor(0, 0);
       lcd.print("  SENDING DATA  ");
     }
 
-    if (!wiFiStatus) {
+    if (!Ethernet.linkStatus() == LinkON) {
       lcd.setCursor(0, 1);
-      lcd.print("X, WiFi ERROR");
+      lcd.print("X, LAN ERROR");
       delay(5000);
     } else {
       if (!sendData()) {
