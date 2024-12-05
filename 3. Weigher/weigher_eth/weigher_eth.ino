@@ -27,7 +27,7 @@ HX711 scale;
 
 float calibrationFactor;
 int digitScale;
-String productSelected;a
+String productSelected;
 
 /* Deklarasi array
   @param values = Array Nilai
@@ -66,6 +66,26 @@ int buttonUpState = 0;
 int buttonDownState = 0;
 int buttonSelectState = 0;
 
+float readFloatFromEEPROM(int address) {
+  float value = EEPROM.get(address, value);
+  return value;
+}
+
+// updateFloatInEEPROM(EEPROM_ADDRESS, newValue);
+void updateFloatInEEPROM(int address, float newValue) {
+  float currentValue = readFloatFromEEPROM(address);
+
+  if (currentValue != newValue) {
+    EEPROM.put(address, newValue);
+    EEPROM.commit();
+    Serial.println("Value updated in EEPROM.");
+  } else {
+    Serial.println("Value is already up-to-date, no write needed.");
+  }
+}
+
+
+
 void setup() {
   Serial.begin(9600);
 
@@ -101,8 +121,84 @@ void setup() {
   scale.set_scale(calibrationFactor);
   scale.tare();
 
+  // Inisialisasi Ethernet dengan IP statis
+  Ethernet.begin(mac, ip, gateway, gateway, subnet);
+
   // Choose Product
   chooseProduct();
 
   lcd.clear();
+}
+
+void loop() {
+  double rawLoadCell = scale.get_units(10);
+  float kgLoadCell = rawLoadCell / 1000;
+  float absValuekgLoadCell = fabs(kgLoadCell);
+
+  char kgLoadCellPrint[10];
+  dtostrf(absValuekgLoadCell, 5, digitScale, kgLoadCellPrint);
+
+  lcd.setCursor(0, 0);
+  lcd.print(productSelected);
+
+  lcd.setCursor(0, 1);
+  // lcd.print("Hasil : ");
+  lcd.print(kgLoadCellPrint);
+  lcd.print(" KG");
+  // Serial.println(kgLoadCell, 2);
+
+  if (isButtonPressed(buttonDown)) {
+    while (isButtonPressed(buttonDown)) {
+      lcd.setCursor(0, 0);
+      lcd.print("      TARE      ");
+      lcd.setCursor(0, 1);
+      lcd.print("                ");
+    }
+    tareScale();
+    lcd.clear();
+  }
+
+  if (isButtonPressed(buttonSelect)) {
+    lcd.clear();
+    while (isButtonPressed(buttonSelect)) {
+      ip_Address = WiFi.localIP().toString();
+      postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + kgLoadCellPrint + "&date=" + dateTime + "&ip_address=" + ip_Address + "&wifi=" + WiFi.SSID();
+      lcd.setCursor(0, 0);
+      lcd.print("  SENDING DATA  ");
+    }
+
+    if (!wiFiStatus) {
+      lcd.setCursor(0, 1);
+      lcd.print("X, WiFi ERROR");
+      delay(5000);
+    } else {
+      if (!sendData()) {
+        lcd.setCursor(0, 1);
+        lcd.print("X, HUBUNGI IT");
+        delay(5000);
+      } else {
+        lcd.setCursor(0, 1);
+        lcd.print(" BERHASIL : ");
+        sendDataCounter++;
+        lcd.print(sendDataCounter);
+        delay(1000);
+      }
+    }
+    lcd.clear();
+  }
+
+  if (isButtonPressed(buttonUp)) {
+    lcd.clear();
+    while (isButtonPressed(buttonUp)) {
+      lcd.setCursor(0, 0);
+      lcd.print(WiFi.SSID());
+      lcd.print("  ");
+      lcd.print(ip);
+      lcd.setCursor(0, 1);
+      lcd.print(lcdFormat);
+      lcd.print("  ");
+      lcd.print(sendDataCounter);
+    }
+    lcd.clear();
+  }
 }
