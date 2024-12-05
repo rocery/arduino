@@ -6,11 +6,6 @@
 #include <SPI.h>
 
 
-const int LOADCELL_DOUT_PIN = 26;
-const int LOADCELL_SCK_PIN = 27;
-HX711 scale;
-
-
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
 /**/ const String loc = "Kerupuk 31";
@@ -25,6 +20,14 @@ const char* serverName = "http://192.168.7.223/iot/api/weigher/save_weigher_test
 const char* serverAddress = "192.168.7.223";
 const int serverPort = 80;
 String ip_Address = "192.168.7." + ip;
+
+const int LOADCELL_DOUT_PIN = 26;
+const int LOADCELL_SCK_PIN = 27;
+HX711 scale;
+
+float calibrationFactor;
+int digitScale;
+String productSelected;a
 
 /* Deklarasi array
   @param values = Array Nilai
@@ -91,4 +94,15 @@ void setup() {
     }
     calibrationProcess();
   }
+
+    // Load calibration factor from EEPROM then tare
+  calibrationFactor = readFloatFromEEPROM(EEPROM_ADDRESS);
+  digitScale = readFloatFromEEPROM(EEPROM_ADDRESS + 4);
+  scale.set_scale(calibrationFactor);
+  scale.tare();
+
+  // Choose Product
+  chooseProduct();
+
+  lcd.clear();
 }
