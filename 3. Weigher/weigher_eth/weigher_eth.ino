@@ -15,12 +15,13 @@
 String ESPName = "Weigher | " + loc;
 String deviceID = "IoT-" + String(ip);
 int sendDataCounter;
+int sendDataCounterFailed;
 
 const char* serverName = "http://192.168.7.223/iot/api/weigher/save_weigher_test.php";
 const char* serverAddress = "192.168.7.223";
 const int serverPort = 80;
-String ip_Address = "192.168.7." + ip;
-String postData;
+String ip_Address = "192.168.7." + String(ip);
+String postData, lanStatus;
 
 const int LOADCELL_DOUT_PIN = 26;
 const int LOADCELL_SCK_PIN = 27;
@@ -29,6 +30,8 @@ HX711 scale;
 float calibrationFactor;
 int digitScale;
 String productSelected;
+
+// EthernetServer selfServer(80);
 
 /* Deklarasi array
   @param values = Array Nilai
@@ -72,7 +75,6 @@ float readFloatFromEEPROM(int address) {
   return value;
 }
 
-// updateFloatInEEPROM(EEPROM_ADDRESS, newValue);
 void updateFloatInEEPROM(int address, float newValue) {
   float currentValue = readFloatFromEEPROM(address);
 
@@ -90,7 +92,7 @@ bool isButtonPressed(int buttonPin) {
 }
 
 void tareScale() {
-  scale.set_scale(calibrationFactor);
+  // scale.set_scale(calibrationFactor);
   scale.tare();
   lcd.clear();
 }
@@ -320,13 +322,35 @@ void chooseProduct() {
   }
 }
 
+bool checkConnectionLan() {
+  if (Ethernet.linkStatus() == LinkON) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+// void handleClientTask(void *parameter) {
+//   while (true) {
+//     EthernetClient client = selfServer.available();  // Periksa apakah ada klien
+//     if (client) {
+//       Serial.println("Klien terhubung");
+      
+//       // Kirim pesan ke klien
+//       client.println("ESP32 dengan ENC28J60 berhasil terkoneksi!");
+//       client.stop();  // Tutup koneksi
+//     }
+//     delay(10);  // Hindari penggunaan CPU berlebih
+//   }
+// }
+
 void setup() {
   Serial.begin(9600);
 
   // Setup button pins
-  pinMode(buttonUp, INPUT);
-  pinMode(buttonDown, INPUT);
-  pinMode(buttonSelect, INPUT);
+  pinMode(buttonUp, INPUT_PULLUP);
+  pinMode(buttonDown, INPUT_PULLUP);
+  pinMode(buttonSelect, INPUT_PULLUP);
 
   // LCD
   lcd.init();
@@ -360,25 +384,58 @@ void setup() {
   // Choose Product
   chooseProduct();
 
+  // selfServer.begin();
+  // // Buat tugas untuk core 0
+  // xTaskCreatePinnedToCore(
+  //   handleClientTask, // Fungsi yang akan dijalankan
+  //   "HandleClient",   // Nama tugas
+  //   2048,             // Ukuran stack
+  //   NULL,             // Parameter untuk fungsi
+  //   1,                // Prioritas tugas
+  //   NULL,             // Handle tugas
+  //   0                 // Jalankan di core 0
+  // );
+
   lcd.clear();
 }
 
+  /**
+   * The main loop where the program will run indefinitely.
+   * It does the following:
+   * - Read the load cell value and convert it to kg with the given digit scale
+   * - Print the product name and the result on the LCD
+   * - If the down button is pressed, perform a tare operation
+   * - If the select button is pressed, send the data to the server
+   * - If the up button is pressed, show the IP address and the number of successful sends
+   */
 void loop() {
   double rawLoadCell = scale.get_units(10);
   float kgLoadCell = rawLoadCell / 1000;
   float absValuekgLoadCell = fabs(kgLoadCell);
 
-  char kgLoadCellPrint[10];
+  char kgLoadCellPrint[6];
   dtostrf(absValuekgLoadCell, 5, digitScale, kgLoadCellPrint);
 
   lcd.setCursor(0, 0);
   lcd.print(productSelected);
+  
+  Ethernet.maintain();
+  if (checkConnectionLan()) {
+    lanStatus = "LAN";
+  } else {
+    lanStatus = " DC";
+  }
 
+  lcd.setCursor(13, 1);
+  lcd.print(lanStatus);
+  
   lcd.setCursor(0, 1);
   // lcd.print("Hasil : ");
   lcd.print(kgLoadCellPrint);
   lcd.print(" KG");
   // Serial.println(kgLoadCell, 2);
+
+  // Serial.println(kgLoadCellPrint);
 
   if (isButtonPressed(buttonDown)) {
     while (isButtonPressed(buttonDown)) {
@@ -394,26 +451,28 @@ void loop() {
   if (isButtonPressed(buttonSelect)) {
     lcd.clear();
     while (isButtonPressed(buttonSelect)) {
-      postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + kgLoadCellPrint + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
+      postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
       lcd.setCursor(0, 0);
       lcd.print("  SENDING DATA  ");
     }
 
-    if (!Ethernet.linkStatus() == LinkON) {
+    if (lanStatus == " DC") {
       lcd.setCursor(0, 1);
       lcd.print("X, LAN ERROR");
+      sendDataCounterFailed++;
       delay(1000);
     } else {
       if (!sendData()) {
         lcd.setCursor(0, 1);
         lcd.print("X, HUBUNGI IT");
+        sendDataCounterFailed++;
         delay(1000);
       } else {
         lcd.setCursor(0, 1);
         lcd.print(" BERHASIL : ");
         sendDataCounter++;
         lcd.print(sendDataCounter);
-        delay(1000);
+        delay(500);
       }
     }
     lcd.clear();
@@ -422,11 +481,18 @@ void loop() {
   if (isButtonPressed(buttonUp)) {
     lcd.clear();
     while (isButtonPressed(buttonUp)) {
-      lcd.print("  ");
-      lcd.print(ip);
-      lcd.print("  ");
+      lcd.setCursor(0, 0);
+      lcd.print("B : ");
       lcd.print(sendDataCounter);
+      lcd.setCursor(0, 1);
+      lcd.print("G : ");
+      lcd.print(sendDataCounterFailed);
+      lcd.setCursor(13, 1);
+      lcd.print(lanStatus);
+      lcd.setCursor(11, 0);
+      lcd.print(deviceID);  
     }
+    
     lcd.clear();
   }
 }
