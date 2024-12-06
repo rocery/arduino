@@ -93,4 +93,10 @@ sudo usermod -G dialout $USER
 ```
 
 Catatan:
--
+1 = NC
+2 = NC
+3 = NC
+4 & 5 = Merah
+6 = Putih
+7 = Hijau
+8 & 9 = Hitam
