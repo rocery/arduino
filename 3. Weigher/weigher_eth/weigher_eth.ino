@@ -17,7 +17,7 @@ String deviceID = "IoT-" + String(ip);
 int sendDataCounter;
 int sendDataCounterFailed;
 
-const char* serverName = "http://192.168.7.223/iot/api/weigher/save_weigher_test.php";
+// const char* serverName = "http://192.168.7.223/iot/api/weigher/save_weigher.php";
 const char* serverAddress = "192.168.7.223";
 const int serverPort = 80;
 String ip_Address = "192.168.7." + String(ip);
@@ -103,7 +103,7 @@ bool sendData() {
   // Coba koneksi
   if (client.connect(serverAddress, serverPort)) {
     // Kirim HTTP POST Request
-    client.println("POST /iot/api/weigher/save_weigher_test.php HTTP/1.1");
+    client.println("POST /iot/api/weigher/save_weigher.php HTTP/1.1");
     client.println("Host: 192.168.7.223");
     client.println("Content-Type: application/x-www-form-urlencoded");
     client.println("Connection: close");
@@ -409,7 +409,7 @@ void setup() {
    * - If the up button is pressed, show the IP address and the number of successful sends
    */
 void loop() {
-  double rawLoadCell = scale.get_units(10);
+  double rawLoadCell = scale.get_units(5);
   float kgLoadCell = rawLoadCell / 1000;
   float absValuekgLoadCell = fabs(kgLoadCell);
 
@@ -421,16 +421,18 @@ void loop() {
   
   Ethernet.maintain();
   if (checkConnectionLan()) {
-    lanStatus = "LAN";
+    lanStatus = "C";
   } else {
-    lanStatus = " DC";
+    lanStatus = "D";
   }
 
-  lcd.setCursor(13, 1);
+  lcd.setCursor(15, 1);
   lcd.print(lanStatus);
-  
-  lcd.setCursor(0, 1);
+  lcd.setCursor(10, 1);
+  lcd.print(sendDataCounter);
+
   // lcd.print("Hasil : ");
+  lcd.setCursor(0, 1);
   lcd.print(kgLoadCellPrint);
   lcd.print(" KG");
   // Serial.println(kgLoadCell, 2);
@@ -472,7 +474,7 @@ void loop() {
         lcd.print(" BERHASIL : ");
         sendDataCounter++;
         lcd.print(sendDataCounter);
-        delay(500);
+        delay(100);
       }
     }
     lcd.clear();
