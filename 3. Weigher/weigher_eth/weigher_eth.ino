@@ -17,8 +17,8 @@ String deviceID = "IoT-" + String(ip);
 int sendDataCounter;
 int sendDataCounterFailed;
 
-// const char* serverName = "http://192.168.7.223/iot/api/weigher/save_weigher.php";
 const char* serverAddress = "192.168.7.223";
+const char* serverPath = "POST /iot/api/weigher/save_weigher.php HTTP/1.1";
 const int serverPort = 80;
 String ip_Address = "192.168.7." + String(ip);
 String postData, lanStatus;
@@ -103,7 +103,7 @@ bool sendData() {
   // Coba koneksi
   if (client.connect(serverAddress, serverPort)) {
     // Kirim HTTP POST Request
-    client.println("POST /iot/api/weigher/save_weigher.php HTTP/1.1");
+    client.println(serverPath);
     client.println("Host: 192.168.7.223");
     client.println("Content-Type: application/x-www-form-urlencoded");
     client.println("Connection: close");
@@ -111,9 +111,6 @@ bool sendData() {
     client.println(postData.length());
     client.println();
     client.println(postData);
-    
-    Serial.println("Data terkirim:");
-    Serial.println(postData);
     
     // Tunggu respon
     while(client.connected()) {
@@ -384,30 +381,9 @@ void setup() {
   // Choose Product
   chooseProduct();
 
-  // selfServer.begin();
-  // // Buat tugas untuk core 0
-  // xTaskCreatePinnedToCore(
-  //   handleClientTask, // Fungsi yang akan dijalankan
-  //   "HandleClient",   // Nama tugas
-  //   2048,             // Ukuran stack
-  //   NULL,             // Parameter untuk fungsi
-  //   1,                // Prioritas tugas
-  //   NULL,             // Handle tugas
-  //   0                 // Jalankan di core 0
-  // );
-
   lcd.clear();
 }
 
-  /**
-   * The main loop where the program will run indefinitely.
-   * It does the following:
-   * - Read the load cell value and convert it to kg with the given digit scale
-   * - Print the product name and the result on the LCD
-   * - If the down button is pressed, perform a tare operation
-   * - If the select button is pressed, send the data to the server
-   * - If the up button is pressed, show the IP address and the number of successful sends
-   */
 void loop() {
   double rawLoadCell = scale.get_units(5);
   float kgLoadCell = rawLoadCell / 1000;
@@ -430,14 +406,9 @@ void loop() {
   lcd.print(lanStatus);
   lcd.setCursor(10, 1);
   lcd.print(sendDataCounter);
-
-  // lcd.print("Hasil : ");
   lcd.setCursor(0, 1);
   lcd.print(kgLoadCellPrint);
   lcd.print(" KG");
-  // Serial.println(kgLoadCell, 2);
-
-  // Serial.println(kgLoadCellPrint);
 
   if (isButtonPressed(buttonDown)) {
     while (isButtonPressed(buttonDown)) {
