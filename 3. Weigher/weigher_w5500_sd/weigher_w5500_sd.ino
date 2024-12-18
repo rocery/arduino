@@ -11,27 +11,26 @@
 /**/ const String prod = "Kerupuk";
 // =====================================
 
+// DEVICE INFO
 String ESPName = "Weigher | " + loc;
 String deviceID = "IoT-" + String(ip);
 int sendDataCounter;
 int sendDataCounterFailed;
 
+// SERVER API
 const char* serverAddress = "192.168.7.223";
 const char* serverPath = "POST /iot/api/weigher/save_weigher.php HTTP/1.1";
 const int serverPort = 80;
 String ip_Address = "192.168.7." + String(ip);
 String postData, lanStatus;
 
+// LOAD CELL
 const int LOADCELL_DOUT_PIN = 26;
 const int LOADCELL_SCK_PIN = 27;
 HX711 scale;
-
 float calibrationFactor;
 int digitScale;
 String productSelected;
-
-// EthernetServer selfServer(80);
-
 /* Deklarasi array
   @param values = Array Nilai
   @param digit = Array Digit
@@ -39,7 +38,7 @@ String productSelected;
 */
 int values[] = { 1, 2, 5, 10, 20, 40 };
 int digit[] = { 0, 1, 2, 3, 4 };
-String product[] = { 
+String product[] = {
   "TIC TIC CBP",
   "LEANET BBQ",
   "V-TOZ",
@@ -50,24 +49,30 @@ String product[] = {
 };
 #define ARRAY_LENGTH(arr) (sizeof(arr) / sizeof(arr[0]))
 
+// NETWORK STATIC CONFIGURATION
+#define W5500_CS 5
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+IPAddress ipaddress(192, 168, 7, ip);
+IPAddress gateway(192, 168, 15, 250);
+IPAddress subnet(255, 255, 0, 0);
 
-// Konfigurasi jaringan statis
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };  // Alamat MAC perangkat
-IPAddress ipaddress(192, 168, 7, ip);  // IP statis
-IPAddress gateway(192, 168, 15, 250);  // Gateway
-IPAddress subnet(255, 255, 0, 0);  // Subnet mask
-
-
+// LCD
 LiquidCrystal_I2C lcd(0x27, 16, 4);
 
+// EEPROM
 const int EEPROM_ADDRESS = 0;
 
-#define buttonUp 34                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+// BUTTON
+#define buttonUp 34
 #define buttonDown 35
 #define buttonSelect 32
 int buttonUpState = 0;
 int buttonDownState = 0;
 int buttonSelectState = 0;
+
+// SD CARD
+#define SD_CS 4
+bool sdStatus = false;
 
 float readFloatFromEEPROM(int address) {
   float value = EEPROM.get(address, value);
@@ -98,7 +103,7 @@ void tareScale() {
 
 bool sendData() {
   EthernetClient client;
-  
+
   // Coba koneksi
   if (client.connect(serverAddress, serverPort)) {
     // Kirim HTTP POST Request
@@ -110,7 +115,7 @@ bool sendData() {
     client.println(postData.length());
     client.println();
     client.println(postData);
-    
+
     // Tunggu respon
     while(client.connected()) {
       if(client.available()) {
@@ -118,7 +123,7 @@ bool sendData() {
         Serial.print(c);
       }
     }
-    
+
     client.stop();
     return true;
   } else {
@@ -331,7 +336,7 @@ bool checkConnectionLan() {
 //     EthernetClient client = selfServer.available();  // Periksa apakah ada klien
 //     if (client) {
 //       Serial.println("Klien terhubung");
-      
+
 //       // Kirim pesan ke klien
 //       client.println("ESP32 dengan ENC28J60 berhasil terkoneksi!");
 //       client.stop();  // Tutup koneksi
@@ -375,7 +380,17 @@ void setup() {
   scale.tare();
 
   // Inisialisasi Ethernet dengan IP statis
+  Ethernet.init(W5500_CS);
   Ethernet.begin(mac, ipaddress, gateway, gateway, subnet);
+
+    Serial.println("Inisialisasi SD Card...");
+    if (!SD.begin(SD_CS)) {   // Pin CS untuk SD Card
+        Serial.println("SD Card gagal diinisialisasi.");
+        sdStatus = false;
+    } else {
+        Serial.println("SD Card berhasil diinisialisasi!");
+        sdStatus = true;
+    }
 
   // Choose Product
   chooseProduct();
@@ -393,7 +408,7 @@ void loop() {
 
   lcd.setCursor(0, 0);
   lcd.print(productSelected);
-  
+
   Ethernet.maintain();
   if (checkConnectionLan()) {
     lanStatus = "C";
@@ -462,9 +477,10 @@ void loop() {
       lcd.setCursor(13, 1);
       lcd.print(lanStatus);
       lcd.setCursor(11, 0);
-      lcd.print(deviceID);  
+      lcd.print(deviceID);
+      lcd.print(sdStatus);
     }
-    
+
     lcd.clear();
   }
 }
