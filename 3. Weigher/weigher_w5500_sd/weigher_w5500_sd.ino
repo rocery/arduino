@@ -4,8 +4,8 @@
 #include <esp_system.h>
 #include <Ethernet.h>
 #include <SPI.h>
-#include "FS.h"
-#include "SD.h"
+#include <FS.h>
+#include <SD.h>
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
@@ -119,8 +119,8 @@ bool sendData() {
     client.println(postData);
 
     // Tunggu respon
-    while(client.connected()) {
-      if(client.available()) {
+    while (client.connected()) {
+      if (client.available()) {
         char c = client.read();
         Serial.print(c);
       }
@@ -333,20 +333,6 @@ bool checkConnectionLan() {
   }
 }
 
-// void handleClientTask(void *parameter) {
-//   while (true) {
-//     EthernetClient client = selfServer.available();  // Periksa apakah ada klien
-//     if (client) {
-//       Serial.println("Klien terhubung");
-
-//       // Kirim pesan ke klien
-//       client.println("ESP32 dengan ENC28J60 berhasil terkoneksi!");
-//       client.stop();  // Tutup koneksi
-//     }
-//     delay(10);  // Hindari penggunaan CPU berlebih
-//   }
-// }
-
 void setup() {
   Serial.begin(9600);
 
@@ -385,14 +371,29 @@ void setup() {
   Ethernet.init(W5500_CS);
   Ethernet.begin(mac, ipaddress, gateway, gateway, subnet);
 
-    Serial.println("Inisialisasi SD Card...");
-    if (!SD.begin(SD_CS)) {   // Pin CS untuk SD Card
-        Serial.println("SD Card gagal diinisialisasi.");
-        sdStatus = false;
-    } else {
-        Serial.println("SD Card berhasil diinisialisasi!");
-        sdStatus = true;
-    }
+  /*
+  Inisialisasi SD Card.
+  Jika gagal maka data tidak disimpan di sd card,
+  data akan langsung dikirim ke server.
+  Weigher tetap bisa digunakan tanpa ada kendala.
+  */
+  if (!SD.begin(SD_CS)) {
+    lcd.setCursor(0, 0);
+    lcd.print("SD CARD ERROR");
+    lcd.setCursor(0, 1);
+    lcd.print("X, HUBUNGI IT");
+    delay(3000);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("WEIGHER OK, DATA");
+    lcd.setCursor(0, 1);
+    lcd.print("TDK DISIMPAN SD");
+    delay(3000);
+    lcd.clear();
+    sdStatus = false;
+  } else {
+    sdStatus = true;
+  }
 
   // Choose Product
   chooseProduct();
@@ -442,29 +443,33 @@ void loop() {
     while (isButtonPressed(buttonSelect)) {
       postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
       lcd.setCursor(0, 0);
-      lcd.print("  SENDING DATA  ");
+      lcd.print("  SIMPAN DATA  ");
     }
 
-    if (lanStatus == " DC") {
-      lcd.setCursor(0, 1);
-      lcd.print("X, LAN ERROR");
-      sendDataCounterFailed++;
-      delay(1000);
-    } else {
-      if (!sendData()) {
+    if (!sdStatus) {
+        if (lanStatus == " DC") {
         lcd.setCursor(0, 1);
-        lcd.print("X, HUBUNGI IT");
+        lcd.print("X, LAN ERROR");
         sendDataCounterFailed++;
         delay(1000);
-      } else {
-        lcd.setCursor(0, 1);
-        lcd.print(" BERHASIL : ");
-        sendDataCounter++;
-        lcd.print(sendDataCounter);
-        delay(100);
-      }
+        } else {
+            if (!sendData()) {
+                lcd.setCursor(0, 1);
+                lcd.print("X, HUBUNGI IT");
+                sendDataCounterFailed++;
+                delay(1000);
+            } else {
+                lcd.setCursor(0, 1);
+                lcd.print(" BERHASIL : ");
+                sendDataCounter++;
+                lcd.print(sendDataCounter);
+                delay(100);
+            }
+        }
+        lcd.clear();
+    } else {
+        // Save Data to SD
     }
-    lcd.clear();
   }
 
   if (isButtonPressed(buttonUp)) {
@@ -476,9 +481,11 @@ void loop() {
       lcd.setCursor(0, 1);
       lcd.print("G : ");
       lcd.print(sendDataCounterFailed);
-      lcd.setCursor(13, 1);
-      lcd.print(lanStatus);
+      lcd.setCursor(7, 1);
+      lcd.print("SD : ");
       lcd.print(sdStatus);
+      lcd.setCursor(15, 1);
+      lcd.print(lanStatus);
       lcd.setCursor(11, 0);
       lcd.print(deviceID);
     }
