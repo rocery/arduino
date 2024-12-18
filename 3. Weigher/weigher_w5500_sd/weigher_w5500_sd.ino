@@ -23,6 +23,9 @@ int sendDataCounterFailed;
 const char* serverAddress = "192.168.7.223";
 const char* serverPath = "POST /iot/api/weigher/save_weigher.php HTTP/1.1";
 const int serverPort = 80;
+EthernetClient client;
+
+// NETWORK STATUS
 String ip_Address = "192.168.7." + String(ip);
 String postData, lanStatus;
 
@@ -75,6 +78,10 @@ int buttonSelectState = 0;
 // SD CARD
 #define SD_CS 4
 bool sdStatus = false;
+const char* logName = "/log.txt";
+
+// TASK HANDLER CORE 0 FOR SEND DATA
+TaskHandle_t SendLogTaskHandle;
 
 float readFloatFromEEPROM(int address) {
   float value = EEPROM.get(address, value);
@@ -98,7 +105,6 @@ bool isButtonPressed(int buttonPin) {
 }
 
 void tareScale() {
-  // scale.set_scale(calibrationFactor);
   scale.tare();
   lcd.clear();
 }
@@ -333,6 +339,105 @@ bool checkConnectionLan() {
   }
 }
 
+bool checkLog(const char* path) {
+  if (SD.exists(path)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool createLog(const char* path) {
+  File file = SD.open(path, FILE_WRITE);
+  if (file) {
+    file.close();
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool appendLog(const char* path, const char* log) {
+  File file = SD.open(path, FILE_APPEND);
+  if (file) {
+    file.println(log);
+    file.close();
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool deleteLog(const char* path) {
+  if (SD.remove(path)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool deleteAllLog() {
+  File root = SD.open("/");
+  if (root) {
+    File file;
+    while ((file = root.openNextFile())) {
+      String fileName = file.name();
+      if (fileName.endsWith(".txt")) {
+        SD.remove(fileName.c_str());
+      }
+      file.close();
+    }
+    root.close();
+    return true;
+  } else {
+    return false;
+  }
+}
+
+void sendLog(void* parameter) {
+  while (true) {
+    // Buka file di SD card
+    File file = SD.open(logName);
+    if (!file) {
+      Serial.println("Gagal membuka file example.txt");
+    } else {
+      // Baca isi file
+      String fileContent = "";
+      while (file.available()) {
+        fileContent += (char)file.read();
+      }
+      file.close();
+
+      // Kirim file ke server
+      if (client.connect(serverAddress, serverPort)) {
+        client.println(serverPath);
+        client.println("Host: 192.168.10.12");
+        client.println("Content-Type: text/plain");
+        client.print("Content-Length: ");
+        client.println(fileContent.length());
+        client.println();
+        client.print(fileContent);
+
+        // Tunggu respon server
+        unsigned long timeout = millis();
+        while (client.connected() && millis() - timeout < 5000) {
+          if (client.available()) {
+            String response = client.readStringUntil('\n');
+            Serial.println("Respon dari server: " + response);
+            break;
+          }
+        }
+        client.stop();
+      } else {
+        Serial.println("Gagal terhubung ke server!");
+      }
+    }
+
+    // Tunggu sebelum mencoba mengirim lagi
+    vTaskDelay(10000 / portTICK_PERIOD_MS);  // Delay 10 detik
+  }
+}
+
 void setup() {
   Serial.begin(9600);
 
@@ -395,8 +500,23 @@ void setup() {
     sdStatus = true;
   }
 
+  if (!checkLog(logName)) {
+    createLog(logName);
+  }
+
   // Choose Product
   chooseProduct();
+
+  // Buat task untuk mengirim data
+  xTaskCreate(
+    sendLog,            // Fungsi task
+    "sendLog",          // Nama task
+    4096,               // Ukuran stack
+    NULL,               // Parameter task
+    1,                  // Prioritas task
+    &SendLogTaskHandle  // Task handle
+    // 0
+  );
 
   lcd.clear();
 }
@@ -441,35 +561,47 @@ void loop() {
   if (isButtonPressed(buttonSelect)) {
     lcd.clear();
     while (isButtonPressed(buttonSelect)) {
-      postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
       lcd.setCursor(0, 0);
       lcd.print("  SIMPAN DATA  ");
     }
 
     if (!sdStatus) {
-        if (lanStatus == " DC") {
+      if (lanStatus == " DC") {
         lcd.setCursor(0, 1);
         lcd.print("X, LAN ERROR");
         sendDataCounterFailed++;
         delay(1000);
+      } else {
+        postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
+        if (!sendData()) {
+          lcd.setCursor(0, 1);
+          lcd.print("X, HUBUNGI IT");
+          sendDataCounterFailed++;
+          delay(1000);
         } else {
-            if (!sendData()) {
-                lcd.setCursor(0, 1);
-                lcd.print("X, HUBUNGI IT");
-                sendDataCounterFailed++;
-                delay(1000);
-            } else {
-                lcd.setCursor(0, 1);
-                lcd.print(" BERHASIL : ");
-                sendDataCounter++;
-                lcd.print(sendDataCounter);
-                delay(100);
-            }
+          lcd.setCursor(0, 1);
+          lcd.print(" BERHASIL : ");
+          sendDataCounter++;
+          lcd.print(sendDataCounter);
+          // delay(100);
         }
-        lcd.clear();
+      }
     } else {
-        // Save Data to SD. Contoh ada di Counter/Do Your own
+      postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
+      if (!checkLog(logName)) {
+        createLog(logName);
+      }
+
+      if (!appendLog(logName, postData.c_str())) {
+        lcd.setCursor(0, 1);
+        lcd.print("DATA GGL DISAVE");
+        sendDataCounterFailed++;
+        delay(1000);
+      } else {
+        sendDataCounter++;
+      }
     }
+    lcd.clear();
   }
 
   if (isButtonPressed(buttonUp)) {
