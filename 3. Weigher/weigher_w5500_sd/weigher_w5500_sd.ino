@@ -21,7 +21,8 @@ int sendDataCounterFailed;
 
 // SERVER API
 const char* serverAddress = "192.168.7.223";
-const char* serverPath = "POST /iot/api/weigher/save_weigher.php HTTP/1.1";
+const char* serverPathData = "POST /iot/api/weigher/save_weigher.php HTTP/1.1";
+const char* serverPathLog = "POST /iot/api/weigher/save_weigher_log.php HTTP/1.1";
 const int serverPort = 80;
 EthernetClient client;
 
@@ -115,7 +116,7 @@ bool sendData() {
   // Coba koneksi
   if (client.connect(serverAddress, serverPort)) {
     // Kirim HTTP POST Request
-    client.println(serverPath);
+    client.println(serverPathData);
     client.println("Host: 192.168.7.223");
     client.println("Content-Type: application/x-www-form-urlencoded");
     client.println("Connection: close");
@@ -410,7 +411,7 @@ void sendLog(void* parameter) {
 
       // Kirim file ke server
       if (client.connect(serverAddress, serverPort)) {
-        client.println(serverPath);
+        client.println(serverPathLog);
         client.println("Host: 192.168.10.12");
         client.println("Content-Type: text/plain");
         client.print("Content-Length: ");

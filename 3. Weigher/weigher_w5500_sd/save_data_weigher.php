@@ -1,8 +1,8 @@
 <?php
 // Konfigurasi database
 $host = "localhost";
-$username = "root";
-$password = "";
+$username = "admin";
+$password = "itbeaksioke";
 $database = "weigher";
 
 // Koneksi ke database
