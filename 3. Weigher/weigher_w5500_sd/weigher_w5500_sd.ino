@@ -4,6 +4,8 @@
 #include <esp_system.h>
 #include <Ethernet.h>
 #include <SPI.h>
+#include "FS.h"
+#include "SD.h"
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
