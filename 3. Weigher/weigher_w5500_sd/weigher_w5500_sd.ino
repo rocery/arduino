@@ -1,3 +1,9 @@
+/*
+ * TODO
+ * 1. Pisahkan Info sesuai dengan kondisi SD CARD
+ * 2. Handling jika log gagal diproses di server
+*/
+
 #include <HX711.h>
 #include <LiquidCrystal_I2C.h>
 #include <EEPROM.h>
@@ -421,13 +427,17 @@ void sendLog(void* parameter) {
 
         // Tunggu respon server
         unsigned long timeout = millis();
+        String response;
         while (client.connected() && millis() - timeout < 5000) {
           if (client.available()) {
-            String response = client.readStringUntil('\n');
+            response = client.readStringUntil('\n');
             Serial.println("Respon dari server: " + response);
             break;
           }
         }
+        // TODOS 2
+        // Jika response 'oke' hapus data
+        // Jika gagal lanjutkan data
         client.stop();
       } else {
         Serial.println("Gagal terhubung ke server!");
@@ -435,7 +445,7 @@ void sendLog(void* parameter) {
     }
 
     // Tunggu sebelum mencoba mengirim lagi
-    vTaskDelay(10000 / portTICK_PERIOD_MS);  // Delay 10 detik
+    vTaskDelay(300000 / portTICK_PERIOD_MS);  // Delay 5 Menit
   }
 }
 
@@ -607,21 +617,41 @@ void loop() {
 
   if (isButtonPressed(buttonUp)) {
     lcd.clear();
-    while (isButtonPressed(buttonUp)) {
-      lcd.setCursor(0, 0);
-      lcd.print("B : ");
-      lcd.print(sendDataCounter);
-      lcd.setCursor(0, 1);
-      lcd.print("G : ");
-      lcd.print(sendDataCounterFailed);
-      lcd.setCursor(7, 1);
-      lcd.print("SD : ");
-      lcd.print(sdStatus);
-      lcd.setCursor(15, 1);
-      lcd.print(lanStatus);
-      lcd.setCursor(11, 0);
-      lcd.print(deviceID);
+    if (!sdStatus) {
+        while (isButtonPressed(buttonUp)) {
+        lcd.setCursor(0, 0);
+        lcd.print("B : ");
+        lcd.print(sendDataCounter);
+        lcd.setCursor(0, 1);
+        lcd.print("G : ");
+        lcd.print(sendDataCounterFailed);
+        lcd.setCursor(7, 1);
+        lcd.print("SD : ");
+        lcd.print(sdStatus);
+        lcd.setCursor(15, 1);
+        lcd.print(lanStatus);
+        lcd.setCursor(11, 0);
+        lcd.print(deviceID);
+      }
+    } else {
+      // TODO 1
+      while (isButtonPressed(buttonUp)) {
+        lcd.setCursor(0, 0);
+        lcd.print("B : ");
+        lcd.print(sendDataCounter);
+        lcd.setCursor(0, 1);
+        lcd.print("G : ");
+        lcd.print(sendDataCounterFailed);
+        lcd.setCursor(7, 1);
+        lcd.print("SD : ");
+        lcd.print(sdStatus);
+        lcd.setCursor(15, 1);
+        lcd.print(lanStatus);
+        lcd.setCursor(11, 0);
+        lcd.print(deviceID);
+      }
     }
+    
 
     lcd.clear();
   }
