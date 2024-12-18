@@ -478,9 +478,9 @@ void loop() {
       lcd.print(sendDataCounterFailed);
       lcd.setCursor(13, 1);
       lcd.print(lanStatus);
+      lcd.print(sdStatus);
       lcd.setCursor(11, 0);
       lcd.print(deviceID);
-      lcd.print(sdStatus);
     }
 
     lcd.clear();
