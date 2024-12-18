@@ -36,6 +36,8 @@ void setup() {
   } else {
     Serial.println("SD Card berhasil diinisialisasi!");
   }
+
+  delay(5000);
 }
 
 void loop() {
@@ -63,6 +65,8 @@ void loop() {
   } else {
     Serial.println("Gagal terhubung ke server.");
   }
+
+  Serial.println(Ethernet.localIP());
 
   delay(5000);
 }
