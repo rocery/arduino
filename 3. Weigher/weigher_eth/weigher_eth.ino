@@ -4,7 +4,7 @@
 #include <esp_system.h>
 #include <UIPEthernet.h>
 #include <SPI.h>
-
+// a
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
@@ -63,7 +63,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 4);
 
 const int EEPROM_ADDRESS = 0;
 
-#define buttonUp 34
+#define buttonUp 34                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 #define buttonDown 35
 #define buttonSelect 32
 int buttonUpState = 0;
