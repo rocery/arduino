@@ -1,30 +1,35 @@
-#include <SPI.h>
 #include <Ethernet.h>
+#include <SD.h>
 
-// Konfigurasi pin CS W5500
-#define W5500_CS_PIN 5  // Pin D5 untuk Chip Select
+// Pin CS untuk masing-masing perangkat
+#define SD_CS 4       // SD Card
+#define W5500_CS 5    // W5500
 
-// Alamat MAC untuk Ethernet
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+// Tentukan MAC address untuk W5500
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; 
 
 void setup() {
   Serial.begin(115200);
-  
-  // Inisialisasi SPI
-  SPI.begin();
-  
-  // Set pin CS sebagai output
-  pinMode(W5500_CS_PIN, OUTPUT);
-  digitalWrite(W5500_CS_PIN, HIGH);
-  
-  // Mulai koneksi Ethernet
-  Ethernet.begin(mac);
-  
-  // Cetak alamat IP
-  Serial.print("IP Address: ");
-  Serial.println(Ethernet.localIP());
+
+  // Inisialisasi W5500
+  Serial.println("Inisialisasi Ethernet...");
+  Ethernet.init(W5500_CS);  // Pin CS untuk W5500
+  if (Ethernet.begin(mac) == 0) { // Gunakan MAC address
+    Serial.println("Ethernet gagal diinisialisasi. Periksa kabel atau router.");
+  } else {
+    Serial.print("Ethernet berhasil diinisialisasi. IP: ");
+    Serial.println(Ethernet.localIP());
+  }
+
+  // Inisialisasi SD Card
+  Serial.println("Inisialisasi SD Card...");
+  if (!SD.begin(SD_CS)) {   // Pin CS untuk SD Card
+    Serial.println("SD Card gagal diinisialisasi.");
+  } else {
+    Serial.println("SD Card berhasil diinisialisasi!");
+  }
 }
 
 void loop() {
-  // Tambahkan logika program Anda di sini
+  // Tambahkan logika loop di sini jika diperlukan
 }
