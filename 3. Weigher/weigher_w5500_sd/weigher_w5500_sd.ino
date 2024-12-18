@@ -468,7 +468,7 @@ void loop() {
         }
         lcd.clear();
     } else {
-        // Save Data to SD
+        // Save Data to SD. Contoh ada di Counter/Do Your own
     }
   }
 
