@@ -453,119 +453,66 @@ void sendLog(void* parameter) {
       client.println("--" + boundary + "--");
 
       // Enhanced response handling
-
       unsigned long timeout = millis();
-
       String response = "";
-
       int statusCode = 0;
-
       bool headersComplete = false;
-
       String responseBody = "";
 
-
-
       while (client.connected() && millis() - timeout < 10000) {
-
         if (client.available()) {
-
           String line = client.readStringUntil('\n');
 
-
-
           // Parse HTTP status code
-
           if (line.startsWith("HTTP/1.1")) {
-
             statusCode = line.substring(9, 12).toInt();
-
             Serial.print("Server Response Status Code: ");
-
             Serial.println(statusCode);
           }
 
-
-
           // Collect headers
-
           if (!headersComplete) {
-
             response += line;
 
-
-
             // Check for end of headers
-
             if (line.length() <= 2) {
-
               headersComplete = true;
-
               Serial.println("Headers complete");
             }
-
           }
-
           // Collect response body
-
           else {
-
             responseBody += line;
           }
         }
 
-
-
         // Break if no more data and headers are complete
-
         if (!client.available() && headersComplete) {
-
           break;
         }
       }
 
-
       // Verify upload success
-
       if (statusCode == 200) {
-
         Serial.println("File upload successful");
-
         Serial.println("Server Response Headers:");
-
         Serial.println(response);
-
         Serial.println("Response Body:");
-
         Serial.println(responseBody);
-
       } else {
-
         Serial.print("File upload failed. Status code: ");
-
         Serial.println(statusCode);
-
         Serial.println("Response:");
-
         Serial.println(response);
       }
-
-
       Serial.println("File sent attempt completed");
-
     } else {
-
       Serial.println("Connection failed");
     }
 
-
     client.stop();
-
     logFile.close();
-
-
     // Wait before next attempt
-
     vTaskDelay(30000 / portTICK_PERIOD_MS);  // 30 seconds delay
   }
 }
