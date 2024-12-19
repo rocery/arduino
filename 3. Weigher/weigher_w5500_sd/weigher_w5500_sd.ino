@@ -1,6 +1,5 @@
 /*
  * TODO
- * 1. Pisahkan Info sesuai dengan kondisi SD CARD
  * 2. Handling jika log gagal diproses di server
 */
 
@@ -22,14 +21,16 @@
 // DEVICE INFO
 String ESPName = "Weigher | " + loc;
 String deviceID = "IoT-" + String(ip);
-int sendDataCounter;
-int sendDataCounterFailed;
+int sendDataCounter, sendDataCounterFailed, sendLogCounter, sendLogCounterFailed, totalLineCount, saveDataConter, saveDataConterFailed;
 
 // SERVER API
-const char* serverAddress = "192.168.7.223";
+const char* serverAddress = "192.168.7.10";
 const char* serverPathData = "POST /iot/api/weigher/save_weigher.php HTTP/1.1";
 const char* serverPathLog = "POST /iot/api/weigher/save_weigher_log.php HTTP/1.1";
-const int serverPort = 80;
+const char* serverPathLog_Flask = "POST /weigher/upload_log_weigher HTTP/1.1";
+const int serverPort = 5000;
+const int CHUNK_SIZE = 512;
+uint8_t buffer[CHUNK_SIZE];
 EthernetClient client;
 
 // NETWORK STATUS
@@ -85,7 +86,7 @@ int buttonSelectState = 0;
 // SD CARD
 #define SD_CS 4
 bool sdStatus = false;
-const char* logName = "/log.txt";
+const char* logName = "/weigherLog31.txt";
 
 // TASK HANDLER CORE 0 FOR SEND DATA
 TaskHandle_t SendLogTaskHandle;
@@ -117,7 +118,7 @@ void tareScale() {
 }
 
 bool sendData() {
-  EthernetClient client;
+  // EthernetClient client;
 
   // Coba koneksi
   if (client.connect(serverAddress, serverPort)) {
@@ -369,6 +370,7 @@ bool appendLog(const char* path, const char* log) {
   if (file) {
     file.println(log);
     file.close();
+    Serial.println(log);
     return true;
   } else {
     return false;
@@ -403,49 +405,168 @@ bool deleteAllLog() {
 
 void sendLog(void* parameter) {
   while (true) {
-    // Buka file di SD card
-    File file = SD.open(logName);
-    if (!file) {
-      Serial.println("Gagal membuka file example.txt");
-    } else {
-      // Baca isi file
-      String fileContent = "";
-      while (file.available()) {
-        fileContent += (char)file.read();
-      }
-      file.close();
-
-      // Kirim file ke server
-      if (client.connect(serverAddress, serverPort)) {
-        client.println(serverPathLog);
-        client.println("Host: 192.168.10.12");
-        client.println("Content-Type: text/plain");
-        client.print("Content-Length: ");
-        client.println(fileContent.length());
-        client.println();
-        client.print(fileContent);
-
-        // Tunggu respon server
-        unsigned long timeout = millis();
-        String response;
-        while (client.connected() && millis() - timeout < 5000) {
-          if (client.available()) {
-            response = client.readStringUntil('\n');
-            Serial.println("Respon dari server: " + response);
-            break;
-          }
-        }
-        // TODOS 2
-        // Jika response 'oke' hapus data
-        // Jika gagal lanjutkan data
-        client.stop();
-      } else {
-        Serial.println("Gagal terhubung ke server!");
-      }
+    File logFile = SD.open(logName, FILE_READ);
+    if (!logFile) {
+      Serial.println("Failed to open LOG.txt");
+      sendLogCounterFailed++;
+      continue;
     }
 
-    // Tunggu sebelum mencoba mengirim lagi
-    vTaskDelay(300000 / portTICK_PERIOD_MS);  // Delay 5 Menit
+    long fileSize = logFile.size();
+    Serial.print("File size: ");
+    Serial.println(fileSize);
+
+    if (client.connect(serverAddress, serverPort)) {
+      Serial.println("Connected to server");
+
+      String boundary = "------------------------abcdef123456";
+
+      // Improved multipart form data headers
+      client.println("POST /weigher/upload_log_weigher HTTP/1.1");
+      client.println("Host: " + String(serverAddress));
+      client.println("Content-Type: multipart/form-data; boundary=" + boundary);
+
+      // Calculate content length more precisely
+      long contentLength =
+        String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
+
+      client.println("Content-Length: " + String(contentLength));
+      client.println("Connection: close");
+      client.println();
+
+      // Write multipart form data
+      client.println("--" + boundary);
+      client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"");
+      client.println("Content-Type: text/plain");
+      client.println();
+
+      // Send file in chunks
+      while (logFile.available()) {
+        int bytesRead = logFile.read(buffer, CHUNK_SIZE);
+        if (bytesRead > 0) {
+          client.write(buffer, bytesRead);
+        }
+      }
+
+      // Properly close multipart form
+      client.println();
+      client.println("--" + boundary + "--");
+
+      // Enhanced response handling
+
+      unsigned long timeout = millis();
+
+      String response = "";
+
+      int statusCode = 0;
+
+      bool headersComplete = false;
+
+      String responseBody = "";
+
+
+
+      while (client.connected() && millis() - timeout < 10000) {
+
+        if (client.available()) {
+
+          String line = client.readStringUntil('\n');
+
+
+
+          // Parse HTTP status code
+
+          if (line.startsWith("HTTP/1.1")) {
+
+            statusCode = line.substring(9, 12).toInt();
+
+            Serial.print("Server Response Status Code: ");
+
+            Serial.println(statusCode);
+          }
+
+
+
+          // Collect headers
+
+          if (!headersComplete) {
+
+            response += line;
+
+
+
+            // Check for end of headers
+
+            if (line.length() <= 2) {
+
+              headersComplete = true;
+
+              Serial.println("Headers complete");
+            }
+
+          }
+
+          // Collect response body
+
+          else {
+
+            responseBody += line;
+          }
+        }
+
+
+
+        // Break if no more data and headers are complete
+
+        if (!client.available() && headersComplete) {
+
+          break;
+        }
+      }
+
+
+      // Verify upload success
+
+      if (statusCode == 200) {
+
+        Serial.println("File upload successful");
+
+        Serial.println("Server Response Headers:");
+
+        Serial.println(response);
+
+        Serial.println("Response Body:");
+
+        Serial.println(responseBody);
+
+      } else {
+
+        Serial.print("File upload failed. Status code: ");
+
+        Serial.println(statusCode);
+
+        Serial.println("Response:");
+
+        Serial.println(response);
+      }
+
+
+      Serial.println("File sent attempt completed");
+
+    } else {
+
+      Serial.println("Connection failed");
+    }
+
+
+    client.stop();
+
+    logFile.close();
+
+
+    // Wait before next attempt
+
+    vTaskDelay(30000 / portTICK_PERIOD_MS);  // 30 seconds delay
   }
 }
 
@@ -535,10 +656,10 @@ void setup() {
 void loop() {
   double rawLoadCell = scale.get_units(5);
   float kgLoadCell = rawLoadCell / 1000;
-  float absValuekgLoadCell = fabs(kgLoadCell);
+  // float absValuekgLoadCell = fabs(kgLoadCell);
 
   char kgLoadCellPrint[6];
-  dtostrf(absValuekgLoadCell, 5, digitScale, kgLoadCellPrint);
+  dtostrf(kgLoadCell, 5, digitScale, kgLoadCellPrint);
 
   lcd.setCursor(0, 0);
   lcd.print(productSelected);
@@ -552,8 +673,15 @@ void loop() {
 
   lcd.setCursor(15, 1);
   lcd.print(lanStatus);
-  lcd.setCursor(10, 1);
-  lcd.print(sendDataCounter);
+  if (!sdStatus) {
+
+    lcd.setCursor(10, 1);
+    lcd.print(sendDataCounter);
+  } else {
+    lcd.setCursor(10, 1);
+    lcd.print(saveDataConter);
+  }
+
   lcd.setCursor(0, 1);
   lcd.print(kgLoadCellPrint);
   lcd.print(" KG");
@@ -577,7 +705,7 @@ void loop() {
     }
 
     if (!sdStatus) {
-      if (lanStatus == " DC") {
+      if (lanStatus == "D") {
         lcd.setCursor(0, 1);
         lcd.print("X, LAN ERROR");
         sendDataCounterFailed++;
@@ -606,10 +734,10 @@ void loop() {
       if (!appendLog(logName, postData.c_str())) {
         lcd.setCursor(0, 1);
         lcd.print("DATA GGL DISAVE");
-        sendDataCounterFailed++;
+        saveDataConterFailed++;
         delay(1000);
       } else {
-        sendDataCounter++;
+        saveDataConter++;
       }
     }
     lcd.clear();
@@ -618,23 +746,6 @@ void loop() {
   if (isButtonPressed(buttonUp)) {
     lcd.clear();
     if (!sdStatus) {
-        while (isButtonPressed(buttonUp)) {
-        lcd.setCursor(0, 0);
-        lcd.print("B : ");
-        lcd.print(sendDataCounter);
-        lcd.setCursor(0, 1);
-        lcd.print("G : ");
-        lcd.print(sendDataCounterFailed);
-        lcd.setCursor(7, 1);
-        lcd.print("SD : ");
-        lcd.print(sdStatus);
-        lcd.setCursor(15, 1);
-        lcd.print(lanStatus);
-        lcd.setCursor(11, 0);
-        lcd.print(deviceID);
-      }
-    } else {
-      // TODO 1
       while (isButtonPressed(buttonUp)) {
         lcd.setCursor(0, 0);
         lcd.print("B : ");
@@ -650,9 +761,28 @@ void loop() {
         lcd.setCursor(11, 0);
         lcd.print(deviceID);
       }
-    }
-    
+    } else {
+      while (isButtonPressed(buttonUp)) {
+        lcd.setCursor(0, 0);
+        lcd.print("B:");
+        lcd.print(saveDataConter);
+        lcd.setCursor(6, 0);
+        lcd.print("-SD:");
+        lcd.print(sdStatus);
+        lcd.setCursor(13, 0);
+        lcd.print(".");
+        lcd.print(ip);
 
+        lcd.setCursor(0, 1);
+        lcd.print("G:");
+        lcd.print(saveDataConterFailed);
+        lcd.setCursor(6, 1);
+        lcd.print("-S:");
+        lcd.print(totalLineCount);
+        lcd.setCursor(15, 1);
+        lcd.print(lanStatus);
+      }
+    }
     lcd.clear();
   }
 }
