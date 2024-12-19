@@ -112,6 +112,11 @@ bool isButtonPressed(int buttonPin) {
   return digitalRead(buttonPin);
 }
 
+/**
+ * Tares the scale to reset its weight reading to zero and clears the LCD display.
+ * This function should be used when you want to ignore the weight currently on the scale,
+ * allowing you to measure only the additional weight added afterward.
+ */
 void tareScale() {
   scale.tare();
   lcd.clear();
@@ -148,6 +153,23 @@ bool sendData() {
   }
 }
 
+/**
+ * Runs the calibration process, which guides the user through the steps to
+ * calibrate the scale and set the digit.
+ *
+ * The process consists of the following steps:
+ *
+ * 1. Select the weight of the item to be measured
+ * 2. Empty the scale
+ * 3. Weigh the item
+ * 4. Set the digit
+ * 5. Confirm calibration
+ *
+ * The user can exit the calibration process by pressing the select button.
+ * The user can restart the calibration process by pressing the down button.
+ *
+ * The calibration factor and digit scale are stored in EEPROM.
+ */
 void calibrationProcess() {
   lcd.clear();
   lcd.setCursor(0, 0);
