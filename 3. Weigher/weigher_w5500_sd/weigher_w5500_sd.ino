@@ -402,6 +402,7 @@ bool appendLog(const char* path, const char* log) {
 
 bool deleteLog(const char* path) {
   if (SD.remove(path)) {
+    Serial.println("File deleted");
     return true;
   } else {
     return false;
