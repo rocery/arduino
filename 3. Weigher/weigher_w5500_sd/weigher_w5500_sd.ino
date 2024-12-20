@@ -431,9 +431,7 @@ void sendLog(void* parameter) {
   while (true) {
     File logFile = SD.open(logName, FILE_READ);
     if (!logFile) {
-      Serial.println("Failed to open LOG.txt");
-      sendLogCounterFailed++;
-      // continue;
+      continue;
     }
 
     long fileSize = logFile.size();
