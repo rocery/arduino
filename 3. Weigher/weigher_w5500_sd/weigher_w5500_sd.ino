@@ -541,6 +541,8 @@ void sendLog(void* parameter) {
       int jumlah_data = doc["jumlah_data"];
       Serial.print("Status: ");
       Serial.println(status);
+      Serial.print("Jumlah data: ");
+      Serial.println(jumlah_data);
 
       if (status == "success") {
         sendLogCounter++;
