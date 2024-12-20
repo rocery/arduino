@@ -518,8 +518,12 @@ void sendLog(void* parameter) {
       if (statusCode == 200) {
         Serial.println("File upload successful");
         Serial.println("Server Response Headers:");
+        // Serial.println(response);
+        // Serial.println("Response Body:");
+        // Serial.println(responseBody);
+        Serial.println("==================\n");
         Serial.println(response);
-        Serial.println("Response Body:");
+        Serial.println("===================\n");
         Serial.println(responseBody);
       } else {
         Serial.print("File upload failed. Status code: ");
