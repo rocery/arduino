@@ -433,7 +433,7 @@ void sendLog(void* parameter) {
     if (!logFile) {
       Serial.println("Failed to open LOG.txt");
       sendLogCounterFailed++;
-      continue;
+      // continue;
     }
 
     long fileSize = logFile.size();
@@ -559,9 +559,8 @@ void sendLog(void* parameter) {
     client.stop();
     logFile.close();
     // Wait before next attempt
-    
-  }
-  vTaskDelay(30000 / portTICK_PERIOD_MS);  // 30 seconds delay
+    vTaskDelay(30000 / portTICK_PERIOD_MS);  // 30 seconds delay
+  } 
 }
 
 void setup() {
