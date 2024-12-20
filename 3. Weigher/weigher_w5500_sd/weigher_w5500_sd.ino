@@ -429,16 +429,16 @@ bool deleteAllLog() {
 
 void sendLog(void* parameter) {
   while (true) {
-    // File logFile = SD.open(logName, FILE_READ);
-    // if (!logFile) {
-    //   continue;
-    // }
+    File logFile = SD.open(logName, FILE_READ);
+    if (!logFile) {
+      continue;
+    }
 
-    // long fileSize = logFile.size();
-    // Serial.print("File size: ");
-    // Serial.println(fileSize);
+    long fileSize = logFile.size();
+    Serial.print("File size: ");
+    Serial.println(fileSize);
 
-    if (client.connect(serverAddress, serverPort) and checkLog(logName)) {
+    if (client.connect(serverAddress, serverPort) && checkLog(logName) && fileSize > 0) {
       Serial.println("Connected to server");
 
       String boundary = "------------------------abcdef123456";
