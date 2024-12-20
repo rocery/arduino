@@ -544,8 +544,9 @@ void sendLog(void* parameter) {
       Serial.println(status);
       Serial.print("Jumlah data: ");
       Serial.println(jumlah_data);
+      
 
-      if (status == "success") {
+      if (String(status) == "success") {
         sendLogCounter++;
         totalLineCount =+ jumlah_data;
         deleteLog(logName);
