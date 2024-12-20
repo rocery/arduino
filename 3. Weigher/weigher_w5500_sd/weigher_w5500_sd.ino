@@ -718,9 +718,9 @@ void loop() {
       }
     } else {
       postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
-      if (!checkLog(logName)) {
-        createLog(logName);
-      }
+      // if (!checkLog(logName)) {
+      //   createLog(logName);
+      // }
 
       if (!appendLog(logName, postData.c_str())) {
         lcd.setCursor(0, 1);
