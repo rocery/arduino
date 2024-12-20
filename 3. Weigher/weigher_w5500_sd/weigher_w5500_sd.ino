@@ -559,8 +559,9 @@ void sendLog(void* parameter) {
     client.stop();
     logFile.close();
     // Wait before next attempt
-    vTaskDelay(30000 / portTICK_PERIOD_MS);  // 30 seconds delay
+    
   }
+  vTaskDelay(30000 / portTICK_PERIOD_MS);  // 30 seconds delay
 }
 
 void setup() {
@@ -625,9 +626,9 @@ void setup() {
     sdStatus = true;
   }
 
-  if (!checkLog(logName)) {
-    createLog(logName);
-  }
+  // if (!checkLog(logName)) {
+  //   createLog(logName);
+  // }
 
   // Choose Product
   chooseProduct();
