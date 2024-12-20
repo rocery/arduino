@@ -538,13 +538,13 @@ void sendLog(void* parameter) {
         Serial.println("JSON parsing failed");
       }
       const char* status = doc["status"];
-      const char* jumlah_data = doc["jumlah_data"];
+      int jumlah_data = doc["jumlah_data"];
       Serial.print("Status: ");
       Serial.println(status);
 
       if (status == "success") {
         sendLogCounter++;
-        totalLineCount += jumlah_data.toInt();
+        totalLineCount =+ jumlah_data;
         deleteLog(logName);
       }
     
