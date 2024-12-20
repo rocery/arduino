@@ -531,21 +531,23 @@ void sendLog(void* parameter) {
         Serial.println(response);
       }
       Serial.println("File sent attempt completed");
-      StaticJsonDocument<256> doc;  // Sesuaikan ukuran buffer
+      
+      StaticJsonDocument<256> doc;
+      DeserializationError error = deserializeJson(doc, responseBody);
+      if (error) {
+        Serial.println("JSON parsing failed");
+      }
+      const char* status = doc["status"];
+      const char* jumlah_data = doc["jumlah_data"];
+      Serial.print("Status: ");
+      Serial.println(status);
 
-        DeserializationError error = deserializeJson(doc, responseBody);
-        if (error) {
-
-          Serial.println("JSON parsing failed");
-
-        }
-        // Ambil filename
-
-          const char* status = doc["status"];
-
-          Serial.print("Status: ");
-
-          Serial.println(status);
+      if (status == "success") {
+        sendLogCounter++;
+        totalLineCount += jumlah_data.toInt();
+        deleteLog(logName);
+      }
+    
     } else {
       Serial.println("Connection failed");
     }
