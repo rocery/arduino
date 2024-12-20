@@ -80,10 +80,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
         // Gabungkan informasi proses dengan konten file asli
         $logFileContent = "Proses selesai.\nBerhasil: $successCount baris\nGagal: $failCount baris\n\n--- Konten File Asli ---\n" . $originalFileContent;
 
-        file_put_contents($logFileName, $logFileContent))
 
         echo
-    } else {
+    } else {}
         echo "Gagal membaca file.";
     }
 } else {

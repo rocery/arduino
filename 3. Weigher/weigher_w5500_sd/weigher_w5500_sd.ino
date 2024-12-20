@@ -88,6 +88,7 @@ int buttonSelectState = 0;
 #define SD_CS 4
 bool sdStatus = false;
 const char* logName = "/weigherLog31.txt";
+volatile bool isDeleteLogAllowed = true;
 
 // TASK HANDLER CORE 0 FOR SEND DATA
 TaskHandle_t SendLogTaskHandle;
@@ -401,6 +402,11 @@ bool appendLog(const char* path, const char* log) {
 }
 
 bool deleteLog(const char* path) {
+  if (!isDeleteLogAllowed) {
+    Serial.println("Delete log dibatalkan");
+    return false;
+  }
+
   if (SD.remove(path)) {
     Serial.println("File deleted");
     return true;
@@ -522,7 +528,7 @@ void sendLog(void* parameter) {
         Serial.println(response);
         Serial.println("==================");
         Serial.println(responseBody);
-    
+
       } else {
         Serial.print("File upload failed. Status code: ");
         Serial.println(statusCode);
@@ -530,7 +536,7 @@ void sendLog(void* parameter) {
         Serial.println(response);
       }
       Serial.println("File sent attempt completed");
-      
+
       StaticJsonDocument<256> doc;
       DeserializationError error = deserializeJson(doc, responseBody);
       if (error) {
@@ -542,14 +548,15 @@ void sendLog(void* parameter) {
       Serial.println(status);
       Serial.print("Jumlah data: ");
       Serial.println(jumlah_data);
-      
+
 
       if (String(status) == "success") {
         sendLogCounter++;
         totalLineCount = totalLineCount + jumlah_data;
+        vTaskDelay(pdMS_TO_TICKS(1000));
         deleteLog(logName);
       }
-    
+
     } else {
       Serial.println("Connection failed");
     }
@@ -558,7 +565,7 @@ void sendLog(void* parameter) {
     logFile.close();
     // Wait before next attempt
     vTaskDelay(30000 / portTICK_PERIOD_MS);  // 30 seconds delay
-  } 
+  }
 }
 
 void setup() {
@@ -689,47 +696,51 @@ void loop() {
   }
 
   if (isButtonPressed(buttonSelect)) {
+    isDeleteLogAllowed = false;
+    vTaskSuspend(SendLogTaskHandle);
     lcd.clear();
     while (isButtonPressed(buttonSelect)) {
-        lcd.setCursor(0, 0);
-        lcd.print("  SIMPAN DATA  ");
-        vTaskDelay(pdMS_TO_TICKS(100));  // Prevent blocking in FreeRTOS
+      lcd.setCursor(0, 0);
+      lcd.print("  SIMPAN DATA  ");
     }
 
     if (!sdStatus) {
-        if (lanStatus == "D") {
-            lcd.setCursor(0, 1);
-            lcd.print("X, LAN ERROR");
-            sendDataCounterFailed++;
-            vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
+      if (lanStatus == "D") {
+        lcd.setCursor(0, 1);
+        lcd.print("X, LAN ERROR");
+        sendDataCounterFailed++;
+        delay(1000);
+      } else {
+        postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
+        if (!sendData()) {
+          lcd.setCursor(0, 1);
+          lcd.print("X, HUBUNGI IT");
+          sendDataCounterFailed++;
+          delay(1000);
         } else {
-            postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
-            if (!sendData()) {
-                lcd.setCursor(0, 1);
-                lcd.print("X, HUBUNGI IT");
-                sendDataCounterFailed++;
-                vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
-            } else {
-                lcd.setCursor(0, 1);
-                lcd.print(" BERHASIL : ");
-                sendDataCounter++;
-                lcd.print(sendDataCounter);
-            }
+          lcd.setCursor(0, 1);
+          lcd.print(" BERHASIL : ");
+          sendDataCounter++;
+          lcd.print(sendDataCounter);
         }
+      }
     } else {
-        postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
+      postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
 
-        if (!appendLog(logName, postData.c_str())) {
-            lcd.setCursor(0, 1);
-            lcd.print("DATA GGL DISAVE");
-            saveDataConterFailed++;
-            vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
-        } else {
-            saveDataConter++;
-        }
+      if (!appendLog(logName, postData.c_str())) {
+        lcd.setCursor(0, 1);
+        lcd.print("DATA GGL DISAVE");
+        saveDataConterFailed++;
+        delay(1000);
+      } else {
+        saveDataConter++;
+      }
     }
+
+    isDeleteLogAllowed = true;
+    vTaskResume(SendLogTaskHandle);
     lcd.clear();
-}
+  }
 
   if (isButtonPressed(buttonUp)) {
     lcd.clear();
