@@ -691,48 +691,45 @@ void loop() {
   if (isButtonPressed(buttonSelect)) {
     lcd.clear();
     while (isButtonPressed(buttonSelect)) {
-      lcd.setCursor(0, 0);
-      lcd.print("  SIMPAN DATA  ");
+        lcd.setCursor(0, 0);
+        lcd.print("  SIMPAN DATA  ");
+        vTaskDelay(pdMS_TO_TICKS(100));  // Prevent blocking in FreeRTOS
     }
 
     if (!sdStatus) {
-      if (lanStatus == "D") {
-        lcd.setCursor(0, 1);
-        lcd.print("X, LAN ERROR");
-        sendDataCounterFailed++;
-        delay(1000);
-      } else {
-        postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
-        if (!sendData()) {
-          lcd.setCursor(0, 1);
-          lcd.print("X, HUBUNGI IT");
-          sendDataCounterFailed++;
-          delay(1000);
+        if (lanStatus == "D") {
+            lcd.setCursor(0, 1);
+            lcd.print("X, LAN ERROR");
+            sendDataCounterFailed++;
+            vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
         } else {
-          lcd.setCursor(0, 1);
-          lcd.print(" BERHASIL : ");
-          sendDataCounter++;
-          lcd.print(sendDataCounter);
-          // delay(100);
+            postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
+            if (!sendData()) {
+                lcd.setCursor(0, 1);
+                lcd.print("X, HUBUNGI IT");
+                sendDataCounterFailed++;
+                vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
+            } else {
+                lcd.setCursor(0, 1);
+                lcd.print(" BERHASIL : ");
+                sendDataCounter++;
+                lcd.print(sendDataCounter);
+            }
         }
-      }
     } else {
-      postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
-      // if (!checkLog(logName)) {
-      //   createLog(logName);
-      // }
+        postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
 
-      if (!appendLog(logName, postData.c_str())) {
-        lcd.setCursor(0, 1);
-        lcd.print("DATA GGL DISAVE");
-        saveDataConterFailed++;
-        delay(1000);
-      } else {
-        saveDataConter++;
-      }
+        if (!appendLog(logName, postData.c_str())) {
+            lcd.setCursor(0, 1);
+            lcd.print("DATA GGL DISAVE");
+            saveDataConterFailed++;
+            vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
+        } else {
+            saveDataConter++;
+        }
     }
     lcd.clear();
-  }
+}
 
   if (isButtonPressed(buttonUp)) {
     lcd.clear();
