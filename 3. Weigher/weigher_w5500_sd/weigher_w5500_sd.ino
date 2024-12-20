@@ -523,7 +523,15 @@ void sendLog(void* parameter) {
         Serial.println(response);
         Serial.println("==================");
         Serial.println(responseBody);
-        StaticJsonDocument<256> doc;  // Sesuaikan ukuran buffer
+    
+      } else {
+        Serial.print("File upload failed. Status code: ");
+        Serial.println(statusCode);
+        Serial.println("Response:");
+        Serial.println(response);
+      }
+      Serial.println("File sent attempt completed");
+      StaticJsonDocument<256> doc;  // Sesuaikan ukuran buffer
 
         DeserializationError error = deserializeJson(doc, responseBody);
         if (error) {
@@ -538,14 +546,6 @@ void sendLog(void* parameter) {
           Serial.print("Status: ");
 
           Serial.println(status);
-    
-      } else {
-        Serial.print("File upload failed. Status code: ");
-        Serial.println(statusCode);
-        Serial.println("Response:");
-        Serial.println(response);
-      }
-      Serial.println("File sent attempt completed");
     } else {
       Serial.println("Connection failed");
     }
