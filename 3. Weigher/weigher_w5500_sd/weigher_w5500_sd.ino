@@ -546,7 +546,7 @@ void sendLog(void* parameter) {
 
       if (String(status) == "success") {
         sendLogCounter++;
-        totalLineCount =+ jumlah_data;
+        totalLineCount = totalLineCount + jumlah_data;
         deleteLog(logName);
       }
     
