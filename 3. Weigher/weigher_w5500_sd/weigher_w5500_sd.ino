@@ -11,6 +11,7 @@
 #include <SPI.h>
 #include <FS.h>
 #include <SD.h>
+#include <ArduinoJson.h>
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
@@ -518,13 +519,26 @@ void sendLog(void* parameter) {
       if (statusCode == 200) {
         Serial.println("File upload successful");
         Serial.println("Server Response Headers:");
-        // Serial.println(response);
-        // Serial.println("Response Body:");
-        // Serial.println(responseBody);
-        Serial.println("==================\n");
+        Serial.println("==================");
         Serial.println(response);
-        Serial.println("===================\n");
+        Serial.println("==================");
         Serial.println(responseBody);
+        StaticJsonDocument<256> doc;  // Sesuaikan ukuran buffer
+
+        DeserializationError error = deserializeJson(doc, responseBody);
+        if (error) {
+
+          Serial.println("JSON parsing failed");
+
+        }
+        // Ambil filename
+
+          const char* status = doc["status"];
+
+          Serial.print("Status: ");
+
+          Serial.println(status);
+    
       } else {
         Serial.print("File upload failed. Status code: ");
         Serial.println(statusCode);
