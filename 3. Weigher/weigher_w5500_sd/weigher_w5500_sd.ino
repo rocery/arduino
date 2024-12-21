@@ -93,6 +93,17 @@ volatile bool isDeleteLogAllowed = true;
 // TASK HANDLER CORE 0 FOR SEND DATA
 TaskHandle_t SendLogTaskHandle;
 
+String generateRandomLogName() {
+  String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  String randomName = "/";
+  
+  for (int i = 0; i < 8; i++) {
+    randomName += chars[random(chars.length())];
+  }
+  
+  return randomName + ".txt";
+}
+
 float readFloatFromEEPROM(int address) {
   float value = EEPROM.get(address, value);
   return value;
@@ -421,12 +432,14 @@ bool deleteAllLog() {
     File file;
     while ((file = root.openNextFile())) {
       String fileName = file.name();
-      if (fileName.endsWith(".txt")) {
+      // Check if the file is a .txt file and not specifically "/log.txt"
+      if (fileName.endsWith(".txt") && fileName != logName) {
         SD.remove(fileName.c_str());
       }
       file.close();
     }
     root.close();
+    logName = generateRandomLogName();
     return true;
   } else {
     return false;
@@ -553,8 +566,8 @@ void sendLog(void* parameter) {
       if (String(status) == "success") {
         sendLogCounter++;
         totalLineCount = totalLineCount + jumlah_data;
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        deleteLog(logName);
+        // vTaskDelay(pdMS_TO_TICKS(1000));
+        deleteAllLog(logName);
       }
 
     } else {
@@ -696,8 +709,8 @@ void loop() {
   }
 
   if (isButtonPressed(buttonSelect)) {
-    isDeleteLogAllowed = false;
-    vTaskSuspend(SendLogTaskHandle);
+  //   isDeleteLogAllowed = false;
+  //   vTaskSuspend(SendLogTaskHandle);
     lcd.clear();
     while (isButtonPressed(buttonSelect)) {
       lcd.setCursor(0, 0);
@@ -725,6 +738,11 @@ void loop() {
         }
       }
     } else {
+      if (!checkLog(logName)) {
+        logName = generateRandomLogName();
+        createLog(logName);
+      }
+
       postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
 
       if (!appendLog(logName, postData.c_str())) {
@@ -737,8 +755,8 @@ void loop() {
       }
     }
 
-    isDeleteLogAllowed = true;
-    vTaskResume(SendLogTaskHandle);
+    // isDeleteLogAllowed = true;
+    // vTaskResume(SendLogTaskHandle);
     lcd.clear();
   }
 
