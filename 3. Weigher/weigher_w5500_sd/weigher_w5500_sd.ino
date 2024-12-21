@@ -697,7 +697,13 @@ void loop() {
 
   Serial.println("Send Status: " + String(sendStatus));
 
-  if (isButtonPressed(buttonSelect) && !sendStatus) {
+  if (isButtonPressed(buttonSelect)) {
+    if (senddStatus) {
+      lcd.clear();
+      lcd.print("  LOADING  ");
+      vTaskDelay(pdMS_TO_TICKS(4000));
+    }
+
     lcd.clear();
     while (isButtonPressed(buttonSelect)) {
         lcd.setCursor(0, 0);
@@ -728,7 +734,7 @@ void loop() {
     } else {
         postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
 
-        if (!appendLog(logName, postData.c_str()) || sendStatus) {
+        if (!appendLog(logName, postData.c_str()) && sendStatus) {
             lcd.setCursor(0, 1);
             lcd.print("DATA GGL DISAVE");
             saveDataConterFailed++;
@@ -738,7 +744,8 @@ void loop() {
         }
     }
     lcd.clear();
-}
+  }
+
 
   if (isButtonPressed(buttonUp)) {
     lcd.clear();
