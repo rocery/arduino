@@ -87,22 +87,10 @@ int buttonSelectState = 0;
 // SD CARD
 #define SD_CS 4
 bool sdStatus = false;
-String logName;
-volatile bool isDeleteLogAllowed = true;
+const char* logName = "/weigherLog31.txt";
 
 // TASK HANDLER CORE 0 FOR SEND DATA
 TaskHandle_t SendLogTaskHandle;
-
-String generateRandomLogName() {
-  String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  String randomName = "/";
-  
-  for (int i = 0; i < 8; i++) {
-    randomName += chars[random(chars.length())];
-  }
-  
-  return randomName + ".txt";
-}
 
 float readFloatFromEEPROM(int address) {
   float value = EEPROM.get(address, value);
@@ -413,11 +401,6 @@ bool appendLog(const char* path, const char* log) {
 }
 
 bool deleteLog(const char* path) {
-  if (!isDeleteLogAllowed) {
-    Serial.println("Delete log dibatalkan");
-    return false;
-  }
-
   if (SD.remove(path)) {
     Serial.println("File deleted");
     return true;
@@ -432,14 +415,12 @@ bool deleteAllLog() {
     File file;
     while ((file = root.openNextFile())) {
       String fileName = file.name();
-      // Check if the file is a .txt file and not specifically "/log.txt"
-      if (fileName.endsWith(".txt") && fileName != logName) {
+      if (fileName.endsWith(".txt")) {
         SD.remove(fileName.c_str());
       }
       file.close();
     }
     root.close();
-    logName = generateRandomLogName();
     return true;
   } else {
     return false;
@@ -457,7 +438,7 @@ void sendLog(void* parameter) {
     Serial.print("File size: ");
     Serial.println(fileSize);
 
-    if (client.connect(serverAddress, serverPort) && checkLog(logName.c_str()) && fileSize > 0) {
+    if (client.connect(serverAddress, serverPort) && checkLog(logName) && fileSize > 0) {
       Serial.println("Connected to server");
 
       String boundary = "------------------------abcdef123456";
@@ -541,7 +522,7 @@ void sendLog(void* parameter) {
         Serial.println(response);
         Serial.println("==================");
         Serial.println(responseBody);
-
+    
       } else {
         Serial.print("File upload failed. Status code: ");
         Serial.println(statusCode);
@@ -549,7 +530,7 @@ void sendLog(void* parameter) {
         Serial.println(response);
       }
       Serial.println("File sent attempt completed");
-
+      
       StaticJsonDocument<256> doc;
       DeserializationError error = deserializeJson(doc, responseBody);
       if (error) {
@@ -561,15 +542,14 @@ void sendLog(void* parameter) {
       Serial.println(status);
       Serial.print("Jumlah data: ");
       Serial.println(jumlah_data);
-
+      
 
       if (String(status) == "success") {
         sendLogCounter++;
         totalLineCount = totalLineCount + jumlah_data;
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-        deleteAllLog();
+        deleteLog(logName);
       }
-
+    
     } else {
       Serial.println("Connection failed");
     }
@@ -578,7 +558,7 @@ void sendLog(void* parameter) {
     logFile.close();
     // Wait before next attempt
     vTaskDelay(30000 / portTICK_PERIOD_MS);  // 30 seconds delay
-  }
+  } 
 }
 
 void setup() {
@@ -709,56 +689,47 @@ void loop() {
   }
 
   if (isButtonPressed(buttonSelect)) {
-  //   isDeleteLogAllowed = false;
-  //   vTaskSuspend(SendLogTaskHandle);
     lcd.clear();
     while (isButtonPressed(buttonSelect)) {
-      lcd.setCursor(0, 0);
-      lcd.print("  SIMPAN DATA  ");
+        lcd.setCursor(0, 0);
+        lcd.print("  SIMPAN DATA  ");
+        vTaskDelay(pdMS_TO_TICKS(100));  // Prevent blocking in FreeRTOS
     }
 
     if (!sdStatus) {
-      if (lanStatus == "D") {
-        lcd.setCursor(0, 1);
-        lcd.print("X, LAN ERROR");
-        sendDataCounterFailed++;
-        delay(1000);
-      } else {
-        postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
-        if (!sendData()) {
-          lcd.setCursor(0, 1);
-          lcd.print("X, HUBUNGI IT");
-          sendDataCounterFailed++;
-          delay(1000);
+        if (lanStatus == "D") {
+            lcd.setCursor(0, 1);
+            lcd.print("X, LAN ERROR");
+            sendDataCounterFailed++;
+            vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
         } else {
-          lcd.setCursor(0, 1);
-          lcd.print(" BERHASIL : ");
-          sendDataCounter++;
-          lcd.print(sendDataCounter);
+            postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
+            if (!sendData()) {
+                lcd.setCursor(0, 1);
+                lcd.print("X, HUBUNGI IT");
+                sendDataCounterFailed++;
+                vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
+            } else {
+                lcd.setCursor(0, 1);
+                lcd.print(" BERHASIL : ");
+                sendDataCounter++;
+                lcd.print(sendDataCounter);
+            }
         }
-      }
     } else {
-      if (!checkLog(logName.c_str())) {
-        logName = generateRandomLogName();
-        createLog(logName.c_str());
-      }
+        postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
 
-      postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
-
-      if (!appendLog(logName.c_str(), postData.c_str())) {
-        lcd.setCursor(0, 1);
-        lcd.print("DATA GGL DISAVE");
-        saveDataConterFailed++;
-        delay(1000);
-      } else {
-        saveDataConter++;
-      }
+        if (!appendLog(logName, postData.c_str())) {
+            lcd.setCursor(0, 1);
+            lcd.print("DATA GGL DISAVE");
+            saveDataConterFailed++;
+            vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
+        } else {
+            saveDataConter++;
+        }
     }
-
-    // isDeleteLogAllowed = true;
-    // vTaskResume(SendLogTaskHandle);
     lcd.clear();
-  }
+}
 
   if (isButtonPressed(buttonUp)) {
     lcd.clear();
