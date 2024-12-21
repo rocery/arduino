@@ -1,8 +1,3 @@
-/*
- * TODO
- * 2. Handling jika log gagal diproses di server
-*/
-
 #include <HX711.h>
 #include <LiquidCrystal_I2C.h>
 #include <EEPROM.h>
