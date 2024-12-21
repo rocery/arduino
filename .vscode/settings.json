@@ -1,7 +1,12 @@
 {
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
+        "*.ndjson": "jsonl",
+        "*.dbclient-js": "javascript",
         "ostream": "cpp",
-        "cstddef": "cpp"
+        "cstddef": "cpp",
+        "bitset": "cpp",
+        "string_view": "cpp",
+        "regex": "cpp"
     }
 }

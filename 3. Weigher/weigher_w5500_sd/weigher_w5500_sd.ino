@@ -87,7 +87,7 @@ int buttonSelectState = 0;
 // SD CARD
 #define SD_CS 4
 bool sdStatus = false;
-const char* logName = "/weigherLog31.txt";
+String logName;
 volatile bool isDeleteLogAllowed = true;
 
 // TASK HANDLER CORE 0 FOR SEND DATA
@@ -457,7 +457,7 @@ void sendLog(void* parameter) {
     Serial.print("File size: ");
     Serial.println(fileSize);
 
-    if (client.connect(serverAddress, serverPort) && checkLog(logName) && fileSize > 0) {
+    if (client.connect(serverAddress, serverPort) && checkLog(logName.c_str()) && fileSize > 0) {
       Serial.println("Connected to server");
 
       String boundary = "------------------------abcdef123456";
@@ -738,14 +738,14 @@ void loop() {
         }
       }
     } else {
-      if (!checkLog(logName)) {
+      if (!checkLog(logName.c_str())) {
         logName = generateRandomLogName();
         createLog(logName.c_str());
       }
 
       postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
 
-      if (!appendLog(logName, postData.c_str())) {
+      if (!appendLog(logName.c_str(), postData.c_str())) {
         lcd.setCursor(0, 1);
         lcd.print("DATA GGL DISAVE");
         saveDataConterFailed++;
