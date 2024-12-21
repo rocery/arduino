@@ -31,7 +31,7 @@ EthernetClient client;
 
 // NETWORK STATUS
 String ip_Address = "192.168.7." + String(ip);
-String postData, lanStatus;
+String postData, lanStatus, sendStatus;
 
 // LOAD CELL
 const int LOADCELL_DOUT_PIN = 26;
@@ -82,17 +82,7 @@ int buttonSelectState = 0;
 // SD CARD
 #define SD_CS 4
 bool sdStatus = false;
-String logName;
-
-String generateRandomLogName() {
-  String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  String randomName = "/weigherLog_";
-  // Generate 8 random characters
-  for (int i = 0; i < 8; i++) {
-    randomName += chars[random(chars.length())];
-  }
-  return randomName + ".txt";
-}
+const char* logName = "/weigherLog31.txt";
 
 // TASK HANDLER CORE 0 FOR SEND DATA
 TaskHandle_t SendLogTaskHandle;
@@ -375,107 +365,61 @@ bool checkConnectionLan() {
   }
 }
 
-// Modify functions to use String logName instead of const char*
-
-bool checkLog() {
-
-  if (SD.exists(logName.c_str())) {
-
+bool checkLog(const char* path) {
+  if (SD.exists(path)) {
     return true;
-
   } else {
-
     return false;
-
   }
-
 }
 
-
-bool createLog() {
-
-  File file = SD.open(logName, FILE_WRITE);
-
+bool createLog(const char* path) {
+  File file = SD.open(path, FILE_WRITE);
   if (file) {
-
     file.close();
-
     return true;
-
   } else {
-
     return false;
-
   }
-
 }
 
-
-bool appendLog(const char* log) {
-
-  File file = SD.open(logName, FILE_APPEND);
-
+bool appendLog(const char* path, const char* log) {
+  File file = SD.open(path, FILE_APPEND);
   if (file) {
-
     file.println(log);
-
     file.close();
-
     Serial.println(log);
-
     return true;
-
   } else {
-
     return false;
-
   }
-
 }
 
-
-bool deleteLog() {
-
-  if (SD.remove(logName.c_str())) {
-
+bool deleteLog(const char* path) {
+  if (SD.remove(path)) {
     Serial.println("File deleted");
-
     return true;
-
   } else {
-
     return false;
-
   }
-
 }
 
-
-bool deleteOldLogFiles() {
+bool deleteAllLog() {
   File root = SD.open("/");
-  int logFileCount = 0;
-  
-  while (true) {
-    File entry = root.openNextFile();
-    if (!entry) {
-      break;  // No more files
-    }
-    
-    String fileName = entry.name();
-    if (fileName.startsWith("/weigherLog_") && fileName.endsWith(".txt")) {
-      logFileCount++;
-      
-      // Keep only the last 5 log files
-      if (logFileCount > 5) {
+  if (root) {
+    File file;
+    while ((file = root.openNextFile())) {
+      String fileName = file.name();
+      if (fileName.endsWith(".txt")) {
         SD.remove(fileName.c_str());
       }
+      file.close();
     }
-    
-    entry.close();
+    root.close();
+    return true;
+  } else {
+    return false;
   }
-  
-  root.close();
-  return true;
 }
 
 void sendLog(void* parameter) {
@@ -489,7 +433,8 @@ void sendLog(void* parameter) {
     Serial.print("File size: ");
     Serial.println(fileSize);
 
-    if (client.connect(serverAddress, serverPort) && checkLog() && fileSize > 0) {
+    if (client.connect(serverAddress, serverPort) && checkLog(logName) && fileSize > 0) {
+      sendStatus = true;
       Serial.println("Connected to server");
 
       String boundary = "------------------------abcdef123456";
@@ -598,8 +543,7 @@ void sendLog(void* parameter) {
       if (String(status) == "success") {
         sendLogCounter++;
         totalLineCount = totalLineCount + jumlah_data;
-        deleteOldLogFiles();
-        logName = generateRandomLogName();
+        deleteLog(logName);
       }
     
     } else {
@@ -608,6 +552,7 @@ void sendLog(void* parameter) {
 
     client.stop();
     logFile.close();
+    sendStatus = false;
     // Wait before next attempt
     vTaskDelay(30000 / portTICK_PERIOD_MS);  // 30 seconds delay
   } 
@@ -615,7 +560,8 @@ void sendLog(void* parameter) {
 
 void setup() {
   Serial.begin(9600);
-  randomSeed(analogRead(0));
+
+  sendStatus = false;
 
   // Setup button pins
   pinMode(buttonUp, INPUT_PULLUP);
@@ -741,6 +687,14 @@ void loop() {
     lcd.clear();
   }
 
+  while (sendStatus) {
+    lcd.setCursor(0, 0);
+    lcd.print("   SEDANG MENGIRIM   ");
+    lcd.setCursor(0, 1);
+    lcd.print("                ");
+    vTaskDelay(pdMS_TO_TICKS(100));
+  }
+
   if (isButtonPressed(buttonSelect)) {
     lcd.clear();
     while (isButtonPressed(buttonSelect)) {
@@ -772,7 +726,7 @@ void loop() {
     } else {
         postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
 
-        if (!appendLog(postData.c_str())) {
+        if (!appendLog(logName, postData.c_str()) || sendStatus) {
             lcd.setCursor(0, 1);
             lcd.print("DATA GGL DISAVE");
             saveDataConterFailed++;
