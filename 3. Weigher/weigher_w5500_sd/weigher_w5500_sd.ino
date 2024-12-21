@@ -689,10 +689,10 @@ void loop() {
 
   while (sendStatus) {
     lcd.setCursor(0, 0);
-    lcd.print("   SEDANG MENGIRIM   ");
+    lcd.print("   SEDANG MM    ");
     lcd.setCursor(0, 1);
     lcd.print("                ");
-    vTaskDelay(pdMS_TO_TICKS(100));
+    // vTaskDelay(pdMS_TO_TICKS(100));
   }
 
   if (isButtonPressed(buttonSelect)) {
