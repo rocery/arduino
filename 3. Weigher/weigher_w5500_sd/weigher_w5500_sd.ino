@@ -459,12 +459,12 @@ void sendLog(void* parameter) {
       client.println();
 
       // Send file in chunks
-      // while (logFile.available()) {
-      //   int bytesRead = logFile.read(buffer, CHUNK_SIZE);
-      //   if (bytesRead > 0) {
-      //     client.write(buffer, bytesRead);
-      //   }
-      // }
+      while (logFile.available()) {
+        int bytesRead = logFile.read(buffer, CHUNK_SIZE);
+        if (bytesRead > 0) {
+          client.write(buffer, bytesRead);
+        }
+      }
 
       // Properly close multipart form
       client.println();
@@ -687,13 +687,13 @@ void loop() {
     lcd.clear();
   }
 
-  while (sendStatus) {
-    lcd.setCursor(0, 0);
-    lcd.print("   SEDANG MM    ");
-    lcd.setCursor(0, 1);
-    lcd.print("                ");
-    // vTaskDelay(pdMS_TO_TICKS(100));
-  }
+  // while (sendStatus) {
+  //   lcd.setCursor(0, 0);
+  //   lcd.print("   SEDANG MM    ");
+  //   lcd.setCursor(0, 1);
+  //   lcd.print("                ");
+  //   // vTaskDelay(pdMS_TO_TICKS(100));
+  // }
 
   if (isButtonPressed(buttonSelect) && !sendStatus) {
     lcd.clear();
