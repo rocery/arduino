@@ -695,6 +695,8 @@ void loop() {
   //   // vTaskDelay(pdMS_TO_TICKS(100));
   // }
 
+  Serial.println("Send Status: " + String(sendStatus));
+
   if (isButtonPressed(buttonSelect) && !sendStatus) {
     lcd.clear();
     while (isButtonPressed(buttonSelect)) {
