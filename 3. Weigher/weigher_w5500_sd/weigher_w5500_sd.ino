@@ -567,7 +567,7 @@ void sendLog(void* parameter) {
         sendLogCounter++;
         totalLineCount = totalLineCount + jumlah_data;
         // vTaskDelay(pdMS_TO_TICKS(1000));
-        deleteAllLog(logName);
+        deleteAllLog();
       }
 
     } else {
@@ -740,7 +740,7 @@ void loop() {
     } else {
       if (!checkLog(logName)) {
         logName = generateRandomLogName();
-        createLog(logName);
+        createLog(logName.c_str());
       }
 
       postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
