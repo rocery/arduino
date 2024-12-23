@@ -433,50 +433,59 @@ void sendLog(void* parameter) {
     unsigned long currentTime = millis();
     // Check button press without blocking
     if (isButtonPressed(buttonSelect)) {
-      // lcd.clear();
-      
-      // Wait for button release with non-blocking approach
+      unsigned long buttonPressStartTime = millis();
+      bool longPressCancelled = false;
+
+      // Wait for button release or long press
       while (isButtonPressed(buttonSelect)) {
-        // lcd.setCursor(0, 0);
-        // lcd.print("  SIMPAN DATA  ");
-        vTaskDelay(pdMS_TO_TICKS(100));  // Prevent blocking in FreeRTOS
+        unsigned long currentPressTime = millis();
+        
+        // Check if button is pressed for more than 500 ms
+        if (currentPressTime - buttonPressStartTime >= 500) {
+          longPressCancelled = true;
+          break;
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(10));  // Small delay to prevent tight looping
       }
-      // Rest of your button press handling logic remains the same
-      if (!sdStatus) {
-        if (lanStatus == "D") {
-          lcd.setCursor(0, 1);
-          lcd.print("X, LAN ERROR");
-          sendDataCounterFailed++;
-          vTaskDelay(pdMS_TO_TICKS(1000));
-        } else {
-          postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
-          if (!sendData()) {
+
+      // Only execute if button was pressed for less than 500 ms
+      if (!longPressCancelled) {
+        if (!sdStatus) {
+          if (lanStatus == "D") {
             lcd.setCursor(0, 1);
-            lcd.print("X, HUBUNGI IT");
+            lcd.print("X, LAN ERROR");
             sendDataCounterFailed++;
             vTaskDelay(pdMS_TO_TICKS(1000));
           } else {
-            // lcd.setCursor(0, 1);
-            // lcd.print(" BERHASIL : ");
-            sendDataCounter++;
-            lcd.print(sendDataCounter);
+            postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
+            if (!sendData()) {
+              lcd.setCursor(0, 1);
+              lcd.print("X, HUBUNGI IT");
+              sendDataCounterFailed++;
+              vTaskDelay(pdMS_TO_TICKS(1000));
+            } else {
+              sendDataCounter++;
+              lcd.print(sendDataCounter);
+            }
+          }
+        } else {
+          postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
+          
+          if (!checkLog(logName)) {
+            createLog(logName);
+          }
+          
+          if (!appendLog(logName, postData.c_str())) {
+            lcd.setCursor(0, 1);
+            lcd.print("DATA GGL DISAVE");
+            saveDataConterFailed++;
+            vTaskDelay(pdMS_TO_TICKS(1000));
+          } else {
+            saveDataConter++;
           }
         }
-      } else {
-        postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
-        if (!checkLog(logName)) {
-          createLog(logName);
-        }
-        if (!appendLog(logName, postData.c_str())) {
-          lcd.setCursor(0, 1);
-          lcd.print("DATA GGL DISAVE");
-          saveDataConterFailed++;
-          vTaskDelay(pdMS_TO_TICKS(1000));
-        } else {
-          saveDataConter++;
-        }
       }
-      // lcd.clear();
     }
     // Periodic server check with non-blocking approach
     if (currentTime - lastServerCheckTime >= SERVER_CHECK_INTERVAL) {
