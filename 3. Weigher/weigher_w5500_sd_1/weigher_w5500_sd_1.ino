@@ -442,7 +442,7 @@ void sendLog(void* parameter) {
         
         // Check if button is pressed for more than 500 ms
         if (currentPressTime - buttonPressStartTime >= 500) {
-          longPressCancelled = true;
+          longPressCancelled = false;
           break;
         }
         
