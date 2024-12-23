@@ -427,66 +427,66 @@ bool deleteAllLog() {
 }
 
 void sendLog(void* parameter) {
+  bool buttonProcessed = false;
   unsigned long lastServerCheckTime = 0;
   const unsigned long SERVER_CHECK_INTERVAL = 30000; // 30 seconds
   while (true) {
     unsigned long currentTime = millis();
-    // Check button press without blocking
+
     if (isButtonPressed(buttonSelect)) {
       unsigned long buttonPressStartTime = millis();
-      bool longPressCancelled = false;
+      buttonProcessed = false;
 
-      // Wait for button release or long press
+      // Wait for button release
       while (isButtonPressed(buttonSelect)) {
         unsigned long currentPressTime = millis();
-        
+      
         // Check if button is pressed for more than 500 ms
-        if (currentPressTime - buttonPressStartTime >= 500) {
-          longPressCancelled = false;
-          break;
+        if (currentPressTime - buttonPressStartTime >= 500 && !buttonProcessed) 
+          // Execute code when button is pressed longer than 0.5 seconds
+          if (!sdStatus) {
+            if (lanStatus == "D") {
+              lcd.setCursor(0, 1);
+              lcd.print("X, LAN ERROR");
+              sendDataCounterFailed++;
+              vTaskDelay(pdMS_TO_TICKS(1000));
+            } else {
+              postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
+              if (!sendData()) {
+                lcd.setCursor(0, 1);
+                lcd.print("X, HUBUNGI IT");
+                sendDataCounterFailed++;
+                vTaskDelay(pdMS_TO_TICKS(1000));
+              } else {
+                sendDataCounter++;
+                lcd.print(sendDataCounter);
+              }
+            }
+          } else {
+            postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
+            
+            if (!checkLog(logName)) {
+              createLog(logName);
+            }
+            
+            if (!appendLog(logName, postData.c_str())) {
+              lcd.setCursor(0, 1);
+              lcd.print("DATA GGL DISAVE");
+              saveDataConterFailed++;
+              vTaskDelay(pdMS_TO_TICKS(1000));
+            } else {
+              saveDataConter++;
+            }
+          }
+          
+          // Mark as processed to prevent repeated execution
+          buttonProcessed = true;
         }
         
         vTaskDelay(pdMS_TO_TICKS(10));  // Small delay to prevent tight looping
       }
-
-      // Only execute if button was pressed for less than 500 ms
-      if (!longPressCancelled) {
-        if (!sdStatus) {
-          if (lanStatus == "D") {
-            lcd.setCursor(0, 1);
-            lcd.print("X, LAN ERROR");
-            sendDataCounterFailed++;
-            vTaskDelay(pdMS_TO_TICKS(1000));
-          } else {
-            postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
-            if (!sendData()) {
-              lcd.setCursor(0, 1);
-              lcd.print("X, HUBUNGI IT");
-              sendDataCounterFailed++;
-              vTaskDelay(pdMS_TO_TICKS(1000));
-            } else {
-              sendDataCounter++;
-              lcd.print(sendDataCounter);
-            }
-          }
-        } else {
-          postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
-          
-          if (!checkLog(logName)) {
-            createLog(logName);
-          }
-          
-          if (!appendLog(logName, postData.c_str())) {
-            lcd.setCursor(0, 1);
-            lcd.print("DATA GGL DISAVE");
-            saveDataConterFailed++;
-            vTaskDelay(pdMS_TO_TICKS(1000));
-          } else {
-            saveDataConter++;
-          }
-        }
-      }
     }
+
     // Periodic server check with non-blocking approach
     if (currentTime - lastServerCheckTime >= SERVER_CHECK_INTERVAL) {
       File logFile = SD.open(logName, FILE_READ);
