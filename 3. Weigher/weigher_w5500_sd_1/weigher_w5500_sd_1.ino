@@ -8,6 +8,8 @@
 #include <SD.h>
 #include <ArduinoJson.h>
 
+// a
+
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
 /**/ const String loc = "Kerupuk 31";
