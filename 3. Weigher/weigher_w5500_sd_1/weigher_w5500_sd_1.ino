@@ -1,3 +1,18 @@
+/*
+ * V. 2.0.1
+ * Update Terakhir : 23-12-2024
+ * 
+ * PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
+ * 
+ * Hal-hal yang perlu disesuaikan:
+ * 1. int ip
+ * 2. String loc
+ * 3. String prod
+ * 4. Pada function sendLog(), terdapat 2 baris form-data; name=\"file\"; filename=\"weigherLog31.txt\"
+ *    Ganti filename sesuai dengan nama file log yang akan diupload
+ * 5. const char* logName
+*/
+
 #include <HX711.h>
 #include <LiquidCrystal_I2C.h>
 #include <EEPROM.h>
@@ -7,8 +22,6 @@
 #include <FS.h>
 #include <SD.h>
 #include <ArduinoJson.h>
-
-// a
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
