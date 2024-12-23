@@ -20,11 +20,11 @@ String deviceID = "IoT-" + String(ip);
 int sendDataCounter, sendDataCounterFailed, sendLogCounter, sendLogCounterFailed, totalLineCount, saveDataConter, saveDataConterFailed;
 
 // SERVER API
-const char* serverAddress = "192.168.7.10";
+const char* serverAddress = "192.168.7.223";
 const char* serverPathData = "POST /iot/api/weigher/save_weigher.php HTTP/1.1";
 const char* serverPathLog = "POST /iot/api/weigher/save_weigher_log.php HTTP/1.1";
 const char* serverPathLog_Flask = "POST /weigher/upload_log_weigher HTTP/1.1";
-const int serverPort = 5000;
+const int serverPort = 5001;
 const int CHUNK_SIZE = 512;
 uint8_t buffer[CHUNK_SIZE];
 EthernetClient client;
@@ -429,7 +429,7 @@ bool deleteAllLog() {
 void sendLog(void* parameter) {
   bool buttonProcessed = false;
   unsigned long lastServerCheckTime = 0;
-  const unsigned long SERVER_CHECK_INTERVAL = 30000; // 30 seconds
+  const unsigned long SERVER_CHECK_INTERVAL = 30000;  // 30 seconds
   while (true) {
     unsigned long currentTime = millis();
 
@@ -440,9 +440,9 @@ void sendLog(void* parameter) {
       // Wait for button release
       while (isButtonPressed(buttonSelect)) {
         unsigned long currentPressTime = millis();
-      
+
         // Check if button is pressed for more than 500 ms
-        if (currentPressTime - buttonPressStartTime >= 500 && !buttonProcessed) 
+        if (currentPressTime - buttonPressStartTime >= 300 && !buttonProcessed) {
           // Execute code when button is pressed longer than 0.5 seconds
           if (!sdStatus) {
             if (lanStatus == "D") {
@@ -464,11 +464,11 @@ void sendLog(void* parameter) {
             }
           } else {
             postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
-            
+
             if (!checkLog(logName)) {
               createLog(logName);
             }
-            
+
             if (!appendLog(logName, postData.c_str())) {
               lcd.setCursor(0, 1);
               lcd.print("DATA GGL DISAVE");
@@ -478,11 +478,11 @@ void sendLog(void* parameter) {
               saveDataConter++;
             }
           }
-          
+
           // Mark as processed to prevent repeated execution
           buttonProcessed = true;
         }
-        
+
         vTaskDelay(pdMS_TO_TICKS(10));  // Small delay to prevent tight looping
       }
     }
@@ -582,7 +582,7 @@ void sendLog(void* parameter) {
           Serial.println(response);
           Serial.println("==================");
           Serial.println(responseBody);
-      
+
         } else {
           Serial.print("File upload failed. Status code: ");
           Serial.println(statusCode);
@@ -590,7 +590,7 @@ void sendLog(void* parameter) {
           Serial.println(response);
         }
         Serial.println("File sent attempt completed");
-        
+
         StaticJsonDocument<256> doc;
         DeserializationError error = deserializeJson(doc, responseBody);
         if (error) {
@@ -602,7 +602,7 @@ void sendLog(void* parameter) {
         Serial.println(status);
         Serial.print("Jumlah data: ");
         Serial.println(jumlah_data);
-        
+
 
         if (String(status) == "success") {
           sendLogCounter++;
@@ -620,7 +620,7 @@ void sendLog(void* parameter) {
     }
     // Small delay to prevent tight looping
     vTaskDelay(pdMS_TO_TICKS(100));
-  } 
+  }
 }
 
 void setup() {
@@ -841,5 +841,4 @@ void loop() {
     lcd.clear();
     lastLcdClearTime = currentTime;
   }
-
 }
