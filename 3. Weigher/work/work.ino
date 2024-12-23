@@ -81,3 +81,369 @@ void loop() {
   delay(1000);
   scale.power_up();
 }
+
+
+
+void sendLog(void* parameter) {
+  while (true) {
+    if (isButtonPressed(buttonSelect)) {
+      lcd.clear();
+      while (isButtonPressed(buttonSelect)) {
+          lcd.setCursor(0, 0);
+          lcd.print("  SIMPAN DATA  ");
+          vTaskDelay(pdMS_TO_TICKS(100));  // Prevent blocking in FreeRTOS
+      }
+
+      if (!sdStatus) {
+          if (lanStatus == "D") {
+              lcd.setCursor(0, 1);
+              lcd.print("X, LAN ERROR");
+              sendDataCounterFailed++;
+              vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
+          } else {
+              postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
+              if (!sendData()) {
+                  lcd.setCursor(0, 1);
+                  lcd.print("X, HUBUNGI IT");
+                  sendDataCounterFailed++;
+                  vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
+              } else {
+                  lcd.setCursor(0, 1);
+                  lcd.print(" BERHASIL : ");
+                  sendDataCounter++;
+                  lcd.print(sendDataCounter);
+              }
+          }
+      } else {
+          postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
+
+          if (!appendLog(logName, postData.c_str())) {
+              lcd.setCursor(0, 1);
+              lcd.print("DATA GGL DISAVE");
+              saveDataConterFailed++;
+              vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
+          } else {
+              saveDataConter++;
+          }
+      }
+    }
+
+    File logFile = SD.open(logName, FILE_READ);
+    if (!logFile) {
+      continue;
+    }
+
+    long fileSize = logFile.size();
+    Serial.print("File size: ");
+    Serial.println(fileSize);
+
+    if (client.connect(serverAddress, serverPort) && checkLog(logName) && fileSize > 0) {
+      Serial.println("Connected to server");
+
+      String boundary = "------------------------abcdef123456";
+
+      // Improved multipart form data headers
+      client.println("POST /weigher/upload_log_weigher HTTP/1.1");
+      client.println("Host: " + String(serverAddress));
+      client.println("Content-Type: multipart/form-data; boundary=" + boundary);
+
+      // Calculate content length more precisely
+      long contentLength =
+        String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
+
+      client.println("Content-Length: " + String(contentLength));
+      client.println("Connection: close");
+      client.println();
+
+      // Write multipart form data
+      client.println("--" + boundary);
+      client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"");
+      client.println("Content-Type: text/plain");
+      client.println();
+
+      // Send file in chunks
+      while (logFile.available()) {
+        int bytesRead = logFile.read(buffer, CHUNK_SIZE);
+        if (bytesRead > 0) {
+          client.write(buffer, bytesRead);
+        }
+      }
+
+      // Properly close multipart form
+      client.println();
+      client.println("--" + boundary + "--");
+
+      // Enhanced response handling
+      unsigned long timeout = millis();
+      String response = "";
+      int statusCode = 0;
+      bool headersComplete = false;
+      String responseBody = "";
+
+      while (client.connected() && millis() - timeout < 10000) {
+        if (client.available()) {
+          String line = client.readStringUntil('\n');
+
+          // Parse HTTP status code
+          if (line.startsWith("HTTP/1.1")) {
+            statusCode = line.substring(9, 12).toInt();
+            Serial.print("Server Response Status Code: ");
+            Serial.println(statusCode);
+          }
+
+          // Collect headers
+          if (!headersComplete) {
+            response += line;
+
+            // Check for end of headers
+            if (line.length() <= 2) {
+              headersComplete = true;
+              Serial.println("Headers complete");
+            }
+          }
+          // Collect response body
+          else {
+            responseBody += line;
+          }
+        }
+
+        // Break if no more data and headers are complete
+        if (!client.available() && headersComplete) {
+          break;
+        }
+      }
+
+      // Verify upload success
+      if (statusCode == 200) {
+        Serial.println("File upload successful");
+        Serial.println("Server Response Headers:");
+        Serial.println("==================");
+        Serial.println(response);
+        Serial.println("==================");
+        Serial.println(responseBody);
+    
+      } else {
+        Serial.print("File upload failed. Status code: ");
+        Serial.println(statusCode);
+        Serial.println("Response:");
+        Serial.println(response);
+      }
+      Serial.println("File sent attempt completed");
+      
+      StaticJsonDocument<256> doc;
+      DeserializationError error = deserializeJson(doc, responseBody);
+      if (error) {
+        Serial.println("JSON parsing failed");
+      }
+      const char* status = doc["status"];
+      int jumlah_data = doc["jumlah_data"];
+      Serial.print("Status: ");
+      Serial.println(status);
+      Serial.print("Jumlah data: ");
+      Serial.println(jumlah_data);
+      
+
+      if (String(status) == "success") {
+        sendLogCounter++;
+        totalLineCount = totalLineCount + jumlah_data;
+        deleteLog(logName);
+      }
+    
+    } else {
+      Serial.println("Connection failed");
+    }
+
+    client.stop();
+    logFile.close();
+    // Wait before next attempt
+    vTaskDelay(30000 / portTICK_PERIOD_MS);  // 30 seconds delay
+  } 
+}
+
+
+
+
+void sendLog(void* parameter) {
+  unsigned long lastServerCheckTime = 0;
+  const unsigned long SERVER_CHECK_INTERVAL = 30000; // 30 seconds
+  while (true) {
+    unsigned long currentTime = millis();
+    // Check button press without blocking
+    if (isButtonPressed(buttonSelect)) {
+      lcd.clear();
+      unsigned long buttonPressStartTime = millis();
+      
+      // Wait for button release with non-blocking approach
+      while (isButtonPressed(buttonSelect)) {
+        lcd.setCursor(0, 0);
+        lcd.print("  SIMPAN DATA  ");
+        vTaskDelay(pdMS_TO_TICKS(100));  // Prevent blocking in FreeRTOS
+      }
+      // Rest of your button press handling logic remains the same
+      if (!sdStatus) {
+        if (lanStatus == "D") {
+          lcd.setCursor(0, 1);
+          lcd.print("X, LAN ERROR");
+          sendDataCounterFailed++;
+          vTaskDelay(pdMS_TO_TICKS(1000));
+        } else {
+          postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
+          if (!sendData()) {
+            lcd.setCursor(0, 1);
+            lcd.print("X, HUBUNGI IT");
+            sendDataCounterFailed++;
+            vTaskDelay(pdMS_TO_TICKS(1000));
+          } else {
+            lcd.setCursor(0, 1);
+            lcd.print(" BERHASIL : ");
+            sendDataCounter++;
+            lcd.print(sendDataCounter);
+          }
+        }
+      } else {
+        postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
+        if (!appendLog(logName, postData.c_str())) {
+          lcd.setCursor(0, 1);
+          lcd.print("DATA GGL DISAVE");
+          saveDataConterFailed++;
+          vTaskDelay(pdMS_TO_TICKS(1000));
+        } else {
+          saveDataConter++;
+        }
+      }
+    }
+    // Periodic server check with non-blocking approach
+    if (currentTime - lastServerCheckTime >= SERVER_CHECK_INTERVAL) {
+      File logFile = SD.open(logName, FILE_READ);
+      if (!logFile) {
+        lastServerCheckTime = currentTime;
+        continue;
+      }
+      long fileSize = logFile.size();
+      Serial.print("File size: ");
+      Serial.println(fileSize);
+      if (client.connect(serverAddress, serverPort) && checkLog(logName) && fileSize > 0) {
+        // Your existing file upload logic remains the same
+        Serial.println("Connected to server");
+
+        String boundary = "------------------------abcdef123456";
+
+        // Improved multipart form data headers
+        client.println("POST /weigher/upload_log_weigher HTTP/1.1");
+        client.println("Host: " + String(serverAddress));
+        client.println("Content-Type: multipart/form-data; boundary=" + boundary);
+
+        // Calculate content length more precisely
+        long contentLength =
+          String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
+
+        client.println("Content-Length: " + String(contentLength));
+        client.println("Connection: close");
+        client.println();
+
+        // Write multipart form data
+        client.println("--" + boundary);
+        client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"");
+        client.println("Content-Type: text/plain");
+        client.println();
+
+        // Send file in chunks
+        while (logFile.available()) {
+          int bytesRead = logFile.read(buffer, CHUNK_SIZE);
+          if (bytesRead > 0) {
+            client.write(buffer, bytesRead);
+          }
+        }
+
+        // Properly close multipart form
+        client.println();
+        client.println("--" + boundary + "--");
+
+        // Enhanced response handling
+        unsigned long timeout = millis();
+        String response = "";
+        int statusCode = 0;
+        bool headersComplete = false;
+        String responseBody = "";
+
+        while (client.connected() && millis() - timeout < 10000) {
+          if (client.available()) {
+            String line = client.readStringUntil('\n');
+
+            // Parse HTTP status code
+            if (line.startsWith("HTTP/1.1")) {
+              statusCode = line.substring(9, 12).toInt();
+              Serial.print("Server Response Status Code: ");
+              Serial.println(statusCode);
+            }
+
+            // Collect headers
+            if (!headersComplete) {
+              response += line;
+
+              // Check for end of headers
+              if (line.length() <= 2) {
+                headersComplete = true;
+                Serial.println("Headers complete");
+              }
+            }
+            // Collect response body
+            else {
+              responseBody += line;
+            }
+          }
+
+          // Break if no more data and headers are complete
+          if (!client.available() && headersComplete) {
+            break;
+          }
+        }
+
+        // Verify upload success
+        if (statusCode == 200) {
+          Serial.println("File upload successful");
+          Serial.println("Server Response Headers:");
+          Serial.println("==================");
+          Serial.println(response);
+          Serial.println("==================");
+          Serial.println(responseBody);
+      
+        } else {
+          Serial.print("File upload failed. Status code: ");
+          Serial.println(statusCode);
+          Serial.println("Response:");
+          Serial.println(response);
+        }
+        Serial.println("File sent attempt completed");
+        
+        StaticJsonDocument<256> doc;
+        DeserializationError error = deserializeJson(doc, responseBody);
+        if (error) {
+          Serial.println("JSON parsing failed");
+        }
+        const char* status = doc["status"];
+        int jumlah_data = doc["jumlah_data"];
+        Serial.print("Status: ");
+        Serial.println(status);
+        Serial.print("Jumlah data: ");
+        Serial.println(jumlah_data);
+        
+
+        if (String(status) == "success") {
+          sendLogCounter++;
+          totalLineCount = totalLineCount + jumlah_data;
+          deleteLog(logName);
+        }
+
+        lastServerCheckTime = currentTime;
+      } else {
+        Serial.println("Connection failed");
+        lastServerCheckTime = currentTime;
+      }
+      client.stop();
+      logFile.close();
+    }
+    // Small delay to prevent tight looping
+    vTaskDelay(pdMS_TO_TICKS(100));
+  } 
+}
