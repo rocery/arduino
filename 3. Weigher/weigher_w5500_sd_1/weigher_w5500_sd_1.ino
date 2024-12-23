@@ -434,7 +434,6 @@ void sendLog(void* parameter) {
     // Check button press without blocking
     if (isButtonPressed(buttonSelect)) {
       // lcd.clear();
-      unsigned long buttonPressStartTime = millis();
       
       // Wait for button release with non-blocking approach
       while (isButtonPressed(buttonSelect)) {
@@ -465,6 +464,9 @@ void sendLog(void* parameter) {
         }
       } else {
         postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
+        if (!checkLog(logName)) {
+          createLog(logName);
+        }
         if (!appendLog(logName, postData.c_str())) {
           lcd.setCursor(0, 1);
           lcd.print("DATA GGL DISAVE");
@@ -717,10 +719,10 @@ void loop() {
   lcd.print(lanStatus);
   if (!sdStatus) {
 
-    lcd.setCursor(10, 1);
+    lcd.setCursor(9, 1);
     lcd.print(sendDataCounter);
   } else {
-    lcd.setCursor(10, 1);
+    lcd.setCursor(9, 1);
     lcd.print(saveDataConter);
   }
 
