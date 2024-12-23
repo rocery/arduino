@@ -67,7 +67,9 @@ IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
 
 // LCD
-LiquidCrystal_I2C lcd(0x27, 16, 4);
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+unsigned long lastLcdClearTime = 0;
+const unsigned long LCD_CLEAR_INTERVAL = 30000;
 
 // EEPROM
 const int EEPROM_ADDRESS = 0;
@@ -431,13 +433,13 @@ void sendLog(void* parameter) {
     unsigned long currentTime = millis();
     // Check button press without blocking
     if (isButtonPressed(buttonSelect)) {
-      lcd.clear();
+      // lcd.clear();
       unsigned long buttonPressStartTime = millis();
       
       // Wait for button release with non-blocking approach
       while (isButtonPressed(buttonSelect)) {
-        lcd.setCursor(0, 0);
-        lcd.print("  SIMPAN DATA  ");
+        // lcd.setCursor(0, 0);
+        // lcd.print("  SIMPAN DATA  ");
         vTaskDelay(pdMS_TO_TICKS(100));  // Prevent blocking in FreeRTOS
       }
       // Rest of your button press handling logic remains the same
@@ -455,8 +457,8 @@ void sendLog(void* parameter) {
             sendDataCounterFailed++;
             vTaskDelay(pdMS_TO_TICKS(1000));
           } else {
-            lcd.setCursor(0, 1);
-            lcd.print(" BERHASIL : ");
+            // lcd.setCursor(0, 1);
+            // lcd.print(" BERHASIL : ");
             sendDataCounter++;
             lcd.print(sendDataCounter);
           }
@@ -472,6 +474,7 @@ void sendLog(void* parameter) {
           saveDataConter++;
         }
       }
+      // lcd.clear();
     }
     // Periodic server check with non-blocking approach
     if (currentTime - lastServerCheckTime >= SERVER_CHECK_INTERVAL) {
@@ -693,6 +696,7 @@ void setup() {
 }
 
 void loop() {
+  unsigned long currentTime = millis();
   double rawLoadCell = scale.get_units(5);
   float kgLoadCell = rawLoadCell / 1000;
   // float absValuekgLoadCell = fabs(kgLoadCell);
@@ -820,4 +824,11 @@ void loop() {
     }
     lcd.clear();
   }
+
+  // Non-blocking LCD clear
+  if (currentTime - lastLcdClearTime >= LCD_CLEAR_INTERVAL) {
+    lcd.clear();
+    lastLcdClearTime = currentTime;
+  }
+
 }
