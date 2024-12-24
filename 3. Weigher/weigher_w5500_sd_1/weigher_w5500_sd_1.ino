@@ -1,5 +1,5 @@
 /*
- * V. 2.0.1
+ * V. 2.0.2
  * Update Terakhir : 23-12-2024
  * 
  * PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
@@ -108,15 +108,30 @@ const char* logName = "/weigherLog31.txt";
 TaskHandle_t SendLogTaskHandle;
 TaskHandle_t ProcessDataTaskHandle;
 
+/**
+ * @brief Read a float value from EEPROM at given address.
+ *
+ * @param address Address in EEPROM to read from.
+ * @return The float value read from EEPROM.
+ */
 float readFloatFromEEPROM(int address) {
   float value = EEPROM.get(address, value);
   return value;
 }
 
+
+/**
+ * @brief Read a float value from EEPROM at given address and update it if different.
+ *
+ * @param address Address in EEPROM to read from and write to.
+ * @param newValue The new value to write to EEPROM if it differs from the
+ *                 current value.
+ */
 void updateFloatInEEPROM(int address, float newValue) {
   float currentValue = readFloatFromEEPROM(address);
 
   if (currentValue != newValue) {
+    // If the new value is different from the current value in EEPROM, update it.
     EEPROM.put(address, newValue);
     EEPROM.commit();
     Serial.println("Value updated in EEPROM.");
@@ -343,6 +358,14 @@ void calibrationProcess() {
   }
 }
 
+/**
+ * @brief Prompts the user to select a product from the list.
+ *
+ * This function displays the list of products and allows the user to select one
+ * by pressing the UP and DOWN buttons. When the user presses the DOWN button,
+ * the selected product is stored in the `productSelected` variable and the
+ * function returns.
+ */
 void chooseProduct() {
   lcd.clear();
   lcd.setCursor(0, 0);
