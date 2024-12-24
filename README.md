@@ -37,7 +37,7 @@ may be incompatible with your current board which runs on esp32 architecture(s).
 
 In Linux bases OS, in order to upload code, you need to add your user to dialout group.
 Just run this command: 
-sudo usermod -G dialout $USER
+sudo usermod -G dialout $USER then logout.
 
 ```
 
@@ -91,12 +91,3 @@ sudo usermod -G dialout $USER
 - IoT-217-KR0232 = Produksi Kerupuk - Suhu - ESP32 - Oven 30
 - IoT-218-BM0132 = Produksi Biskuit/Mie - Counter - ESP32 - Goriorio Isi 2 - FC:B4:67:51:47:C0
 ```
-
-Catatan:
-1 = NC
-2 = NC
-3 = NC
-4 & 5 = Merah
-6 = Putih
-7 = Hijau
-8 & 9 = Hitam
