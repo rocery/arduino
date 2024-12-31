@@ -65,8 +65,8 @@ struct DeviceData {
   @param verbose = Variabel untuk melihat error
 */
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 24;
-/**/ const String loc = "Pengolahan Gorengan dan Oven Kerupuk";
+/**/ const int ip = 21;
+/**/ const String loc = "Maddock Twistko";
 /**/ const String prod = "Kerupuk";
 /**/ const bool verbose = true;
 // =====================================
@@ -89,10 +89,10 @@ const char* ssid_c_biskuit_mie = "MT3";
 const char* password_c_biskuit_mie = "siantar321";
 const char* ssid_a_kerupuk = "STTB4";
 const char* password_a_kerupuk = "siantar123";
-const char* ssid_b_kerupuk = "Amano2";
-const char* password_b_kerupuk = "Si4nt4r321";
-const char* ssid_c_kerupuk = "Amano2-EXT";
-const char* password_c_kerupuk = "siantar321";
+const char* ssid_b_kerupuk = "MT1";
+const char* password_b_kerupuk = "siantar321";
+const char* ssid_c_kerupuk = "Amano2";
+const char* password_c_kerupuk = "Si4nt4r321";
 const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
 
@@ -406,8 +406,10 @@ void loop() {
     humidity = humDB + randHum;
     lcd.setCursor(15, 1);
     lcd.print(".");
+    readDHTCount = 0;
   } else {
     // Calculate the temperature and humidity with calibration values
+    readNan = 0;
     calTemp = temperature + tempFromDB;
     humidity = humidity + humFromDB;
     lcd.setCursor(15, 1);
