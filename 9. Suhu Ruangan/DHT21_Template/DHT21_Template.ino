@@ -91,7 +91,7 @@ const char* ssid_a_kerupuk = "STTB4";
 const char* password_a_kerupuk = "siantar123";
 const char* ssid_b_kerupuk = "MT1";
 const char* password_b_kerupuk = "siantar321";
-const char* ssid_c_kerupuk = "Amano2";
+const char* ssid_c_kerupuk = "AmanoX"; //For Trying
 const char* password_c_kerupuk = "Si4nt4r321";
 const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
@@ -180,11 +180,11 @@ void readDHT() {
     // Opsional: Tambahkan sedikit delay agar sensor punya waktu untuk reset
     delay(5000);
   } else {
-    readNan = 0;
+    readDHTCount++;
   }
 
   // Increment the counter for the number of times the DHT sensor has been read
-  readDHTCount++;
+  
 }
 
 void getLocalTime() {
@@ -329,8 +329,8 @@ void setup() {
   delay(2500);
 
   getStatus = false;
-  readDHTCount = 0; 
-  readNan = 0;
+  readDHTCount = 1; 
+  readNan = 1;
   errorWiFiCount = 0;
 
   // LCD
@@ -406,10 +406,10 @@ void loop() {
     humidity = humDB + randHum;
     lcd.setCursor(15, 1);
     lcd.print(".");
-    readDHTCount = 0;
+    readDHTCount = 1;
   } else {
     // Calculate the temperature and humidity with calibration values
-    readNan = 0;
+    readNan = 1;
     calTemp = temperature + tempFromDB;
     humidity = humidity + humFromDB;
     lcd.setCursor(15, 1);
@@ -466,7 +466,7 @@ void loop() {
   postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip_address=" + ip_Address;
 
   // Restart the device every 1200 readings of the DHT sensor
-  if (readDHTCount % 1200 == 0 || readNan >= 25 || errorWiFiCount >= 10) {
+  if (readDHTCount % 1200 == 0 || readNan >= 25 || errorWiFiCount >= 20) {
     sendLogData();
     delay(1000);
     ESP.restart();
