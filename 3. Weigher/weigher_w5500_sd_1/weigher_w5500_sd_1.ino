@@ -1,6 +1,6 @@
 /*
- * V. 2.0.2
- * Update Terakhir : 23-12-2024
+ * V. 3.0.0
+ * Update Terakhir : 11-01-2025
  * 
  * PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
  * - API yang digunakan adalah FLask karena terjadi kendala pada peroses pengiriman file dari esp ke php
@@ -799,7 +799,7 @@ void setup() {
   }
 
   // Begin UDP for NTP
-  udp.begin(localPort);
+  udp.begin(localNtpPort);
   ntpClient.begin();
 
   // if (!checkLog(logName)) {
