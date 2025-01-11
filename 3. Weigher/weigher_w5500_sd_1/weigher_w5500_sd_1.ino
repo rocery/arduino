@@ -90,6 +90,7 @@ IPAddress ntpServer(192, 168, 7, 223);
 unsigned int localNtpPort = 2390;
 EthernetUDP udp;
 NTPClient ntpClient(udp, ntpServer, 0, 60000); // UTC time, update every 60 seconds
+String formattedTime;
 
 // LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -511,7 +512,7 @@ void sendLog(void* parameter) {
               }
             }
           } else {
-            postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
+            postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + formattedTime + ',' + ip_Address + ',' + "LAN";
 
             if (!checkLog(logName)) {
               createLog(logName);
@@ -727,6 +728,12 @@ String getFormattedDateTime(unsigned long epochTime) {
   return String(buffer);
 }
 
+void updateTime() {
+  ntpClient.update();
+  unsigned long epochTime = ntpClient.getEpochTime();
+  formattedTime = getFormattedDateTime(epochTime);
+}
+
 void setup() {
   Serial.begin(9600);
 
@@ -813,20 +820,6 @@ void setup() {
 
   lcd.clear();
 }
-
-/*
-  HOW TO UPDATE NTP
-  ntpClient.update()
-
-  HOW TO GET EPOCH TIME
-  unsigned long epochTime = ntpClient.getEpochTime();
-
-  HOW TO GET READABLE TIME
-  String formattedTime = getFormattedDateTime(epochTime);
-
-  HOW TO PRINT READABLE TIME
-  Serial.println(formattedTime);
-*/
 
 void loop() {
   unsigned long currentTime = millis();
