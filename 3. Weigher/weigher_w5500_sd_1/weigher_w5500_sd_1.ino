@@ -91,6 +91,8 @@ unsigned int localNtpPort = 2390;
 EthernetUDP udp;
 NTPClient ntpClient(udp, ntpServer, 0, 60000); // UTC time, update every 60 seconds
 String formattedTime;
+unsigned long lastNTPUpdateTime = 0;
+const unsigned long NTP_UPDATE_INTERVAL = 1000;
 
 // LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -826,6 +828,11 @@ void loop() {
   double rawLoadCell = scale.get_units(5);
   float kgLoadCell = rawLoadCell / 1000;
   // float absValuekgLoadCell = fabs(kgLoadCell);
+
+  if (currentTime - lastNTPUpdateTime >= NTP_UPDATE_INTERVAL) {
+    lastNTPUpdateTime = currentTime;
+    updateTime();
+  }
 
   dtostrf(kgLoadCell, 5, digitScale, kgLoadCellPrint);
 
