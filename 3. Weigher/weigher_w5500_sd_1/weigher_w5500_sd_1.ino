@@ -1,5 +1,5 @@
 /*
- * V. 3.0.0
+ * V 3.0.0
  * Update Terakhir : 11-01-2025
  * 
  * PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
@@ -129,7 +129,6 @@ float readFloatFromEEPROM(int address) {
   float value = EEPROM.get(address, value);
   return value;
 }
-
 
 /**
  * @brief Read a float value from EEPROM at given address and update it if different.
@@ -477,6 +476,14 @@ bool deleteAllLog() {
   }
 }
 
+/*
+ * Fungsi sendLog() mengirimkan log ke server menggunakan HTTP POST.
+ * Fungsi ini dijalankan dalam task dengan prioritas tertinggi.
+ * Fungsi ini akan menunggu sampai buttonSelect ditekan untuk menghentikan pengiriman log.
+ * Pada saat proses mengirim data ke server, semua proses akan di'halt' sampai proses pengiriman selesai.
+ * Server yang digunakan adalah Flask, bisa dilihat di github.com/rocery/iot.git
+ * Untuk mengganti interval otomatis kirim log ke server, ganti SERVER_CHECK_INTERVAL
+*/
 void sendLog(void* parameter) {
   bool buttonProcessed = false;
   unsigned long lastServerCheckTime = 0;
@@ -802,10 +809,6 @@ void setup() {
   udp.begin(localNtpPort);
   ntpClient.begin();
 
-  // if (!checkLog(logName)) {
-  //   createLog(logName);
-  // }
-
   // Choose Product
   chooseProduct();
 
@@ -871,49 +874,6 @@ void loop() {
     tareScale();
     lcd.clear();
   }
-
-  // if (isButtonPressed(buttonSelect)) {
-  //   lcd.clear();
-  //   while (isButtonPressed(buttonSelect)) {
-  //       lcd.setCursor(0, 0);
-  //       lcd.print("  SIMPAN DATA  ");
-  //       vTaskDelay(pdMS_TO_TICKS(100));  // Prevent blocking in FreeRTOS
-  //   }
-
-  //   if (!sdStatus) {
-  //       if (lanStatus == "D") {
-  //           lcd.setCursor(0, 1);
-  //           lcd.print("X, LAN ERROR");
-  //           sendDataCounterFailed++;
-  //           vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
-  //       } else {
-  //           postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&product=" + productSelected + "&weight=" + String(kgLoadCellPrint) + "&ip_address=" + ip_Address + "&wifi=" + "LAN";
-  //           if (!sendData()) {
-  //               lcd.setCursor(0, 1);
-  //               lcd.print("X, HUBUNGI IT");
-  //               sendDataCounterFailed++;
-  //               vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
-  //           } else {
-  //               lcd.setCursor(0, 1);
-  //               lcd.print(" BERHASIL : ");
-  //               sendDataCounter++;
-  //               lcd.print(sendDataCounter);
-  //           }
-  //       }
-  //   } else {
-  //       postData = deviceID + ',' + ESPName + ',' + productSelected + ',' + String(kgLoadCellPrint) + ',' + ip_Address + ',' + "LAN";
-
-  //       if (!appendLog(logName, postData.c_str())) {
-  //           lcd.setCursor(0, 1);
-  //           lcd.print("DATA GGL DISAVE");
-  //           saveDataConterFailed++;
-  //           vTaskDelay(pdMS_TO_TICKS(1000));  // Replaced delay with FreeRTOS delay
-  //       } else {
-  //           saveDataConter++;
-  //       }
-  //   }
-  //   lcd.clear();
-  // }
 
   if (isButtonPressed(buttonUp)) {
     lcd.clear();
