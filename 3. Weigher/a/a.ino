@@ -3,10 +3,15 @@
 #include <NTPClient.h>
 #include <EthernetUdp.h>
 
+
+#define W5500_CS 5
+
 // Ethernet settings
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; // Replace with your MAC address
 IPAddress ip(192, 168, 7, 100);                     // Replace with your ESP32's IP
 IPAddress ntpServer(192, 168, 7, 223);              // NTP Server IP
+IPAddress gateway(192, 168, 15, 250);
+IPAddress subnet(255, 255, 0, 0);
 unsigned int localPort = 2390;                      // Local UDP port for NTP
 
 // EthernetUDP and NTPClient objects
@@ -15,12 +20,9 @@ NTPClient ntpClient(udp, ntpServer, 0, 60000); // UTC time, update every 60 seco
 
 void setup() {
   Serial.begin(115200);
-  
-  // Start Ethernet
-  if (Ethernet.begin(mac) == 0) {
-    Serial.println("Failed to configure Ethernet using DHCP");
-    Ethernet.begin(mac, ip); // Use static IP
-  }
+
+  Ethernet.init(W5500_CS);
+  Ethernet.begin(mac, ip, gateway, gateway, subnet);
   delay(1000);
 
   // Print Ethernet details

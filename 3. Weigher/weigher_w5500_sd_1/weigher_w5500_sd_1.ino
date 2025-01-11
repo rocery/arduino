@@ -24,7 +24,8 @@
 #include <FS.h>
 #include <SD.h>
 #include <ArduinoJson.h>
-#include "time.h"
+#include <NTPClient.h>
+#include <EthernetUdp.h>
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
@@ -50,20 +51,6 @@ EthernetClient client;
 // NETWORK STATUS
 String ip_Address = "192.168.7." + String(ip);
 String postData, lanStatus;
-
-// Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
-const long gmtOffsetSec = 7 * 3600;
-const int daylightOffsetSec = 0;
-String dateTime, dateFormat, timeFormat;
-int year, rtcYear;
-int month, rtcMonth;
-int day, rtcDay;
-int hour, rtcHour;
-int minute, rtcMinute;
-int second, rtcSecond;
-// RTC_DS3231 rtc;
-// DateTime now;
-bool ntpStatus, statusUpdateRTC;
 
 // LOAD CELL
 const int LOADCELL_DOUT_PIN = 26;
@@ -97,6 +84,12 @@ byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 IPAddress ipaddress(192, 168, 7, ip);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
+
+// NTP CONFIGURATION
+IPAddress ntpServer(192, 168, 7, 223);
+unsigned int localNtpPort = 2390;
+EthernetUDP udp;
+NTPClient ntpClient(udp, ntpServer, 0, 60000); // UTC time, update every 60 seconds
 
 // LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -496,8 +489,8 @@ void sendLog(void* parameter) {
       while (isButtonPressed(buttonSelect)) {
         unsigned long currentPressTime = millis();
 
-        // Check if button is pressed for more than 500 ms
-        if (currentPressTime - buttonPressStartTime >= 300 && !buttonProcessed) {
+        // Check if button is pressed for more than 200 ms
+        if (currentPressTime - buttonPressStartTime >= 200 && !buttonProcessed) {
           // Execute code when button is pressed longer than 0.5 seconds
           if (!sdStatus) {
             if (lanStatus == "D") {
@@ -678,33 +671,60 @@ void sendLog(void* parameter) {
   }
 }
 
-void getLocalTime() {
-  /* Fungsi bertujuan menerima update waktu
-     lokal dari ntp server */
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) {
-    ntpStatus = false;
-  } else {
-    ntpStatus = true;
+// Function to convert epoch time to "YYYY-MM-DD hh:mm:ss"
+String getFormattedDateTime(unsigned long epochTime) {
+  const int SECS_IN_DAY = 86400;
+  const int SECS_IN_HOUR = 3600;
+  const int SECS_IN_MIN = 60;
 
-    char timeStringBuff[50];
-    strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
-    dateTime = String(timeStringBuff);
+  // Calculate date and time
+  epochTime += 3600 * 7; // Adjust for timezone (e.g., UTC+7)
+  unsigned long days = epochTime / SECS_IN_DAY;
+  int year = 1970;
 
-    // Save time data to variabel
-    year = timeinfo.tm_year + 1900;
-    month = timeinfo.tm_mon + 1;
-    day = timeinfo.tm_mday;
-    hour = timeinfo.tm_hour;
-    minute = timeinfo.tm_min;
-    second = timeinfo.tm_sec;
-    // YYYY-MM-DD
-    dateFormat = String(year) + '-' + String(month) + '-' + String(day);
-    // hh:mm:ss
-    timeFormat = String(hour) + ':' + String(minute) + ':' + String(second);
-
-    Serial.println(dateTime);
+  // Calculate year
+  while (days >= 365) {
+    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) { // Leap year check
+      if (days >= 366) {
+        days -= 366;
+      } else {
+        break;
+      }
+    } else {
+      days -= 365;
+    }
+    year++;
   }
+
+  // Calculate month
+  int month;
+  int monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+    monthDays[1] = 29; // Adjust February for leap year
+  }
+  for (month = 0; month < 12; month++) {
+    if (days < monthDays[month]) {
+      break;
+    }
+    days -= monthDays[month];
+  }
+  month++;
+
+  // Remaining days are the day of the month
+  int day = days + 1;
+
+  // Calculate time
+  int remainingSecs = epochTime % SECS_IN_DAY;
+  int hour = remainingSecs / SECS_IN_HOUR;
+  remainingSecs %= SECS_IN_HOUR;
+  int minute = remainingSecs / SECS_IN_MIN;
+  int second = remainingSecs % SECS_IN_MIN;
+
+  // Format as "YYYY-MM-DD hh:mm:ss"
+  char buffer[20];
+  sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
+
+  return String(buffer);
 }
 
 void setup() {
@@ -741,7 +761,7 @@ void setup() {
   scale.set_scale(calibrationFactor);
   scale.tare();
 
-  // Inisialisasi Ethernet dengan IP statis
+  // Inisialisasi Ethernet dan IP statis
   Ethernet.init(W5500_CS);
   Ethernet.begin(mac, ipaddress, gateway, gateway, subnet);
 
@@ -769,6 +789,10 @@ void setup() {
     sdStatus = true;
   }
 
+  // Begin UDP for NTP
+  udp.begin(localPort);
+  ntpClient.begin();
+
   // if (!checkLog(logName)) {
   //   createLog(logName);
   // }
@@ -789,6 +813,20 @@ void setup() {
 
   lcd.clear();
 }
+
+/*
+  HOW TO UPDATE NTP
+  ntpClient.update()
+
+  HOW TO GET EPOCH TIME
+  unsigned long epochTime = ntpClient.getEpochTime();
+
+  HOW TO GET READABLE TIME
+  String formattedTime = getFormattedDateTime(epochTime);
+
+  HOW TO PRINT READABLE TIME
+  Serial.println(formattedTime);
+*/
 
 void loop() {
   unsigned long currentTime = millis();
