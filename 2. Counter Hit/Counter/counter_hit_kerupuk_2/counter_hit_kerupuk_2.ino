@@ -112,6 +112,11 @@ String productCodeTwo = "P-0922-00257";
 String nameProductTwo = "Tic Tic Bwg 5000";
 String productCodeThree = "Test Mode_213";
 String nameProductThree = "Test Mode_213";
+// == Penambahan Product/Menu /-Ridho-\ ==
+String productCodeFour = "P-1024-00291";
+String nameProductFour = "Twisko Premium 10000";
+
+
 
 // == SD Card ==
 int lineAsInt;
@@ -381,7 +386,7 @@ void updateMenu() {
       lcd.setCursor(1, 2);
       lcd.print(nameProductTwo);
       lcd.setCursor(0, 3);
-      lcd.print(">" + nameProductThree);
+      lcd.print(">" + nameProductFour);
       break;
     case 4:
       menu = 3;
@@ -406,6 +411,13 @@ void menuSelected() {
     case 3:
       productSelected = productCodeThree;
       nameProductSelected = nameProductThree;
+      delay(1000);
+      lcd.clear();
+      break;
+// == Penambahan Product/Menu /-Ridho-\ ==      
+    case 4:
+      productSelected = productCodeFour;
+      nameProductSelected = nameProductFour;
       delay(1000);
       lcd.clear();
       break;

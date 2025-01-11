@@ -24,6 +24,7 @@
 #include <FS.h>
 #include <SD.h>
 #include <ArduinoJson.h>
+#include "time.h"
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
@@ -49,6 +50,20 @@ EthernetClient client;
 // NETWORK STATUS
 String ip_Address = "192.168.7." + String(ip);
 String postData, lanStatus;
+
+// Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
+const long gmtOffsetSec = 7 * 3600;
+const int daylightOffsetSec = 0;
+String dateTime, dateFormat, timeFormat;
+int year, rtcYear;
+int month, rtcMonth;
+int day, rtcDay;
+int hour, rtcHour;
+int minute, rtcMinute;
+int second, rtcSecond;
+// RTC_DS3231 rtc;
+// DateTime now;
+bool ntpStatus, statusUpdateRTC;
 
 // LOAD CELL
 const int LOADCELL_DOUT_PIN = 26;
@@ -660,6 +675,35 @@ void sendLog(void* parameter) {
     }
     // Small delay to prevent tight looping
     vTaskDelay(pdMS_TO_TICKS(100));
+  }
+}
+
+void getLocalTime() {
+  /* Fungsi bertujuan menerima update waktu
+     lokal dari ntp server */
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    ntpStatus = false;
+  } else {
+    ntpStatus = true;
+
+    char timeStringBuff[50];
+    strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    dateTime = String(timeStringBuff);
+
+    // Save time data to variabel
+    year = timeinfo.tm_year + 1900;
+    month = timeinfo.tm_mon + 1;
+    day = timeinfo.tm_mday;
+    hour = timeinfo.tm_hour;
+    minute = timeinfo.tm_min;
+    second = timeinfo.tm_sec;
+    // YYYY-MM-DD
+    dateFormat = String(year) + '-' + String(month) + '-' + String(day);
+    // hh:mm:ss
+    timeFormat = String(hour) + ':' + String(minute) + ':' + String(second);
+
+    Serial.println(dateTime);
   }
 }
 

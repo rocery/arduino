@@ -1,85 +1,104 @@
+#include <SPI.h>
 #include <Ethernet.h>
-#include <EthernetUdp.h>
 #include <NTPClient.h>
-#include <time.h>
+#include <EthernetUdp.h>
 
-// Ethernet and MAC configuration
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-EthernetUDP Udp;
+// Ethernet settings
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; // Replace with your MAC address
+IPAddress ip(192, 168, 7, 100);                     // Replace with your ESP32's IP
+IPAddress ntpServer(192, 168, 7, 223);              // NTP Server IP
+unsigned int localPort = 2390;                      // Local UDP port for NTP
 
-// Network configuration
-IPAddress ipaddress(192, 168, 7, 32);
-IPAddress ntpServerIP(192, 168, 7, 223);
-IPAddress gateway(192, 168, 15, 250);
-IPAddress subnet(255, 255, 0, 0);
-const int NTP_PORT = 123;
-
-NTPClient timeClient(Udp, ntpServerIP, 0, 60000);
+// EthernetUDP and NTPClient objects
+EthernetUDP udp;
+NTPClient ntpClient(udp, ntpServer, 0, 60000); // UTC time, update every 60 seconds
 
 void setup() {
   Serial.begin(115200);
   
-  // Ethernet initialization with pin 10 as default SS pin
-  Ethernet.init(5);  // Change 10 to your specific SS pin if different
-  
-  Serial.println("Initializing Ethernet...");
-
-  // Try to configure Ethernet
+  // Start Ethernet
   if (Ethernet.begin(mac) == 0) {
     Serial.println("Failed to configure Ethernet using DHCP");
-    
-    // Static IP configuration
-    Ethernet.begin(mac, ipaddress, gateway, gateway, subnet);
+    Ethernet.begin(mac, ip); // Use static IP
   }
-
-  // Wait for Ethernet to configure
   delay(1000);
 
-  // Check Ethernet connection
-  if (Ethernet.linkStatus() == LinkOFF) {
-    Serial.println("Ethernet cable is not connected.");
-  }
-
-  Serial.print("Local IP: ");
+  // Print Ethernet details
+  Serial.print("IP Address: ");
   Serial.println(Ethernet.localIP());
-
-  // Initialize NTP
-  timeClient.begin();
   
-  // Attempt multiple updates
-  int updateAttempts = 0;
-  while (!timeClient.update() && updateAttempts < 5) {
-    Serial.println("Trying to update time...");
-    timeClient.forceUpdate();
-    updateAttempts++;
-    delay(1000);
-  }
-
-  if (updateAttempts >= 5) {
-    Serial.println("Failed to update time from NTP server");
-  } else {
-    Serial.println("NTP time synchronized");
-  }
+  // Begin UDP for NTP
+  udp.begin(localPort);
+  ntpClient.begin();
 }
 
 void loop() {
-  // Attempt to update time
-  if (timeClient.update()) {
-    String formattedDateTime = getFormattedDateTime();
-    Serial.println(formattedDateTime);
-  } else {
-    Serial.println("Failed to update time");
-  }
-  
-  delay(1000);
+  ntpClient.update(); // Update time from NTP server
+
+  // Get epoch time
+  unsigned long epochTime = ntpClient.getEpochTime();
+
+  // Convert to readable format
+  String formattedTime = getFormattedDateTime(epochTime);
+
+  // Print formatted time
+  Serial.println(formattedTime);
+
+  delay(1000); // Wait 1 second before the next update
 }
 
-String getFormattedDateTime() {
-  time_t rawTime = timeClient.getEpochTime();
-  struct tm* timeinfo = localtime(&rawTime);
-  
+// Function to convert epoch time to "YYYY-MM-DD hh:mm:ss"
+String getFormattedDateTime(unsigned long epochTime) {
+  const int SECS_IN_DAY = 86400;
+  const int SECS_IN_HOUR = 3600;
+  const int SECS_IN_MIN = 60;
+
+  // Calculate date and time
+  epochTime += 3600 * 7; // Adjust for timezone (e.g., UTC+7)
+  unsigned long days = epochTime / SECS_IN_DAY;
+  int year = 1970;
+
+  // Calculate year
+  while (days >= 365) {
+    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) { // Leap year check
+      if (days >= 366) {
+        days -= 366;
+      } else {
+        break;
+      }
+    } else {
+      days -= 365;
+    }
+    year++;
+  }
+
+  // Calculate month
+  int month;
+  int monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+    monthDays[1] = 29; // Adjust February for leap year
+  }
+  for (month = 0; month < 12; month++) {
+    if (days < monthDays[month]) {
+      break;
+    }
+    days -= monthDays[month];
+  }
+  month++;
+
+  // Remaining days are the day of the month
+  int day = days + 1;
+
+  // Calculate time
+  int remainingSecs = epochTime % SECS_IN_DAY;
+  int hour = remainingSecs / SECS_IN_HOUR;
+  remainingSecs %= SECS_IN_HOUR;
+  int minute = remainingSecs / SECS_IN_MIN;
+  int second = remainingSecs % SECS_IN_MIN;
+
+  // Format as "YYYY-MM-DD hh:mm:ss"
   char buffer[20];
-  strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
-  
+  sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
+
   return String(buffer);
 }
