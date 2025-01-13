@@ -1,5 +1,5 @@
 /*
-  V. 1.0.6
+  V. 1.1.0
   Update Terakhir : 13-01-2025
 
   PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
@@ -121,43 +121,13 @@ String dateTimeSD, productSelectedSD, counterSD, counterRejectSD, ipAddressSD, l
 bool statusSD, readStatusSD, insertLastLineSDCardStatus;
 
 // Jika NPN
-// void counterHit(void* parameter) {
-//   for (;;) {
-//     // IR Counter
-//     pinMode(sensorPin, INPUT_PULLUP);
-//     static int lastIRState = HIGH;
-//     int irState = digitalRead(sensorPin);
-//     if (irState == LOW && lastIRState == HIGH) {
-//       counter++;
-//     }
-//     lastIRState = irState;
-//     delay(50);
-
-//     // IR Reject
-    // pinMode(sensorReject, INPUT_PULLUP);
-    // static int lastIRStateReject = LOW;
-    // int irStateReject = digitalRead(sensorReject);
-    // if (irStateReject == HIGH && lastIRStateReject == LOW) {
-    //   counterReject++;
-    // }
-    // lastIRStateReject = irStateReject;
-    // delay(50);
-
-//     Serial.print("Counter 1:" );
-//     Serial.println(counter);
-//     Serial.print("Counter 2: ");
-//     Serial.println(counterReject);
-//   }
-// }
-
-// Jika PNP
 void counterHit(void* parameter) {
   for (;;) {
     // IR Counter
     pinMode(sensorPin, INPUT_PULLUP);
-    static int lastIRState = LOW;
+    static int lastIRState = HIGH;
     int irState = digitalRead(sensorPin);
-    if (irState == HIGH && lastIRState == LOW) {
+    if (irState == LOW && lastIRState == HIGH) {
       counter++;
     }
     lastIRState = irState;
@@ -172,13 +142,43 @@ void counterHit(void* parameter) {
     }
     lastIRStateReject = irStateReject;
     delay(50);
-+
+
     Serial.print("Counter 1:" );
     Serial.println(counter);
     Serial.print("Counter 2: ");
     Serial.println(counterReject);
   }
 }
+
+// Jika PNP
+// void counterHit(void* parameter) {
+//   for (;;) {
+//     // IR Counter
+//     pinMode(sensorPin, INPUT_PULLUP);
+//     static int lastIRState = LOW;
+//     int irState = digitalRead(sensorPin);
+//     if (irState == HIGH && lastIRState == LOW) {
+//       counter++;
+//     }
+//     lastIRState = irState;
+//     delay(50);
+
+//     // IR Reject
+//     pinMode(sensorReject, INPUT_PULLUP);
+//     static int lastIRStateReject = LOW;
+//     int irStateReject = digitalRead(sensorReject);
+//     if (irStateReject == HIGH && lastIRStateReject == LOW) {
+//       counterReject++;
+//     }
+//     lastIRStateReject = irStateReject;
+//     delay(50);
+// +
+//     Serial.print("Counter 1:" );
+//     Serial.println(counter);
+//     Serial.print("Counter 2: ");
+//     Serial.println(counterReject);
+//   }
+// }
 
 void getLocalTime() {
   /* Fungsi bertujuan menerima update waktu
