@@ -73,7 +73,8 @@ String product[] = {
   "LEANET TIC2 BWG",
   "TIC TIC SAMCOL",
   "FUJI CHIPS",
-  "TIC TIC BALADO"
+  "TIC TIC BALADO",
+  "TEST_31"
 };
 #define ARRAY_LENGTH(arr) (sizeof(arr) / sizeof(arr[0]))
 char kgLoadCellPrint[6];
