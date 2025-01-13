@@ -424,7 +424,7 @@ void menuSelected() {
       delay(1000);
       lcd.clear();
       break;
-    case 3:
+    case 4:
       productSelected = productCodeFour;
       nameProductSelected = nameProductFour;
       delay(1000);
