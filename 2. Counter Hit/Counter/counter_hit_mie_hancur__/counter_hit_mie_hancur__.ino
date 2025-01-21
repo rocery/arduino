@@ -44,10 +44,10 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 // Terdapat 3 tombol pada project ini, up, down, select
 #define upButton 35
 #define downButton 34
-#define selectButton 32
+#define selectButton 26
 
 // Sensor IR disambungkan ke pin 13
-#define sensorPin 13
+#define sensorPin 25
 
 // == WiFi Config ==
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
@@ -66,7 +66,7 @@ const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
 
 // Atur IP Static yang digunakan
-IPAddress staticIP(192, 168, 7, 219);
+IPAddress staticIP(192, 168, 7, 214);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
 // Optional
@@ -117,8 +117,8 @@ String productCodeFive = "P-0124-00286";
 String nameProductFive = "SP SB Mie Balado";
 String productCodeSix = "P-0722-00246";
 String nameProductSix = "SK Mie St Aym Kcp";
-String productCodeSeven = "Test 219 Mie Hancur";
-String nameProductSeven = "Test Mode_219";
+String productCodeSeven = "Test 214 Mie Kotak";
+String nameProductSeven = "Test Mode_214";
 
 // == SD Card ==
 int lineAsInt;
@@ -523,7 +523,7 @@ void setup() {
   menuSelect = false;
   readStatusSD = false;
   statusUpdateRTC = false;
-
+  Serial.println("bhjk709809809880989");
   pinMode(upButton, INPUT);
   pinMode(downButton, INPUT);
   pinMode(selectButton, INPUT);
