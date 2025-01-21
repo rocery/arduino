@@ -144,8 +144,6 @@ void connectToWiFi() {
   }
 }
 
-// Previous functions (selectProductBeforeLoop, etc.) remain the same
-
 void loop() {
   // Check if product and WiFi are selected
   if (!productSelected || !wifiConnected) {
