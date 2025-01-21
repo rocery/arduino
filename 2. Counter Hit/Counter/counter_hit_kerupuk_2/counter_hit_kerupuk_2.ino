@@ -1,6 +1,6 @@
 /*
-  V. 1.0.5
-  Update Terakhir : 25-06-2024
+  V. 1.1.0
+  Update Terakhir : 13-01-2025
 
   PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
   Komponen:
@@ -110,55 +110,24 @@ String productCodeOne = "P-0722-00239";
 String nameProductOne = "Tic Tic Bwg 2000";
 String productCodeTwo = "P-0922-00257";
 String nameProductTwo = "Tic Tic Bwg 5000";
-String productCodeThree = "Test Mode_213";
-String nameProductThree = "Test Mode_213";
-// == Penambahan Product/Menu /-Ridho-\ ==
-String productCodeFour = "P-1024-00291";
-String nameProductFour = "Twisko Premium 10000";
-
-
+String productCodeThree = "P-1024-00291";
+String nameProductThree = "Twisko Premium 10K";
+String productCodeFour = "Test_Mode_213";
+String nameProductFour = "Test_Mode_213";
 
 // == SD Card ==
 int lineAsInt;
 String dateTimeSD, productSelectedSD, counterSD, counterRejectSD, ipAddressSD, line, logName, logData;
 bool statusSD, readStatusSD, insertLastLineSDCardStatus;
 
-// void counterHit(void* parameter) {
-//   for (;;) {
-//     // IR Counter
-//     pinMode(sensorPin, INPUT_PULLUP);
-//     static int lastIRState = HIGH;
-//     int irState = digitalRead(sensorPin);
-//     if (irState == LOW && lastIRState == HIGH) {
-//       counter++;
-//     }
-//     lastIRState = irState;
-//     delay(50);
-
-//     // IR Reject
-//     pinMode(sensorReject, INPUT_PULLUP);
-//     static int lastIRStateReject = HIGH;
-//     int irStateReject = digitalRead(sensorReject);
-//     if (irStateReject == LOW && lastIRStateReject == HIGH) {
-//       counterReject++;
-//     }
-//     lastIRStateReject = irStateReject;
-//     delay(50);
-
-//     Serial.print("Counter 1:" );
-//     Serial.println(counter);
-//     Serial.print("Counter 2: ");
-//     Serial.println(counterReject);
-//   }
-// }
-
+// Jika NPN
 void counterHit(void* parameter) {
   for (;;) {
     // IR Counter
     pinMode(sensorPin, INPUT_PULLUP);
-    static int lastIRState = LOW;
+    static int lastIRState = HIGH;
     int irState = digitalRead(sensorPin);
-    if (irState == HIGH && lastIRState == LOW) {
+    if (irState == LOW && lastIRState == HIGH) {
       counter++;
     }
     lastIRState = irState;
@@ -173,13 +142,43 @@ void counterHit(void* parameter) {
     }
     lastIRStateReject = irStateReject;
     delay(50);
-+
+
     Serial.print("Counter 1:" );
     Serial.println(counter);
     Serial.print("Counter 2: ");
     Serial.println(counterReject);
   }
 }
+
+// Jika PNP
+// void counterHit(void* parameter) {
+//   for (;;) {
+//     // IR Counter
+//     pinMode(sensorPin, INPUT_PULLUP);
+//     static int lastIRState = LOW;
+//     int irState = digitalRead(sensorPin);
+//     if (irState == HIGH && lastIRState == LOW) {
+//       counter++;
+//     }
+//     lastIRState = irState;
+//     delay(50);
+
+//     // IR Reject
+//     pinMode(sensorReject, INPUT_PULLUP);
+//     static int lastIRStateReject = LOW;
+//     int irStateReject = digitalRead(sensorReject);
+//     if (irStateReject == HIGH && lastIRStateReject == LOW) {
+//       counterReject++;
+//     }
+//     lastIRStateReject = irStateReject;
+//     delay(50);
+// +
+//     Serial.print("Counter 1:" );
+//     Serial.println(counter);
+//     Serial.print("Counter 2: ");
+//     Serial.println(counterReject);
+//   }
+// }
 
 void getLocalTime() {
   /* Fungsi bertujuan menerima update waktu
@@ -386,10 +385,21 @@ void updateMenu() {
       lcd.setCursor(1, 2);
       lcd.print(nameProductTwo);
       lcd.setCursor(0, 3);
-      lcd.print(">" + nameProductFour);
+      lcd.print(">" + nameProductThree);
       break;
     case 4:
-      menu = 3;
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("==PILIH PRODUK==");
+      lcd.setCursor(1, 1);
+      lcd.print(nameProductTwo);
+      lcd.setCursor(1, 2);
+      lcd.print(nameProductThree);
+      lcd.setCursor(0, 3);
+      lcd.print(">" + nameProductFour);
+      break;
+    case 5:
+      menu = 4;
       break;
   }
 }
@@ -414,7 +424,6 @@ void menuSelected() {
       delay(1000);
       lcd.clear();
       break;
-// == Penambahan Product/Menu /-Ridho-\ ==      
     case 4:
       productSelected = productCodeFour;
       nameProductSelected = nameProductFour;
