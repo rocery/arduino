@@ -1,6 +1,6 @@
 /*
   V. 1.0.5
-  Update Terakhir : 25-06-2024
+  Update Terakhir : 22-01-2025
 
   PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
   Komponen:
@@ -34,7 +34,7 @@
 #include <RTClib.h>
 #include "time.h"
 
-String ESPName = "Ctr-Mie Hancur";
+String ESPName = "Ctr-Mie Hancur 3";
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
    Total kolom 20
@@ -76,7 +76,6 @@ String ip_Address;
 
 // == Get NTP/RTC ==
 const char* ntpServer = "192.168.7.223";
-// Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
 const long gmtOffsetSec = 7 * 3600;
 const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat;
