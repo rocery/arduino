@@ -1,13 +1,13 @@
 /*
-  V. 1.0.6
-  Update Terakhir : 25-06-2024
+  V. 1.0.5
+  Update Terakhir : 22-01-2025
 
   PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
   Komponen:
   1. Micro Controller : ESP32
   2. LCD I2C 20x4                               (3.3v, GND, I2C (22 = SCL, 21 = SDA))
   3. RTC DS3231                                 (3.3v, GND, I2C (22 = SCL, 21 = SDA))
-  4. IR Sensor                                  (5v/Vin, GND, 13)
+  4. IR Sensor                                  (5v/Vin, GND, 27)
   5. Module SD Card + SD Card (FAT32 1-16 GB)   (3.3v, GND, SPI(Mosi 23, Miso 19, CLK 18, CS 5))
   6. Tacticle Button 1x1 cm @3                  (3.3v, GND, 34, 35, 25)
   -- Belum diimplementasikan --
@@ -34,7 +34,7 @@
 #include <RTClib.h>
 #include "time.h"
 
-String ESPName = "Ctr-Mie Hancur";
+String ESPName = "Ctr-Mie Kotak Line 3";
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
    Total kolom 20
@@ -44,10 +44,10 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 // Terdapat 3 tombol pada project ini, up, down, select
 #define upButton 35
 #define downButton 34
-#define selectButton 32
+#define selectButton 26
 
 // Sensor IR disambungkan ke pin 13
-#define sensorPin 13
+#define sensorPin 25
 
 // == WiFi Config ==
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
@@ -56,17 +56,15 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB8";
 const char* password_a = "siantar123";
-const char* ssid_d = "STTB1";
-const char* password_d = "Si4nt4r321";
-const char* ssid_b = "MT1";
-const char* password_b = "siantar321";
+const char* ssid_b = "STTB1";
+const char* password_b = "Si4nt4r321";
 const char* ssid_c = "MT3";
 const char* password_c = "siantar321";
 const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
 
 // Atur IP Static yang digunakan
-IPAddress staticIP(192, 168, 7, 219);
+IPAddress staticIP(192, 168, 7, 214);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
 // Optional
@@ -105,20 +103,20 @@ String postData;
 bool menuSelect;
 int menu = 1;
 String productSelected, nameProductSelected;
-String productCodeOne = "P-0722-00245";
-String nameProductOne = "SP MG BBQ";
-String productCodeTwo = "P-0722-00247";
-String nameProductTwo = "SP MG Smbl Balado";
-String productCodeThree = "P-0124-00287";
-String nameProductThree = "SP SB Mie Chicken";
-String productCodeFour = "P-0124-00285";
-String nameProductFour = "SP SB Mie Potato";
-String productCodeFive = "P-0124-00286";
-String nameProductFive = "SP SB Mie Balado";
-String productCodeSix = "P-0722-00246";
-String nameProductSix = "SK Mie St Aym Kcp";
-String productCodeSeven = "Test 219 Mie Hancur";
-String nameProductSeven = "Test Mode_219";
+String productCodeOne = "P-0722-00248";
+String nameProductOne = "MIE GEMEZ ENK 1K";
+String productCodeTwo = "P-0823-00277";
+String nameProductTwo = "MIE GEMEZ ENK 2K";
+String productCodeThree = "P-1124-00297";
+String nameProductThree = "BOYKI MIE GRG 1K";
+String productCodeFour = "P-0224-00288";
+String nameProductFour = "MIE AYAM PGG 1K";
+String productCodeFive = "P-1124-00296";
+String nameProductFive = "GEMEZ ENK SPC 1K";
+String productCodeSix = "P-0324-00289";
+String nameProductSix = "MIE AYAM GRG 1K";
+String productCodeSeven = "Test 214 Mie Kotak";
+String nameProductSeven = "Test Mode_214";
 
 // == SD Card ==
 int lineAsInt;
@@ -336,7 +334,7 @@ void updateMenu() {
       lcd.setCursor(1, 2);
       lcd.print(nameProductFive);
       lcd.setCursor(1, 3);
-      lcd.print(nameProductSix);
+      lcd.print("WiFi : " + WiFi.SSID());
       break;
     case 5:
       lcd.clear();
@@ -347,7 +345,7 @@ void updateMenu() {
       lcd.setCursor(0, 2);
       lcd.print(">" + nameProductFive);
       lcd.setCursor(1, 3);
-      lcd.print(nameProductSix);
+      lcd.print("WiFi : " + WiFi.SSID());
       break;
     case 6:
       lcd.clear();
@@ -357,7 +355,7 @@ void updateMenu() {
       lcd.print(nameProductFour);
       lcd.setCursor(1, 2);
       lcd.print(nameProductFive);
-      lcd.setCursor(0, 3);
+      lcd.setCursor(1, 3);
       lcd.print(">" + nameProductSix);
       break;
     case 7:
@@ -368,7 +366,7 @@ void updateMenu() {
       lcd.print(nameProductFive);
       lcd.setCursor(1, 2);
       lcd.print(nameProductSix);
-      lcd.setCursor(0, 3);
+      lcd.setCursor(1, 3);
       lcd.print(">" + nameProductSeven);
       break;
     case 8:
@@ -382,43 +380,36 @@ void menuSelected() {
     case 1:
       productSelected = productCodeOne;
       nameProductSelected = nameProductOne;
-      delay(1000);
       lcd.clear();
       break;
     case 2:
       productSelected = productCodeTwo;
       nameProductSelected = nameProductTwo;
-      delay(1000);
       lcd.clear();
       break;
     case 3:
       productSelected = productCodeThree;
       nameProductSelected = nameProductThree;
-      delay(1000);
       lcd.clear();
       break;
     case 4:
       productSelected = productCodeFour;
       nameProductSelected = nameProductFour;
-      delay(1000);
       lcd.clear();
       break;
     case 5:
       productSelected = productCodeFive;
       nameProductSelected = nameProductFive;
-      delay(1000);
       lcd.clear();
       break;
     case 6:
       productSelected = productCodeSix;
       nameProductSelected = nameProductSix;
-      delay(1000);
       lcd.clear();
       break;
     case 7:
       productSelected = productCodeSeven;
       nameProductSelected = nameProductSeven;
-      delay(1000);
       lcd.clear();
       break;
   }
@@ -549,7 +540,6 @@ void setup() {
   wifiMulti.addAP(ssid_a, password_a);
   wifiMulti.addAP(ssid_b, password_b);
   wifiMulti.addAP(ssid_c, password_c);
-  wifiMulti.addAP(ssid_d, password_d);
   wifiMulti.addAP(ssid_it, password_it);
 
   if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
