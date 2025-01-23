@@ -123,6 +123,17 @@ int lineAsInt;
 String dateTimeSD, productSelectedSD, counterSD, ipAddressSD, line, logName, logData;
 bool statusSD, readStatusSD, insertLastLineSDCardStatus;
 
+/**
+ * @brief Continuously monitors a sensor for state changes and increments a counter.
+ *
+ * This function runs indefinitely, setting the sensor pin mode and reading its state.
+ * It detects a transition from HIGH to LOW in the sensor state and increments a global
+ * counter accordingly. A delay is introduced to prevent the counter from incrementing
+ * due to noise.
+ *
+ * @param parameter Pointer to parameters passed to the function (unused).
+ */
+
 void counterHit(void* parameter) {
   for (;;) {
     // Deklarasi mode pin sensor
