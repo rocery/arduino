@@ -1,6 +1,6 @@
 /*
   V. 1.0.5
-  Update Terakhir : 22-01-2025
+  Update Terakhir : 23-01-2025
 
   PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
   Komponen:
@@ -355,7 +355,7 @@ void updateMenu() {
       lcd.print(nameProductFour);
       lcd.setCursor(1, 2);
       lcd.print(nameProductFive);
-      lcd.setCursor(1, 3);
+      lcd.setCursor(0, 3);
       lcd.print(">" + nameProductSix);
       break;
     case 7:
@@ -366,7 +366,7 @@ void updateMenu() {
       lcd.print(nameProductFive);
       lcd.setCursor(1, 2);
       lcd.print(nameProductSix);
-      lcd.setCursor(1, 3);
+      lcd.setCursor(0, 3);
       lcd.print(">" + nameProductSeven);
       break;
     case 8:
