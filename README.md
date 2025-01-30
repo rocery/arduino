@@ -92,4 +92,4 @@ sudo usermod -G dialout $USER then logout.
 - IoT-218-BM0132 = Produksi Biskuit/Mie - Counter - ESP32 - Goriorio Isi 2 - FC:B4:67:51:47:C0
 ```
 
-s
+s.id/iotsttb
