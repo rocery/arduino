@@ -13,6 +13,10 @@
  * 4. Pada function sendLog(), terdapat 2 baris form-data; name=\"file\"; filename=\"weigherLog31.txt\"
  *    Ganti filename sesuai dengan nama file log yang akan diupload
  * 5. const char* logName
+ * 
+ * T:
+ * 1. Save variabel totalLineCount to sdCard totalLineCount.txt
+ * 2. Save variabel saveDataConter to sdCard saveDataConter.txt
 */
 
 #include <HX711.h>
@@ -36,7 +40,7 @@
 // DEVICE INFO
 String ESPName = "Weigher | " + loc;
 String deviceID = "IoT-" + String(ip);
-int sendDataCounter, sendDataCounterFailed, sendLogCounter, sendLogCounterFailed, totalLineCount, saveDataConter, saveDataConterFailed;
+int sendDataCounter, sendDataCounterFailed, sendLogCounter, totalLineCount, saveDataConter, saveDataConterFailed;
 
 // SERVER API
 const char* serverAddress = "192.168.7.223";
@@ -501,7 +505,7 @@ void sendLog(void* parameter) {
         unsigned long currentPressTime = millis();
 
         // Check if button is pressed for more than 200 ms
-        if (currentPressTime - buttonPressStartTime >= 200 && !buttonProcessed) {
+        if (currentPressTime - buttonPressStartTime >= 100 && !buttonProcessed) {
           // Execute code when button is pressed longer than 0.5 seconds
           if (!sdStatus) {
             if (lanStatus == "D") {
@@ -531,9 +535,11 @@ void sendLog(void* parameter) {
             if (!appendLog(logName, postData.c_str())) {
               lcd.setCursor(0, 1);
               lcd.print("DATA GGL DISAVE");
+              // Jumlah data yang gagal disimpan pada sdCard
               saveDataConterFailed++;
               vTaskDelay(pdMS_TO_TICKS(1000));
             } else {
+              // Jumlah data yang behasil disimpan pada sdCard
               saveDataConter++;
             }
           }
@@ -664,7 +670,10 @@ void sendLog(void* parameter) {
 
 
         if (String(status) == "success") {
-          sendLogCounter++;
+          // Total file yang dikirim
+          // sendLogCounter++;
+          
+          // Total data yang berhasil dikirim
           totalLineCount = totalLineCount + jumlah_data;
           deleteLog(logName);
         }
@@ -853,7 +862,6 @@ void loop() {
   lcd.setCursor(15, 1);
   lcd.print(lanStatus);
   if (!sdStatus) {
-
     lcd.setCursor(9, 1);
     lcd.print(sendDataCounter);
   } else {
