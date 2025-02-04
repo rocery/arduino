@@ -16,7 +16,7 @@
  * 
  * T:
  * 1. Save variabel totalLineCount to sdCard totalLineCount.txt
- * 2. Save variabel saveDataConter to sdCard saveDataConter.txt
+ * 2. Save variabel saveDataCounter to sdCard saveDataCounter.txt
  * 
  * 06:00:00 - 13:59:59
  * 14:00:00 - 21:59:59
@@ -51,7 +51,7 @@
 // DEVICE INFO
 String ESPName = "Weigher | " + loc;
 String deviceID = "IoT-" + String(ip);
-int sendDataCounter, sendDataCounterFailed, sendLogCounter, totalLineCount, saveDataConter, saveDataConterFailed;
+int sendDataCounter, sendDataCounterFailed, sendLogCounter, totalLineCount, saveDataCounter, saveDataConterFailed;
 
 // SERVER API
 const char* serverAddress = "192.168.7.223";
@@ -609,7 +609,8 @@ void sendLog(void* parameter) {
               vTaskDelay(pdMS_TO_TICKS(1000));
             } else {
               // Jumlah data yang behasil disimpan pada sdCard
-              saveDataConter++;
+              saveDataCounter++;
+              saveCounterSaveSend(logSave, saveDataCounter);
             }
           }
 
@@ -890,6 +891,11 @@ void setup() {
     sdStatus = false;
   } else {
     sdStatus = true;
+
+    // Get Last Counter
+    totalLineCount = readCounterSaveSend(logSend);
+    saveDataCounter = readCounterSaveSend(logSave);
+
   }
 
   // Begin UDP for NTP
@@ -943,7 +949,7 @@ void loop() {
     lcd.print(sendDataCounter);
   } else {
     lcd.setCursor(9, 1);
-    lcd.print(saveDataConter);
+    lcd.print(saveDataCounter);
   }
 
   lcd.setCursor(0, 1);
@@ -983,7 +989,7 @@ void loop() {
       while (isButtonPressed(buttonUp)) {
         lcd.setCursor(0, 0);
         lcd.print("B:");
-        lcd.print(saveDataConter);
+        lcd.print(saveDataCounter);
         lcd.setCursor(6, 0);
         lcd.print("-SD:");
         lcd.print(sdStatus);
