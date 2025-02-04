@@ -131,6 +131,9 @@ int buttonSelectState = 0;
 #define SD_CS 4
 bool sdStatus = false;
 const char* logName = "/weigherLog31.txt";
+const char* logSave = "/weigherLog31.txt";
+const char* logSend = "/weigherLog31.txt";
+bool hasReset = false;
 
 // TASK HANDLER CORE 0 FOR SEND DATA
 TaskHandle_t SendLogTaskHandle;
@@ -491,6 +494,21 @@ bool deleteAllLog() {
   } else {
     return false;
   }
+}
+
+bool isTimeToResetCounterSaveSend(int hour_, int minute_, int second_) {
+  int resetTimes[3][3] = {
+    {6, 0, 0},  // 06:00:00
+    {14, 0, 0}, // 14:00:00
+    {22, 0, 0}  // 22:00:00
+  };
+
+  for (int i = 0; i < 3; i++) {
+    if (hour == resetTimes[i][0] && minute == resetTimes[i][1] && second == resetTimes[i][2]) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /*
@@ -948,6 +966,8 @@ void loop() {
     lcd.clear();
     lastLcdClearTime = currentTime;
   }
+
+  if (hourNTP )
 
   // Reset Counter Save dan Send
   if (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
