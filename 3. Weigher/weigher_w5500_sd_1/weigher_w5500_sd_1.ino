@@ -496,6 +496,21 @@ bool deleteAllLog() {
   }
 }
 
+int readCounterSaveSend(const char* path) {
+  File file = SD.open(path, FILE_READ);
+  int value = 0;
+
+  if (file) {
+    String data = file.readStringUntil('\n');
+    value = data.toInt(); // Convert to integer
+    file.close();
+  } else {
+    Serial.println("No previous data found, starting from 0.");
+  }
+
+  return value;
+}
+
 bool saveCounterSaveSend(const char* path, int counter) {
   File file = SD.open(path, FILE_WRITE);
 
@@ -732,7 +747,7 @@ void sendLog(void* parameter) {
           deleteLog(logName);
 
           // Save jumlah_data to log
-
+          saveCounterSaveSend(logSend, totalLineCount);
 
         }
 
