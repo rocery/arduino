@@ -496,6 +496,28 @@ bool deleteAllLog() {
   }
 }
 
+bool saveCounterSaveSend(const char* path, int counter) {
+  File file = SD.open(path, FILE_WRITE);
+
+  if (file) {
+    file.seek(0);         // Move to the start of the file
+    file.print(value);    // Overwrite the existing data
+    file.truncate(file.position()); // Remove leftover data if new value is shorter
+    file.close();
+
+    Serial.print("Value Save To ");
+    Serial.print(path);
+    Serial.print(" : ");
+    Serial.println(value);
+
+    return true;
+  } else {
+    Serial.print("Error Save To ");
+    Serial.println(path);
+    return false;
+  }
+}
+
 bool isTimeToResetCounterSaveSend(int hour_, int minute_, int second_) {
   int resetTimes[3][3] = {
     {6, 0, 0},  // 06:00:00
@@ -510,6 +532,8 @@ bool isTimeToResetCounterSaveSend(int hour_, int minute_, int second_) {
   }
   return false;
 }
+
+
 
 /*
  * Fungsi sendLog() mengirimkan log ke server menggunakan HTTP POST.
@@ -706,6 +730,10 @@ void sendLog(void* parameter) {
           // Total data yang berhasil dikirim
           totalLineCount = totalLineCount + jumlah_data;
           deleteLog(logName);
+
+          // Save jumlah_data to log
+
+
         }
 
         lastServerCheckTime = currentTime;
