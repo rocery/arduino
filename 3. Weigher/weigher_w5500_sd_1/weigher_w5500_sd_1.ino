@@ -511,13 +511,13 @@ int readCounterSaveSend(const char* path) {
   return value;
 }
 
-bool saveCounterSaveSend(const char* path, int counter) {
-  File file = SD.open(path, FILE_WRITE);
+bool saveCounterSaveSend(const char* path, int value) {
+  // Delete Previous Data
+  SD.remove(path);
 
+  File file = SD.open(path, FILE_WRITE);
   if (file) {
-    file.seek(0);         // Move to the start of the file
-    file.print(value);    // Overwrite the existing data
-    file.truncate(file.position()); // Remove leftover data if new value is shorter
+    file.println(value);    // Overwrite the existing data
     file.close();
 
     Serial.print("Value Save To ");
