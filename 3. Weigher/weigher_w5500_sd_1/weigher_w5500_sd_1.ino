@@ -967,7 +967,14 @@ void loop() {
     lastLcdClearTime = currentTime;
   }
 
-  if (hourNTP )
+  if (isTimeToResetCounterSaveSend(hourNTP, minuteNTP, secondNTP)) {
+    if (!hasReset) {
+      // reset counter
+      hasReset = true;
+    } else {
+      hasReset = false;
+    }
+  }
 
   // Reset Counter Save dan Send
   if (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
