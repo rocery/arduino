@@ -17,6 +17,17 @@
  * T:
  * 1. Save variabel totalLineCount to sdCard totalLineCount.txt
  * 2. Save variabel saveDataConter to sdCard saveDataConter.txt
+ * 
+ * 06:00:00 - 13:59:59
+ * 14:00:00 - 21:59:59
+ * 22:00:00 - 05:59:59
+ * 
+ * Jika kondisi kiri terpenuhi -> reset -> txt 0
+ * Jika kondisi kanan terpenuhi -> reset 0 -> reset 1 
+ * 
+ * default 1
+ * if jam >= 6 dan menit >= 0 dan detik >= 1 < 6+1 dan txt 1 maka reset kemuadian txt 0
+ * jam 6 + 1 -> txt 1 
 */
 
 #include <HX711.h>
@@ -98,6 +109,7 @@ NTPClient ntpClient(udp, ntpServer, 0, 60000); // UTC time, update every 60 seco
 String formattedTime;
 unsigned long lastNTPUpdateTime = 0;
 const unsigned long NTP_UPDATE_INTERVAL = 1000;
+int hourNTP, minuteNTP, secondNTP;
 
 // LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -744,6 +756,10 @@ String getFormattedDateTime(unsigned long epochTime) {
   char buffer[20];
   sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
 
+  hourNTP = hour;
+  minuteNTP = minute;
+  secondNTP = second;
+
   return String(buffer);
 }
 
@@ -931,5 +947,12 @@ void loop() {
   if (currentTime - lastLcdClearTime >= LCD_CLEAR_INTERVAL) {
     lcd.clear();
     lastLcdClearTime = currentTime;
+  }
+
+  // Reset Counter Save dan Send
+  if (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
+    while (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
+      lcd.clear();
+      // reset counter
   }
 }
