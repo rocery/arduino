@@ -51,7 +51,7 @@
 // DEVICE INFO
 String ESPName = "Weigher | " + loc;
 String deviceID = "IoT-" + String(ip);
-int sendDataCounter, sendDataCounterFailed, sendLogCounter, totalLineCount, saveDataCounter, saveDataConterFailed;
+int sendDataCounter, sendDataCounterFailed, sendLogCounter, totalLineCount, saveDataCounter, saveDataConterFailed, sendCounterSD, saveCounterSD;
 
 // SERVER API
 const char* serverAddress = "192.168.7.223";
@@ -471,7 +471,6 @@ bool appendLog(const char* path, const char* log) {
 
 bool deleteLog(const char* path) {
   if (SD.remove(path)) {
-    Serial.println("File deleted");
     return true;
   } else {
     return false;
@@ -944,12 +943,14 @@ void loop() {
 
   lcd.setCursor(15, 1);
   lcd.print(lanStatus);
+
+  saveCounterSD = readCounterSaveSend(logSave);
   if (!sdStatus) {
     lcd.setCursor(9, 1);
     lcd.print(sendDataCounter);
   } else {
     lcd.setCursor(9, 1);
-    lcd.print(saveDataCounter);
+    lcd.print(saveCounterSD);
   }
 
   lcd.setCursor(0, 1);
@@ -967,6 +968,7 @@ void loop() {
     lcd.clear();
   }
 
+  sendCounterSD = readCounterSaveSend(logSend);
   if (isButtonPressed(buttonUp)) {
     lcd.clear();
     if (!sdStatus) {
@@ -989,7 +991,7 @@ void loop() {
       while (isButtonPressed(buttonUp)) {
         lcd.setCursor(0, 0);
         lcd.print("B:");
-        lcd.print(saveDataCounter);
+        lcd.print(saveCounterSD);
         lcd.setCursor(6, 0);
         lcd.print("-SD:");
         lcd.print(sdStatus);
@@ -1002,7 +1004,7 @@ void loop() {
         lcd.print(saveDataConterFailed);
         lcd.setCursor(6, 1);
         lcd.print("-S:");
-        lcd.print(totalLineCount);
+        lcd.print(sendCounterSD);
         lcd.setCursor(15, 1);
         lcd.print(lanStatus);
       }
@@ -1018,7 +1020,13 @@ void loop() {
 
   if (isTimeToResetCounterSaveSend(hourNTP, minuteNTP, secondNTP)) {
     if (!hasReset) {
-      // reset counter
+      // Reset All Counter
+      deleteLog(logSend);
+      deleteLog(logSave);
+
+      totalLineCount = 0;
+      saveDataCounter = 0;
+
       hasReset = true;
     } else {
       hasReset = false;
@@ -1029,7 +1037,17 @@ void loop() {
   if (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
     while (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
       lcd.clear();
-      // reset counter
+      // Reset All Counter
+      deleteLog(logSend);
+      deleteLog(logSave);
+
+      totalLineCount = 0;
+      saveDataCounter = 0;
+
+      lcd.setCursor(0, 0);
+      lcd.print("      RESET     ");
+      lcd.setCursor(0, 1);
+      lcd.print("                ");
     }
   }
 }
