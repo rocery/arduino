@@ -504,7 +504,7 @@ bool isTimeToResetCounterSaveSend(int hour_, int minute_, int second_) {
   };
 
   for (int i = 0; i < 3; i++) {
-    if (hour == resetTimes[i][0] && minute == resetTimes[i][1] && second == resetTimes[i][2]) {
+    if (hour_ == resetTimes[i][0] && minute_ == resetTimes[i][1] && second_ == resetTimes[i][2]) {
       return true;
     }
   }
@@ -981,5 +981,6 @@ void loop() {
     while (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
       lcd.clear();
       // reset counter
+    }
   }
 }
