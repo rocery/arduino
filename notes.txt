@@ -43,7 +43,3 @@ Contoh:
 - IoT-216-KR0366 = Produksi Kerupuk - Monitoring Operasional Conveyor - 8266 - Stuffle Kerupuk-Gudang Jadi
 - IoT-217-KR0232 = Produksi Kerupuk - Suhu - ESP32 - Oven 30
 - IoT-218-BM0132 = Produksi Biskuit/Mie - Counter - ESP32 - Goriorio Isi 2
-
-
-
-update
