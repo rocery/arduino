@@ -2,7 +2,7 @@
  * V 3.0.0
  * Update Terakhir : 11-01-2025
  * 
- * Test: 2
+ * Test: 3
  * 
  * PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
  * - API yang digunakan adalah FLask karena terjadi kendala pada peroses pengiriman file dari esp ke php
@@ -1009,6 +1009,23 @@ void loop() {
         lcd.print(sendCounterSD);
         lcd.setCursor(15, 1);
         lcd.print(lanStatus);
+
+        if (isButtonPressed(buttonDown)) {
+          lcd.clear();
+          while (isButtonPressed(buttonDown)) {
+            // Reset All Counter
+            deleteLog(logSend);
+            deleteLog(logSave);
+
+            totalLineCount = 0;
+            saveDataCounter = 0;
+
+            lcd.setCursor(0, 0);
+            lcd.print("      RESET     ");
+            lcd.setCursor(0, 1);
+            lcd.print("                ");
+          }
+        }
       }
     }
     lcd.clear();
@@ -1036,20 +1053,20 @@ void loop() {
   }
 
   // Reset Counter Save dan Send
-  if (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
-    while (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
-      lcd.clear();
-      // Reset All Counter
-      deleteLog(logSend);
-      deleteLog(logSave);
+  // if (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
+  //   while (isButtonPressed(buttonUp) && isButtonPressed(buttonDown)) {
+  //     lcd.clear();
+  //     // Reset All Counter
+  //     deleteLog(logSend);
+  //     deleteLog(logSave);
 
-      totalLineCount = 0;
-      saveDataCounter = 0;
+  //     totalLineCount = 0;
+  //     saveDataCounter = 0;
 
-      lcd.setCursor(0, 0);
-      lcd.print("      RESET     ");
-      lcd.setCursor(0, 1);
-      lcd.print("                ");
-    }
-  }
+  //     lcd.setCursor(0, 0);
+  //     lcd.print("      RESET     ");
+  //     lcd.setCursor(0, 1);
+  //     lcd.print("                ");
+  //   }
+  // }
 }
