@@ -2,7 +2,7 @@
  * V 3.0.0
  * Update Terakhir : 11-01-2025
  * 
- * Test: 1
+ * Test: 2
  * 
  * PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
  * - API yang digunakan adalah FLask karena terjadi kendala pada peroses pengiriman file dari esp ke php
@@ -133,8 +133,8 @@ int buttonSelectState = 0;
 #define SD_CS 4
 bool sdStatus = false;
 const char* logName = "/weigherLog31.txt";
-const char* logSave = "/weigherLog31.txt";
-const char* logSend = "/weigherLog31.txt";
+const char* logSave = "/saveLog31.txt";
+const char* logSend = "/sendLog31.txt";
 bool hasReset = false;
 
 // TASK HANDLER CORE 0 FOR SEND DATA
