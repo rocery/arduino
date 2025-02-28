@@ -34,12 +34,13 @@
 #include <RTClib.h>
 #include "time.h"
 
-String ESPName = "Counter-Tic Tic";
+String ESPName = "Counter-Twistko Corn Premium 10K";
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
    Total kolom 20
    Total baris 4 */
 LiquidCrystal_I2C lcd(0x27, 20, 4);
+// LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // Terdapat 3 tombol pada project ini, up, down, select
 #define upButton 34
@@ -108,10 +109,12 @@ int menu = 1;
 String productSelected, nameProductSelected;
 String productCodeOne = "P-1024-00291";
 String nameProductOne = "Twisko Premium 10K";
-String productCodeTwo = "P-0722-00239";
-String nameProductTwo = "Tic Tic Bwg 2000";
-String productCodeThree = "P-0922-00257";
-String nameProductThree = "Tic Tic Bwg 5000";
+// String productCodeOne = "P-0722-00239";
+// String nameProductOne = "Tic Tic Bwg 2000";
+String productCodeTwo = "P-0922-00257";
+String nameProductTwo = "Tic Tic Bwg 5000";
+String productCodeThree = "P-1024-00291";
+String nameProductThree = "Twisko Premium 10K";
 String productCodeFour = "Test_Mode_213";
 String nameProductFour = "Test_Mode_213";
 
@@ -143,7 +146,7 @@ void counterHit(void* parameter) {
     lastIRStateReject = irStateReject;
     delay(50);
 
-    Serial.print("Counter 1:" );
+    Serial.print("Counter 1:");
     Serial.println(counter);
     Serial.print("Counter 2: ");
     Serial.println(counterReject);
@@ -325,20 +328,20 @@ void selectMenu() {
   updateMenu();
   while (menuSelect == false) {
     resetESP();
-    if (digitalRead(downButton)) {
-      menu++;
-      updateMenu();
-      delay(100);
-      while (digitalRead(downButton))
-        ;
-    }
-    if (digitalRead(upButton)) {
-      menu--;
-      updateMenu();
-      delay(100);
-      while (digitalRead(upButton))
-        ;
-    }
+    // if (digitalRead(downButton)) {
+    //   menu++;
+    //   updateMenu();
+    //   delay(100);
+    //   while (digitalRead(downButton))
+    //     ;
+    // }
+    // if (digitalRead(upButton)) {
+    //   menu--;
+    //   updateMenu();
+    //   delay(100);
+    //   while (digitalRead(upButton))
+    //     ;
+    // }
     if (digitalRead(selectButton)) {
       delay(100);
       while (digitalRead(selectButton))
@@ -360,47 +363,47 @@ void updateMenu() {
       lcd.print("==PILIH PRODUK==");
       lcd.setCursor(0, 1);
       lcd.print(">" + nameProductOne);
-      lcd.setCursor(1, 2);
-      lcd.print(nameProductTwo);
+      // lcd.setCursor(1, 2);
+      // lcd.print(nameProductTwo);
       lcd.setCursor(1, 3);
       lcd.print("WiFi : " + WiFi.SSID());
       break;
-    case 2:
-      lcd.clear();
-      lcd.setCursor(2, 0);
-      lcd.print("==PILIH PRODUK==");
-      lcd.setCursor(1, 1);
-      lcd.print(nameProductOne);
-      lcd.setCursor(0, 2);
-      lcd.print(">" + nameProductTwo);
-      lcd.setCursor(1, 3);
-      lcd.print("WiFi : " + WiFi.SSID());
-      break;
-    case 3:
-      lcd.clear();
-      lcd.setCursor(2, 0);
-      lcd.print("==PILIH PRODUK==");
-      lcd.setCursor(1, 1);
-      lcd.print(nameProductOne);
-      lcd.setCursor(1, 2);
-      lcd.print(nameProductTwo);
-      lcd.setCursor(0, 3);
-      lcd.print(">" + nameProductThree);
-      break;
-    case 4:
-      lcd.clear();
-      lcd.setCursor(2, 0);
-      lcd.print("==PILIH PRODUK==");
-      lcd.setCursor(1, 1);
-      lcd.print(nameProductTwo);
-      lcd.setCursor(1, 2);
-      lcd.print(nameProductThree);
-      lcd.setCursor(0, 3);
-      lcd.print(">" + nameProductFour);
-      break;
-    case 5:
-      menu = 4;
-      break;
+      // case 2:
+      //   lcd.clear();
+      //   lcd.setCursor(2, 0);
+      //   lcd.print("==PILIH PRODUK==");
+      //   lcd.setCursor(1, 1);
+      //   lcd.print(nameProductOne);
+      //   lcd.setCursor(0, 2);
+      //   lcd.print(">" + nameProductTwo);
+      //   lcd.setCursor(1, 3);
+      //   lcd.print("WiFi : " + WiFi.SSID());
+      //   break;
+      // case 3:
+      //   lcd.clear();
+      //   lcd.setCursor(2, 0);
+      //   lcd.print("==PILIH PRODUK==");
+      //   lcd.setCursor(1, 1);
+      //   lcd.print(nameProductOne);
+      //   lcd.setCursor(1, 2);
+      //   lcd.print(nameProductTwo);
+      //   lcd.setCursor(0, 3);
+      //   lcd.print(">" + nameProductThree);
+      //   break;
+      // case 4:
+      //   lcd.clear();
+      //   lcd.setCursor(2, 0);
+      //   lcd.print("==PILIH PRODUK==");
+      //   lcd.setCursor(1, 1);
+      //   lcd.print(nameProductTwo);
+      //   lcd.setCursor(1, 2);
+      //   lcd.print(nameProductThree);
+      //   lcd.setCursor(0, 3);
+      //   lcd.print(">" + nameProductFour);
+      //   break;
+      // case 5:
+      //   menu = 4;
+      //   break;
   }
 }
 
@@ -412,24 +415,24 @@ void menuSelected() {
       delay(1000);
       lcd.clear();
       break;
-    case 2:
-      productSelected = productCodeTwo;
-      nameProductSelected = nameProductTwo;
-      delay(1000);
-      lcd.clear();
-      break;
-    case 3:
-      productSelected = productCodeThree;
-      nameProductSelected = nameProductThree;
-      delay(1000);
-      lcd.clear();
-      break;
-    case 4:
-      productSelected = productCodeFour;
-      nameProductSelected = nameProductFour;
-      delay(1000);
-      lcd.clear();
-      break;
+      // case 2:
+      //   productSelected = productCodeTwo;
+      //   nameProductSelected = nameProductTwo;
+      //   delay(1000);
+      //   lcd.clear();
+      //   break;
+      // case 3:
+      //   productSelected = productCodeThree;
+      //   nameProductSelected = nameProductThree;
+      //   delay(1000);
+      //   lcd.clear();
+      //   break;
+      // case 4:
+      //   productSelected = productCodeFour;
+      //   nameProductSelected = nameProductFour;
+      //   delay(1000);
+      //   lcd.clear();
+      //   break;
   }
 }
 
@@ -492,7 +495,7 @@ void readLastLineSDCard(String path) {
 void insertLastLineSDCard(String path, String line) {
   // Open the file for writing
   File file = SD.open(path, FILE_WRITE);
-  
+
   // Check if file opened successfully
   if (!file) {
     // Print error message if failed to open
@@ -512,10 +515,10 @@ void insertLastLineSDCard(String path, String line) {
     // Print error message if write failed
     Serial.println("Write failed");
   }
-  
+
   // Close the file
   file.close();
-  
+
   // Print the data written to the SD card
   Serial.print("Data ke SD : ");
   Serial.println(line);
@@ -649,13 +652,13 @@ void setup() {
 void loop() {
   // Print Counter Hit
   lcd.setCursor(1, 2);
-  lcd.print("Total : ");
-  lcd.setCursor(9, 2);
+  lcd.print("Total:");
+  lcd.setCursor(7, 2);
   lcd.print(counter);
-  // lcd.setCursor(11, 2);
-  // lcd.print(" | ");
-  // lcd.setCursor(14, 2);
-  // lcd.print(counterReject);
+  lcd.setCursor(11, 2);
+  lcd.print(" | ");
+  lcd.setCursor(14, 2);
+  lcd.print(counterReject);
 
   // Print Produk
   lcd.setCursor(1, 0);
@@ -702,8 +705,8 @@ void loop() {
   }
 
   // Print Waktu hh:mm:ss
-  lcd.setCursor(12, 3);
-  lcd.print(timeFormat);
+  // lcd.setCursor(12, 3);
+  // lcd.print(timeFormat);
 
   ip_Address = WiFi.localIP().toString();
 
@@ -754,7 +757,7 @@ void loop() {
       postData = "kode_product=" + productSelected + "&counter=" + String(counter) + "&rejector=" + String(counterReject) + "&date=" + dateTime + "&ip_address=" + ip_Address;
     } else if (SD.begin()) {
       readLastLineSDCard(logName);
-      postData = "kode_product=" + productSelectedSD + "&counter=" + counterSD + "&rejector=" + counterRejectSD +"&date=" + dateTimeSD + "&ip_address=" + ipAddressSD;
+      postData = "kode_product=" + productSelectedSD + "&counter=" + counterSD + "&rejector=" + counterRejectSD + "&date=" + dateTimeSD + "&ip_address=" + ipAddressSD;
     }
     sendLogData();
     sendStatus = true;
