@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2024, Benoit BLANCHON
+// Copyright © 2014-2025, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
@@ -183,6 +183,7 @@ TEST_CASE("JsonVariant::as()") {
     variant.set("42");
 
     REQUIRE(variant.as<long>() == 42L);
+    REQUIRE(variant.as<double>() == 42);
     REQUIRE(variant.as<JsonString>() == "42");
     REQUIRE(variant.as<JsonString>().isStatic() == true);
   }

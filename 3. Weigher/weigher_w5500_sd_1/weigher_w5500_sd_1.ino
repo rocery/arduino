@@ -45,8 +45,8 @@
 #include <EthernetUdp.h>
 
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 31;
-/**/ const String loc = "Kerupuk 31";
+/**/ const int ip = 32;
+/**/ const String loc = "Kerupuk 32";
 /**/ const String prod = "Kerupuk";
 // =====================================
 
@@ -91,7 +91,7 @@ String product[] = {
   "TIC TIC SAMCOL",
   "FUJI CHIPS",
   "TIC TIC BALADO",
-  "TEST_31"
+  "TEST_32"
 };
 #define ARRAY_LENGTH(arr) (sizeof(arr) / sizeof(arr[0]))
 char kgLoadCellPrint[6];
@@ -132,9 +132,9 @@ int buttonSelectState = 0;
 // SD CARD
 #define SD_CS 4
 bool sdStatus = false;
-const char* logName = "/weigherLog31.txt";
-const char* logSave = "/saveLog31.txt";
-const char* logSend = "/sendLog31.txt";
+const char* logName = "/weigherLog32.txt";
+const char* logSave = "/saveLog32.txt";
+const char* logSend = "/sendLog32.txt";
 bool hasReset = false;
 
 // TASK HANDLER CORE 0 FOR SEND DATA
@@ -646,7 +646,7 @@ void sendLog(void* parameter) {
 
         // Calculate content length more precisely
         long contentLength =
-          String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
+          String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog32.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
 
         client.println("Content-Length: " + String(contentLength));
         client.println("Connection: close");
@@ -654,7 +654,7 @@ void sendLog(void* parameter) {
 
         // Write multipart form data
         client.println("--" + boundary);
-        client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"");
+        client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog32.txt\"");
         client.println("Content-Type: text/plain");
         client.println();
 
