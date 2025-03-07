@@ -608,7 +608,14 @@ void setup() {
   lcd.clear();  // Clear LCD sebelum memilih menu
   Serial.println("Select Menu");
   Serial.println(WiFi.localIP());
-  selectMenu();  // Tampilkan pilihan product yang bisa dipilih
+  
+  // Jika ingin memilih product tanpa memunculkan menu, comment baris dibawah.
+  // selectMenu();  // Tampilkan pilihan product yang bisa dipilih
+  
+  // Uncomment jika ingin memilih product tanpa memunculkan menu
+  productSelected = productCodeOne;
+  nameProductSelected = nameProductOne;
+  
   logName = "/logCounter_" + productSelected + ".txt";
 
   if (SD.begin()) {
