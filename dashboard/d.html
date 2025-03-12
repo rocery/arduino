@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navbar and Sidebar Example</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles for sidebar toggle */
+        .sidebar {
+            width: 15%;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: -20%;
+            transition: left 0.3s;
+            background-color: #f8f9fa;
+            padding-top: 4rem; /* Height of the navbar */
+        }
+        .sidebar.open {
+            left: 0;
+        }
+        .main-content {
+            margin-left: 0;
+            transition: margin-left 0.3s;
+        }
+        .main-content.shifted {
+            margin-left: 20%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md fixed w-full z-50">
+        <div class="container mx-auto px-4 flex items-center justify-between h-16">
+            <!-- Hamburger Button -->
+            <button class="text-gray-600 focus:outline-none" onclick="toggleSidebar()">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <!-- Navbar Links -->
+            <div class="flex items-center space-x-4">
+                <a href="#" class="text-gray-700 hover:text-gray-900 hover:underline">Home</a>
+                <a href="#" class="text-gray-700 hover:text-gray-900">Dashboard</a>
+                <a href="#" class="text-gray-700 hover:text-gray-900">Device</a>
+            </div>
+            <!-- Logo -->
+            <a href="#" class="flex items-center">
+                <img src="https://via.placeholder.com/50" alt="Logo" class="h-8 w-8">
+            </a>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <ul class="space-y-2 p-4">
+            <li>
+                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="ml-2">Analytic</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded">
+                    <i class="fas fa-wifi"></i>
+                    <span class="ml-2">IoT</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="ml-2">Status</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="container mx-auto px-4 pt-20">
+            <h1 class="text-2xl font-bold">Main Content</h1>
+            <p class="mt-2">This is the main content area.</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            sidebar.classList.toggle('open');
+            mainContent.classList.toggle('shifted');
+        }
+    </script>
+</body>
+</html>
