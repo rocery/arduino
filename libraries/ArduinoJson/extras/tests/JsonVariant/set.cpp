@@ -63,6 +63,18 @@ TEST_CASE("JsonVariant::set() when there is enough memory") {
                          });
   }
 
+  SECTION("char* (tiny string optimization)") {
+    char str[16];
+
+    strcpy(str, "abc");
+    bool result = variant.set(str);
+    strcpy(str, "def");
+
+    REQUIRE(result == true);
+    REQUIRE(variant == "abc");  // stores by copy
+    REQUIRE(spy.log() == AllocatorLog{});
+  }
+
   SECTION("(char*)0") {
     bool result = variant.set(static_cast<char*>(0));
 

@@ -1,6 +1,17 @@
 ArduinoJson: change log
 =======================
 
+v7.4.1 (2025-04-11)
+------
+
+* Fix crash with tiny Flash strings (issue #2170)
+
+v7.4.0 (2025-04-09)
+------
+
+* Optimize storage of tiny strings (up to 3 characters)
+* Fix support for `const char[]` (issue #2166)
+
 v7.3.1 (2025-02-27)
 ------
 

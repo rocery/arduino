@@ -26,8 +26,8 @@ TEST_CASE("deserializeJson(char*)") {
   REQUIRE(spy.log() ==
           AllocatorLog{
               Allocate(sizeofStringBuffer()),
-              Reallocate(sizeofStringBuffer(), sizeofString("hello")),
               Allocate(sizeofPool()),
+              Reallocate(sizeofStringBuffer(), sizeofString("hello")),
               Allocate(sizeofStringBuffer()),
               Reallocate(sizeofStringBuffer(), sizeofString("world")),
               Reallocate(sizeofPool(), sizeofObject(1)),

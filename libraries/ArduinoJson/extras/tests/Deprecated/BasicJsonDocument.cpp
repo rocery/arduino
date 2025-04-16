@@ -46,7 +46,7 @@ TEST_CASE("BasicJsonDocument") {
     deserializeJson(doc, "{\"hello\":\"world\"}");
     REQUIRE(doc.as<std::string>() == "{\"hello\":\"world\"}");
     doc.clear();
-    REQUIRE(allocatorLog == "ARAARDDD");
+    REQUIRE(allocatorLog == "AARARDDD");
   }
 
   SECTION("copy") {

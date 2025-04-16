@@ -7,6 +7,7 @@ add_executable(MiscTests
 	conflicts.cpp
 	issue1967.cpp
 	issue2129.cpp
+	issue2166.cpp
 	JsonString.cpp
 	NoArduinoHeader.cpp
 	printable.cpp
