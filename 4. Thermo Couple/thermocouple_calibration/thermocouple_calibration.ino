@@ -45,3 +45,36 @@ float tempReal;
      0x00,
      0x00
    };
+
+// == WiFi Config ==
+/* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
+   ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis */
+   WiFiMulti wifiMulti;
+   const char* ssid_a = "STTB1";
+   const char* password_a = "Si4nt4r321";
+   const char* ssid_b = "Amano2";
+   const char* password_b = "Si4nt4r321";
+   const char* ssid_c = "MT1";
+   const char* password_c = "siantar321";
+   const char* ssid_it = "Tester_ITB";
+   const char* password_it = "Si4nt4r321";
+
+// Set IP to Static
+IPAddress staticIP(192, 168, 7, 127);
+IPAddress gateway(192, 168, 15, 250);
+IPAddress subnet(255, 255, 0, 0);
+IPAddress primaryDNS(8, 8, 8, 8);
+IPAddress secondaryDNS(8, 8, 4, 4);
+String ip_Address;
+
+// == Data Send/Get ==
+String postData;
+bool sendStatus;
+
+// == Get NTP/RTC ==
+const char* ntpServer = "192.168.7.223";
+const long gmtOffsetSec = 7 * 3600;  // Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
+const int daylightOffsetSec = 0;
+String dateTime, dateFormat, timeFormat, timeLCD;
+int year, month, day, hour, minute, second;
+bool ntpStatus;
