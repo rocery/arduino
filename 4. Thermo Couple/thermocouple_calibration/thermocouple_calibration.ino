@@ -78,3 +78,7 @@ const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat, timeLCD;
 int year, month, day, hour, minute, second;
 bool ntpStatus;
+
+void sendLogData() {
+    
+}
