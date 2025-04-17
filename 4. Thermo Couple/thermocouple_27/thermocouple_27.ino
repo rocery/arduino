@@ -39,6 +39,7 @@
 const String deviceName = "Suhu Oven 27 - Kerupuk";
 const String api_sendLogData = "http://192.168.7.223/temperature_api/saveTemperature.php";
 const String api_sendLogData2 = "http://192.168.7.223/temperature_api/saveTemperature15Minutes.php";
+const String api_getCalibrationValue = "http://192.168.7.223/temperature_api/getCalibrationValue.php";
 const String deviceID = "27";
 
 /* Set pin MAX6675 pada pin SPI.
