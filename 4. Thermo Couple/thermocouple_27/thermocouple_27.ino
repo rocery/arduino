@@ -1,6 +1,6 @@
 /*
   V. 1.0.1
-  Update Terakhir : 16-02-2024
+  Update Terakhir : 17-04-2025
 
   Komponen:
   1. Micro Controller : ESP32
@@ -36,10 +36,10 @@
 #include <Wire.h>
 // #include <ESPping.h>
 
-const String deviceName = "Suhu Oven 28 - Kerupuk";
+const String deviceName = "Suhu Oven 27 - Kerupuk";
 const String api_sendLogData = "http://192.168.7.223/temperature_api/saveTemperature.php";
 const String api_sendLogData2 = "http://192.168.7.223/temperature_api/saveTemperature15Minutes.php";
-const String deviceID = "28";
+const String deviceID = "27";
 
 /* Set pin MAX6675 pada pin SPI.
   Jika thermocouple yang digunakan lebih dari 1,
@@ -96,11 +96,11 @@ const char* ssid_it = "Tester_ITB";
 const char* password_it = "Si4nt4r321";
 
 // Set IP to Static
-IPAddress staticIP(192, 168, 7, 128);
+IPAddress staticIP(192, 168, 7, 127);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
-IPAddress primaryDNS(8, 8, 8, 8);    //optional
-IPAddress secondaryDNS(8, 8, 4, 4);  //optional
+IPAddress primaryDNS(8, 8, 8, 8);
+IPAddress secondaryDNS(8, 8, 4, 4);
 String ip_Address;
 
 // == Data Send/Get ==
