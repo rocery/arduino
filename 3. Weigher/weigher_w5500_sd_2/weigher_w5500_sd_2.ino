@@ -552,8 +552,6 @@ bool isTimeToResetCounterSaveSend(int hour_, int minute_, int second_) {
   return false;
 }
 
-
-
 /*
  * Fungsi sendLog() mengirimkan log ke server menggunakan HTTP POST.
  * Fungsi ini dijalankan dalam task dengan prioritas tertinggi.
