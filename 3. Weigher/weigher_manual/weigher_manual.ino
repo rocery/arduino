@@ -1,6 +1,6 @@
 /*
  * V 3.0.0
- * Update Terakhir : 11-01-2025
+ * Update Terakhir : 19-04-2025
  * 
  * PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
  * - API yang digunakan adalah FLask karena terjadi kendala pada peroses pengiriman file dari esp ke php
@@ -33,6 +33,11 @@
  * Proses kirim hanya bisa dilakukan jika user menekan 2 tombol, Tare->Send dan jaringan tersedia
  * Jika proses return success, hapus semua data pda SD Card
  * Jika proses gagal tampilkan keterangan "error"
+ * 
+ * 
+ * To Do:
+ * 1. Sistem pengiriman data diganti menjadi manual, tekan tombol tare (buttonDown) kemudian tombol Save (buttonSelect)
+ * 2. Ganti sistem reset counter otomatis, ganti menjadi -> ubah reset jadi 0 jika pengiriman data sukses
 */
 
 #include <HX711.h>
@@ -558,7 +563,8 @@ bool isTimeToResetCounterSaveSend(int hour_, int minute_, int second_) {
  * Fungsi ini akan menunggu sampai buttonSelect ditekan untuk menghentikan pengiriman log.
  * Pada saat proses mengirim data ke server, semua proses akan di'halt' sampai proses pengiriman selesai.
  * Server yang digunakan adalah Flask, bisa dilihat di github.com/rocery/iot.git
- * Untuk mengganti interval otomatis kirim log ke server, ganti SERVER_CHECK_INTERVAL
+ * To Do:
+ * Data akan dikirim ketika user menekan tombol buttonDown kemudian buttonSelect
 */
 void sendLog(void* parameter) {
   bool buttonProcessed = false;
@@ -567,6 +573,7 @@ void sendLog(void* parameter) {
   while (true) {
     unsigned long currentTime = millis();
 
+    // Save Data
     if (isButtonPressed(buttonSelect)) {
       unsigned long buttonPressStartTime = millis();
       buttonProcessed = false;
@@ -624,7 +631,7 @@ void sendLog(void* parameter) {
       }
     }
 
-    // Periodic server check with non-blocking approach
+    // Send Data
     if (currentTime - lastServerCheckTime >= SERVER_CHECK_INTERVAL) {
       File logFile = SD.open(logName, FILE_READ);
       if (!logFile) {
