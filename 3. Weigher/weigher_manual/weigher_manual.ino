@@ -115,7 +115,7 @@ IPAddress subnet(255, 255, 0, 0);
 IPAddress ntpServer(192, 168, 7, 223);
 unsigned int localNtpPort = 2390;
 EthernetUDP udp;
-NTPClient ntpClient(udp, ntpServer, 0, 60000); // UTC time, update every 60 seconds
+NTPClient ntpClient(udp, ntpServer, 0, 60000);  // UTC time, update every 60 seconds
 String formattedTime;
 unsigned long lastNTPUpdateTime = 0;
 const unsigned long NTP_UPDATE_INTERVAL = 1000;
@@ -511,7 +511,7 @@ int readCounterSaveSend(const char* path) {
 
   if (file) {
     String data = file.readStringUntil('\n');
-    value = data.toInt(); // Convert to integer
+    value = data.toInt();  // Convert to integer
     file.close();
   } else {
     Serial.println("No previous data found, starting from 0.");
@@ -526,7 +526,7 @@ bool saveCounterSaveSend(const char* path, int value) {
 
   File file = SD.open(path, FILE_WRITE);
   if (file) {
-    file.println(value);    // Overwrite the existing data
+    file.println(value);  // Overwrite the existing data
     file.close();
 
     Serial.print("Value Save To ");
@@ -544,9 +544,9 @@ bool saveCounterSaveSend(const char* path, int value) {
 
 bool isTimeToResetCounterSaveSend(int hour_, int minute_, int second_) {
   int resetTimes[3][3] = {
-    {6, 0, 0},  // 06:00:00
-    {14, 0, 0}, // 14:00:00
-    {22, 0, 0}  // 22:00:00
+    { 6, 0, 0 },   // 06:00:00
+    { 14, 0, 0 },  // 14:00:00
+    { 22, 0, 0 }   // 22:00:00
   };
 
   for (int i = 0; i < 3; i++) {
@@ -631,144 +631,162 @@ void sendLog(void* parameter) {
       }
     }
 
-    // Send Data
-    if (currentTime - lastServerCheckTime >= SERVER_CHECK_INTERVAL) {
-      File logFile = SD.open(logName, FILE_READ);
-      if (!logFile) {
-        lastServerCheckTime = currentTime;
-        continue;
-      }
-      long fileSize = logFile.size();
-      Serial.print("File size: ");
-      Serial.println(fileSize);
-      if (client.connect(serverAddress, serverPort) && checkLog(logName) && fileSize > 0) {
-        // Your existing file upload logic remains the same
-        Serial.println("Connected to server");
-
-        String boundary = "------------------------abcdef123456";
-
-        // Improved multipart form data headers
-        client.println("POST /weigher/upload_log_weigher HTTP/1.1");
-        client.println("Host: " + String(serverAddress));
-        client.println("Content-Type: multipart/form-data; boundary=" + boundary);
-
-        // Calculate content length more precisely
-        long contentLength =
-          String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog32.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
-
-        client.println("Content-Length: " + String(contentLength));
-        client.println("Connection: close");
-        client.println();
-
-        // Write multipart form data
-        client.println("--" + boundary);
-        client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog32.txt\"");
-        client.println("Content-Type: text/plain");
-        client.println();
-
-        // Send file in chunks
-        while (logFile.available()) {
-          int bytesRead = logFile.read(buffer, CHUNK_SIZE);
-          if (bytesRead > 0) {
-            client.write(buffer, bytesRead);
-          }
-        }
-
-        // Properly close multipart form
-        client.println();
-        client.println("--" + boundary + "--");
-
-        // Enhanced response handling
-        unsigned long timeout = millis();
-        String response = "";
-        int statusCode = 0;
-        bool headersComplete = false;
-        String responseBody = "";
-
-        while (client.connected() && millis() - timeout < 10000) {
-          if (client.available()) {
-            String line = client.readStringUntil('\n');
-
-            // Parse HTTP status code
-            if (line.startsWith("HTTP/1.1")) {
-              statusCode = line.substring(9, 12).toInt();
-              Serial.print("Server Response Status Code: ");
-              Serial.println(statusCode);
-            }
-
-            // Collect headers
-            if (!headersComplete) {
-              response += line;
-
-              // Check for end of headers
-              if (line.length() <= 2) {
-                headersComplete = true;
-                Serial.println("Headers complete");
+    if (isButtonPressed(buttonUp)) {
+      while (isButtonPressed(buttonUp)) {
+        if (isButtonPressed(buttonDown)) {
+          while (isButtonPressed(buttonDown)) {
+            if (lanStatus != "C") {
+              break;
+            } else {
+              // Send Data
+              File logFile = SD.open(logName, FILE_READ);
+              if (!logFile) {
+                continue;
               }
-            }
-            // Collect response body
-            else {
-              responseBody += line;
+
+              long fileSize = logFile.size();
+              Serial.print("File size: ");
+              Serial.println(fileSize);
+              if (client.connect(serverAddress, serverPort) && checkLog(logName) && fileSize > 0) {
+                // Your existing file upload logic remains the same
+                Serial.println("Connected to server");
+
+                String boundary = "------------------------abcdef123456";
+
+                // Improved multipart form data headers
+                client.println("POST /weigher/upload_log_weigher HTTP/1.1");
+                client.println("Host: " + String(serverAddress));
+                client.println("Content-Type: multipart/form-data; boundary=" + boundary);
+
+                // Calculate content length more precisely
+                long contentLength =
+                  String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog32.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
+
+                client.println("Content-Length: " + String(contentLength));
+                client.println("Connection: close");
+                client.println();
+
+                // Write multipart form data
+                client.println("--" + boundary);
+                client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog32.txt\"");
+                client.println("Content-Type: text/plain");
+                client.println();
+
+                // Send file in chunks
+                while (logFile.available()) {
+                  int bytesRead = logFile.read(buffer, CHUNK_SIZE);
+                  if (bytesRead > 0) {
+                    client.write(buffer, bytesRead);
+                  }
+                }
+
+                // Properly close multipart form
+                client.println();
+                client.println("--" + boundary + "--");
+
+                // Enhanced response handling
+                unsigned long timeout = millis();
+                String response = "";
+                int statusCode = 0;
+                bool headersComplete = false;
+                String responseBody = "";
+
+                while (client.connected() && millis() - timeout < 10000) {
+                  if (client.available()) {
+                    String line = client.readStringUntil('\n');
+
+                    // Parse HTTP status code
+                    if (line.startsWith("HTTP/1.1")) {
+                      statusCode = line.substring(9, 12).toInt();
+                      Serial.print("Server Response Status Code: ");
+                      Serial.println(statusCode);
+                    }
+
+                    // Collect headers
+                    if (!headersComplete) {
+                      response += line;
+
+                      // Check for end of headers
+                      if (line.length() <= 2) {
+                        headersComplete = true;
+                        Serial.println("Headers complete");
+                      }
+                    }
+                    // Collect response body
+                    else {
+                      responseBody += line;
+                    }
+                  }
+
+                  // Break if no more data and headers are complete
+                  if (!client.available() && headersComplete) {
+                    break;
+                  }
+                }
+
+                // Verify upload success
+                if (statusCode == 200) {
+                  Serial.println("File upload successful");
+                  Serial.println("Server Response Headers:");
+                  Serial.println("==================");
+                  Serial.println(response);
+                  Serial.println("==================");
+                  Serial.println(responseBody);
+                  
+                } else {
+                  Serial.print("File upload failed. Status code: ");
+                  Serial.println(statusCode);
+                  Serial.println("Response:");
+                  Serial.println(response);
+                }
+                Serial.println("File sent attempt completed");
+
+                StaticJsonDocument<256> doc;
+                DeserializationError error = deserializeJson(doc, responseBody);
+                if (error) {
+                  Serial.println("JSON parsing failed");
+                }
+                const char* status = doc["status"];
+                int jumlah_data = doc["jumlah_data"];
+                Serial.print("Status: ");
+                Serial.println(status);
+                Serial.print("Jumlah data: ");
+                Serial.println(jumlah_data);
+
+
+                if (String(status) == "success") {
+                  // Total file yang dikirim
+                  // sendLogCounter++;
+
+                  // Total data yang berhasil dikirim
+                  totalLineCount = jumlah_data;
+                  deleteLog(logName);
+
+                  // Save jumlah_data to log
+                  saveCounterSaveSend(logSend, totalLineCount);
+
+                  // Reset All Counter
+                  //deleteLog(logSend);
+                  deleteLog(logSave);
+
+                  totalLineCount = 0;
+                  saveDataCounter = 0;
+                }
+
+                lastServerCheckTime = currentTime;
+              } else {
+                Serial.println("Connection failed");
+                lastServerCheckTime = currentTime;
+              }
+              client.stop();
+              logFile.close();
+
             }
           }
-
-          // Break if no more data and headers are complete
-          if (!client.available() && headersComplete) {
-            break;
-          }
         }
-
-        // Verify upload success
-        if (statusCode == 200) {
-          Serial.println("File upload successful");
-          Serial.println("Server Response Headers:");
-          Serial.println("==================");
-          Serial.println(response);
-          Serial.println("==================");
-          Serial.println(responseBody);
-
-        } else {
-          Serial.print("File upload failed. Status code: ");
-          Serial.println(statusCode);
-          Serial.println("Response:");
-          Serial.println(response);
-        }
-        Serial.println("File sent attempt completed");
-
-        StaticJsonDocument<256> doc;
-        DeserializationError error = deserializeJson(doc, responseBody);
-        if (error) {
-          Serial.println("JSON parsing failed");
-        }
-        const char* status = doc["status"];
-        int jumlah_data = doc["jumlah_data"];
-        Serial.print("Status: ");
-        Serial.println(status);
-        Serial.print("Jumlah data: ");
-        Serial.println(jumlah_data);
-
-
-        if (String(status) == "success") {
-          // Total file yang dikirim
-          // sendLogCounter++;
-          
-          // Total data yang berhasil dikirim
-          totalLineCount = totalLineCount + jumlah_data;
-          deleteLog(logName);
-
-          // Save jumlah_data to log
-          saveCounterSaveSend(logSend, totalLineCount);
-
-        }
-
-        lastServerCheckTime = currentTime;
-      } else {
-        Serial.println("Connection failed");
-        lastServerCheckTime = currentTime;
       }
-      client.stop();
-      logFile.close();
     }
+
     // Small delay to prevent tight looping
     vTaskDelay(pdMS_TO_TICKS(100));
   }
@@ -781,13 +799,13 @@ String getFormattedDateTime(unsigned long epochTime) {
   const int SECS_IN_MIN = 60;
 
   // Calculate date and time
-  epochTime += 3600 * 7; // Adjust for timezone (e.g., UTC+7)
+  epochTime += 3600 * 7;  // Adjust for timezone (e.g., UTC+7)
   unsigned long days = epochTime / SECS_IN_DAY;
   int year = 1970;
 
   // Calculate year
   while (days >= 365) {
-    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) { // Leap year check
+    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {  // Leap year check
       if (days >= 366) {
         days -= 366;
       } else {
@@ -801,9 +819,9 @@ String getFormattedDateTime(unsigned long epochTime) {
 
   // Calculate month
   int month;
-  int monthDays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  int monthDays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
   if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
-    monthDays[1] = 29; // Adjust February for leap year
+    monthDays[1] = 29;  // Adjust February for leap year
   }
   for (month = 0; month < 12; month++) {
     if (days < monthDays[month]) {
@@ -904,7 +922,6 @@ void setup() {
     // Get Last Counter
     totalLineCount = readCounterSaveSend(logSend);
     saveDataCounter = readCounterSaveSend(logSave);
-
   }
 
   // Begin UDP for NTP
@@ -1013,7 +1030,7 @@ void loop() {
         lcd.print("G:");
         lcd.print(saveDataConterFailed);
         lcd.setCursor(6, 1);
-        lcd.print("-S:");
+        lcd.print("-LS:");
         lcd.print(sendCounterSD);
         lcd.setCursor(15, 1);
         lcd.print(lanStatus);
@@ -1021,17 +1038,28 @@ void loop() {
         if (isButtonPressed(buttonDown)) {
           lcd.clear();
           while (isButtonPressed(buttonDown)) {
-            // Reset All Counter
-            deleteLog(logSend);
-            deleteLog(logSave);
+            // Reset All Counter (move to sendLog())
+            // deleteLog(logSend);
+            // deleteLog(logSave);
 
-            totalLineCount = 0;
-            saveDataCounter = 0;
+            // totalLineCount = 0;
+            // saveDataCounter = 0;
 
-            lcd.setCursor(0, 0);
-            lcd.print("      RESET     ");
-            lcd.setCursor(0, 1);
-            lcd.print("                ");
+            if (lanStatus != "C") {
+              lcd.setCursor(0, 0);
+              lcd.print("  LAN TERCABUT");
+              lcd.setCursor(0, 1);
+              lcd.print("    CEK KABEL");
+              delay(1000);
+              lcd.clear();
+            } else {
+              lcd.setCursor(0, 0);
+              lcd.print("    SEND DATA   ");
+              lcd.setCursor(0, 1);
+              lcd.print("                ");
+              delay(1000);
+              lcd.clear();
+            }
           }
         }
       }
