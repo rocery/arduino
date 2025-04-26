@@ -1,6 +1,6 @@
 /*
- * V 3.0.0
- * Update Terakhir : 19-04-2025
+ * V 1.0.0
+ * Update Terakhir : 26-04-2025
  * 
  * PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
  * - API yang digunakan adalah FLask karena terjadi kendala pada peroses pengiriman file dari esp ke php
@@ -14,30 +14,11 @@
  *    Ganti filename sesuai dengan nama file log yang akan diupload
  * 5. const char* logName
  * 
- * T:
- * 1. Save variabel totalLineCount to sdCard totalLineCount.txt
- * 2. Save variabel saveDataCounter to sdCard saveDataCounter.txt
  * 
+ * Jam Reset:
  * 06:00:00 - 13:59:59
  * 14:00:00 - 21:59:59
  * 22:00:00 - 05:59:59
- * 
- * Jika kondisi kiri terpenuhi -> reset -> txt 0
- * Jika kondisi kanan terpenuhi -> reset 0 -> reset 1 
- * 
- * default 1
- * if jam >= 6 dan menit >= 0 dan detik >= 1 < 6+1 dan txt 1 maka reset kemuadian txt 0
- * jam 6 + 1 -> txt 1 
- *
- * Ganti algoritma:
- * Proses kirim hanya bisa dilakukan jika user menekan 2 tombol, Tare->Send dan jaringan tersedia
- * Jika proses return success, hapus semua data pda SD Card
- * Jika proses gagal tampilkan keterangan "error"
- * 
- * 
- * To Do:
- * 1. Sistem pengiriman data diganti menjadi manual, tekan tombol tare (buttonDown) kemudian tombol Save (buttonSelect)
- * 2. Ganti sistem reset counter otomatis, ganti menjadi -> ubah reset jadi 0 jika pengiriman data sukses
 */
 
 #include <HX711.h>
