@@ -14,7 +14,6 @@
  *    Ganti filename sesuai dengan nama file log yang akan diupload
  * 5. const char* logName
  * 
- * 
  * Jam Reset:
  * 06:00:00 - 13:59:59
  * 14:00:00 - 21:59:59
