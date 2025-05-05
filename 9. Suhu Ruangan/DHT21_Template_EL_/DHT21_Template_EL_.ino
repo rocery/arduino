@@ -59,7 +59,7 @@ struct CalibrationData {
   @param getData = URL API Mengambil data kalibrasi dari Database
 */
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 26;
+/**/ const int ip = 101;
 /**/ const String loc = "IT";
 /**/ const String prod = "IT";
 // =====================================
@@ -132,6 +132,10 @@ uint8_t degree[8] = {
   0x00,
   0x00
 };
+
+// LED
+#define ledPin 27
+#define tempThreshold 30.0
 
 // Set IP to Static
 IPAddress staticIP(192, 168, 7, ip);
@@ -303,6 +307,10 @@ void setup() {
   readNan = 0;
   errorWiFiCount = 0;
 
+  // LED
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW);
+
   // LCD
   lcd.init();
   lcd.clear();
@@ -313,27 +321,36 @@ void setup() {
   // WiFi
   lcd.setCursor(0, 0);
   lcd.print("Connecting..");
-  if (prod == "Biskuit" || prod == "Mie") {
-    wifiMulti.addAP(ssid_a_biskuit_mie, password_a_biskuit_mie);
-    wifiMulti.addAP(ssid_b_biskuit_mie, password_b_biskuit_mie);
-    wifiMulti.addAP(ssid_c_biskuit_mie, password_c_biskuit_mie);
-  } else if (prod == "Kerupuk") {
-    wifiMulti.addAP(ssid_a_kerupuk, password_a_kerupuk);
-    wifiMulti.addAP(ssid_b_kerupuk, password_b_kerupuk);
-    wifiMulti.addAP(ssid_c_kerupuk, password_c_kerupuk);
-  } else {
-    lcd.setCursor(0, 0);
-    lcd.print("Error, Call IT");
-  }
-  wifiMulti.addAP(ssid_it, password_it);
+  // if (prod == "Biskuit" || prod == "Mie" || prod == "IT") {
+  //   wifiMulti.addAP(ssid_a_biskuit_mie, password_a_biskuit_mie);
+  //   wifiMulti.addAP(ssid_b_biskuit_mie, password_b_biskuit_mie);
+  //   wifiMulti.addAP(ssid_c_biskuit_mie, password_c_biskuit_mie);
+  // } else if (prod == "Kerupuk" || prod == "IT") {
+  //   wifiMulti.addAP(ssid_a_kerupuk, password_a_kerupuk);
+  //   wifiMulti.addAP(ssid_b_kerupuk, password_b_kerupuk);
+  //   wifiMulti.addAP(ssid_c_kerupuk, password_c_kerupuk);
+  // } else {
+  //   lcd.setCursor(0, 0);
+  //   lcd.print("Error, Call IT");
+  // }
+
+  Serial.println("Bug 1");
+  // wifiMulti.addAP(ssid_it, password_it);
+  WiFi.begin(ssid_it, password_it);
+  Serial.println("Bug 2");
 
   if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
     Serial.println("STA Failed to configure");
   }
-  wifiMulti.run();
 
+  wifiMulti.run();
+  Serial.println("Bug 3");
   // NTP
   configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
   if (wifiMulti.run() != WL_CONNECTED) {
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -354,6 +371,7 @@ void setup() {
       delay(50);
     }
   }
+  Serial.println("Bug 4");
 
   lcd.clear();
 }
@@ -394,6 +412,13 @@ void loop() {
 
   // Print temperature and humidity values to LCD
   printLCD(bufferCalTemp, bufferHumidity, mappedPotValue);
+
+  // LED
+  if (calTemp > tempThreshold) {
+    digitalWrite(ledPin, HIGH);
+  } else {
+    digitalWrite(ledPin, LOW);
+  }
 
   // Handle WiFi connectivity
   if (wifiMulti.run() == WL_CONNECTED) {
