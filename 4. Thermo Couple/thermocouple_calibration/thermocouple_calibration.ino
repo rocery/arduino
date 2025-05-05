@@ -175,5 +175,13 @@ void setup() {
 }
 
 void loop() {
-  
+  // Read calibration value 1x/5x send data
+
+  // Averaging 30x
+
+  // Print data
+
+  // Send data 1x/1 minutes
+
+  // reset every 1000 send data
 }
