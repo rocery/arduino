@@ -80,5 +80,68 @@ int year, month, day, hour, minute, second;
 bool ntpStatus;
 
 void sendLogData() {
-    
+    HTTPClient http;
+    http.begin(api_sendLogData);
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+    Serial.println(postData);
+    int httpResponseCode = http.POST(postData);
+    String response = http.getString();
+
+    if (httpResponseCode > 0) {
+      Serial.println(response);
+    } else {
+      Serial.println("Error Sending POST");
+      Serial.println(response);
+      Serial.println(httpResponseCode);
+    }
+
+    http.end();
+}
+
+void getLocalTime() {
+  /* Fungsi bertujuan menerima update waktu
+     lokal dari ntp.pool.org */
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    ntpStatus = false;
+  } else {
+    ntpStatus = true;
+
+    char timeStringBuff[50];
+    strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    dateTime = String(timeStringBuff);
+
+    char timeStringBuff2[50];
+    strftime(timeStringBuff2, sizeof(timeStringBuff2), "%d-%m %H:%M", &timeinfo);
+    timeLCD = String(timeStringBuff2);
+
+    // Save time data to variabel
+    year = timeinfo.tm_year + 1900;
+    month = timeinfo.tm_mon + 1;
+    day = timeinfo.tm_mday;
+    hour = timeinfo.tm_hour;
+    minute = timeinfo.tm_min;
+    second = timeinfo.tm_sec;
+    // YYYY-MM-DD
+    dateFormat = String(year) + '-' + String(month) + '-' + String(day);
+    // hh:mm:ss
+    timeFormat = String(hour) + ':' + String(minute);
+    //
+    // timeLCD = String(day) + '-' + String(month) + ' ' + String(hour) + ':' + String(minute);
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  sendStatus = false;
+  ntpStatus = false;
+
+  // LCD
+  lcd.init();
+  lcd.clear();
+  lcd.backlight();
+  lcd.createChar(0, degree);
+
+  
 }
