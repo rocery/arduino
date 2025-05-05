@@ -50,13 +50,13 @@ float tempReal;
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
    ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis */
    WiFiMulti wifiMulti;
-   const char* ssid_a = "STTB1";
-   const char* password_a = "Si4nt4r321";
+   const char* ssid_a = "STTB4";
+   const char* password_a = "siantar123";
    const char* ssid_b = "Amano2";
    const char* password_b = "Si4nt4r321";
    const char* ssid_c = "MT1";
    const char* password_c = "siantar321";
-   const char* ssid_it = "Tester_ITB";
+   const char* ssid_it = "STTB11";
    const char* password_it = "Si4nt4r321";
 
 // Set IP to Static
@@ -142,6 +142,38 @@ void setup() {
   lcd.clear();
   lcd.backlight();
   lcd.createChar(0, degree);
+  lcd.home();
 
+  // WiFi
+  wifiMulti.addAP(ssid_a, password_a);
+  wifiMulti.addAP(ssid_b, password_b);
+  wifiMulti.addAP(ssid_c, password_c);
+  wifiMulti.addAP(ssid_it, password_it);
+
+  if (!WiFi.config(staticIP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    Serial.println("STA Failed to configure");
+  }
+
+  wifiMulti.run();
+  lcd.setCursor(0, 0);
+  lcd.print("Connecting");
+  
+  // NTP
+  configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
+  if (wifiMulti.run() == WL_CONNECTED) {
+    lcd.setCursor(0, 0);
+    lcd.print("WiFi Connected");
+    int tryNTP = 0;
+    while (ntpStatus == false && tryNTP < 2) {
+      lcd.setCursor(0, 1);
+      lcd.print("Getting Date");
+      getLocalTime();
+      tryNTP++;
+    }
+  }
+  lcd.clear();
+}
+
+void loop() {
   
 }
