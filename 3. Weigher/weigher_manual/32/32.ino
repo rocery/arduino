@@ -564,7 +564,7 @@ void sendLog(void* parameter) {
         unsigned long currentPressTime = millis();
 
         // Check if button is pressed for more than 200 ms
-        if (currentPressTime - buttonPressStartTime >= 100 && !buttonProcessed) {
+        if (currentPressTime - buttonPressStartTime >= 200 && !buttonProcessed) {
           // Execute code when button is pressed longer than 0.5 seconds
           if (!sdStatus) {
             if (lanStatus == "D") {
@@ -672,7 +672,7 @@ void sendLog(void* parameter) {
                 bool headersComplete = false;
                 String responseBody = "";
 
-                while (client.connected() && millis() - timeout < 10000) {
+                while (client.connected() && millis() - timeout < 30000) {
                   if (client.available()) {
                     String line = client.readStringUntil('\n');
 
@@ -1054,18 +1054,19 @@ void loop() {
     lastLcdClearTime = currentTime;
   }
 
-  if (isTimeToResetCounterSaveSend(hourNTP, minuteNTP, secondNTP)) {
-    if (!hasReset) {
-      // Reset All Counter
-      deleteLog(logSend);
-      deleteLog(logSave);
+  // Delete counter log in spesific time
+  // if (isTimeToResetCounterSaveSend(hourNTP, minuteNTP, secondNTP)) {
+  //   if (!hasReset) {
+  //     // Reset All Counter
+  //     deleteLog(logSend);
+  //     deleteLog(logSave);
 
-      totalLineCount = 0;
-      saveDataCounter = 0;
+  //     totalLineCount = 0;
+  //     saveDataCounter = 0;
 
-      hasReset = true;
-    } else {
-      hasReset = false;
-    }
-  }
+  //     hasReset = true;
+  //   } else {
+  //     hasReset = false;
+  //   }
+  // }
 }
