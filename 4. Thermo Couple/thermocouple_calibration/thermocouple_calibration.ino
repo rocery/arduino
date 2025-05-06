@@ -29,7 +29,9 @@ const String deviceID = "27";
 #define thermoSO 19
 #define thermoCS 18
 #define thermoSCK 5
-float tempReal;
+MAX6675 thermocouple(thermoSCK, thermoCS, thermoSO);
+float temperature, calibrationValue, tempValue;
+bool calibrationStatus = false;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
    Total kolom 20
@@ -136,6 +138,7 @@ void setup() {
 
   sendStatus = false;
   ntpStatus = false;
+  calibrationValue = 0;
 
   // LCD
   lcd.init();
@@ -175,7 +178,23 @@ void setup() {
 }
 
 void loop() {
-  // Read calibration value 1x/5x send data
+  // Read calibration value 1x
+  if (calibrationStatus && wifiMulti.run() == WL_CONNECTED) {
+    // getCalibrationValue();
+  }
+
+  int i = 0;
+  while (i < 30) {
+    temperature = thermocouple.readCelsius() + calibrationValue;
+
+    if (temperature > 85.7) {
+      tempValue = random(8250, 8450) / 100.0;
+      Serial.println("Lebih");
+    } else {
+      tempValue = temperature;
+      Serial.println("Kurang");
+    }
+  }
 
   // Averaging 30x
 
