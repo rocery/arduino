@@ -30,8 +30,9 @@ const String deviceID = "27";
 #define thermoCS 18
 #define thermoSCK 5
 MAX6675 thermocouple(thermoSCK, thermoCS, thermoSO);
-float temperature, calibrationValue, tempValue, tempAveraging;
+float temperature, calibrationValue, tempValue, tempAveraging, tempData;
 bool calibrationStatus = false;
+int readingTempLoop = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
    Total kolom 20
@@ -139,7 +140,7 @@ void setup() {
   sendStatus = false;
   ntpStatus = false;
   calibrationValue = 0;
-  tempAveraging = 0;
+  tempData = 0;
 
   // LCD
   lcd.init();
@@ -197,14 +198,33 @@ void loop() {
       Serial.println("Kurang");
     }
 
-    tempAveraging += tempValue;
+    tempData += tempValue;
     i++;
     delay(500);
   }
 
+  tempAveraging = tempData / i;
+  tempData = 0;
+  readingTempLoop++;
+
+  if (wifiMulti.run() == WL_CONNECTED) {
+    lcd.setCursor(10, 0);
+    lcd.print(WiFi.SSID());
+    Serial.println(WiFi.SSID());
+    getLocalTime();
+  } else {
+    lcd.setCursor(10, 0);
+    lcd.print("Wi-DC");
+    wifiMulti.run();
+  }
+
   // Print data
 
-  // Send data 1x/1 minutes
+  // Send data 1x/2 minutes
+  if (readingTempLoop == 4) {
+    sendLogData();
+    readingTempLoop = 0;
+  }
 
   // reset every 1000 send data
 }
