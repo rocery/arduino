@@ -221,10 +221,17 @@ void loop() {
   // Print data
 
   // Send data 1x/2 minutes
-  if (readingTempLoop == 4) {
+  if (readingTempLoop % 4 == 0) {
     sendLogData();
-    readingTempLoop = 0;
   }
 
-  // reset every 1000 send data
+  // LCD Clear Every 40 Reading
+  if (readingTempLoop % 10 == 0) {
+    lcd.clear();
+  }
+
+  // Reset Every 100 Reading
+  if (readingTempLoop % 1000 == 0) {
+    ESP.restart();
+  }
 }
