@@ -30,7 +30,7 @@ const String deviceID = "27";
 #define thermoCS 18
 #define thermoSCK 5
 MAX6675 thermocouple(thermoSCK, thermoCS, thermoSO);
-float temperature, calibrationValue, tempValue;
+float temperature, calibrationValue, tempValue, tempAveraging;
 bool calibrationStatus = false;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
@@ -139,6 +139,7 @@ void setup() {
   sendStatus = false;
   ntpStatus = false;
   calibrationValue = 0;
+  tempAveraging = 0;
 
   // LCD
   lcd.init();
@@ -183,6 +184,7 @@ void loop() {
     // getCalibrationValue();
   }
 
+  // Averaging 30x
   int i = 0;
   while (i < 30) {
     temperature = thermocouple.readCelsius() + calibrationValue;
@@ -194,9 +196,11 @@ void loop() {
       tempValue = temperature;
       Serial.println("Kurang");
     }
-  }
 
-  // Averaging 30x
+    tempAveraging += tempValue;
+    i++;
+    delay(500);
+  }
 
   // Print data
 
