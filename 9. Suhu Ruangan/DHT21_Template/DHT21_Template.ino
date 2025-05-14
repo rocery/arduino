@@ -1,4 +1,5 @@
 /*
+  Board: ESP32 3.1.0
   GANTI VARIABEL ip DAN loc SESUAI DENGAN SESUAI DENGAN KEBUTUHAN
   GANTI WIFI SESUAI DENGAN KEBUTUHAN
 
@@ -65,9 +66,9 @@ struct DeviceData {
   @param verbose = Variabel untuk melihat error
 */
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 21;
-/**/ const String loc = "Maddock Twistko";
-/**/ const String prod = "Kerupuk";
+/**/ const int ip = 22;
+/**/ const String loc = "Packing Gorio Line 2";
+/**/ const String prod = "Biskuit";
 /**/ const bool verbose = true;
 // =====================================
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
@@ -82,7 +83,7 @@ const String getData = "http://192.168.7.223/iot/api/get_suhu_rh.php?device_id="
 */
 WiFiMulti wifiMulti;
 const char* ssid_a_biskuit_mie = "STTB8";
-const char* password_a_biskuit_mie = "siantar321";
+const char* password_a_biskuit_mie = "siantar123";
 const char* ssid_b_biskuit_mie = "STTB1";
 const char* password_b_biskuit_mie = "Si4nt4r321";
 const char* ssid_c_biskuit_mie = "MT3";
@@ -107,8 +108,8 @@ const char* password_it = "Si4nt4r321";
   @param tempFromDB = Variabel Kalibrasi Suhu dari DB
   @param humFromDB = Variabel Kalibrasi Kelembaban dari DB
 */
-#define DHTPIN 4
-#define DHTTYPE DHT21
+#define DHTPIN 33
+#define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 float temperature, humidity, calTemp;
 int readDHTCount, readNan, errorWiFiCount;
@@ -161,6 +162,9 @@ void readDHT() {
 
   // Read the humidity from the DHT sensor
   humidity = dht.readHumidity();
+
+  Serial.println(temperature);
+  Serial.println(humidity);
 
   // If the temperature or humidity reading is not a number, add readNan
   if (isnan(humidity) || isnan(temperature)) {
@@ -328,9 +332,11 @@ void setup() {
   dht.begin();
   delay(2500);
 
+  Serial.println("Oke");
+
   getStatus = false;
-  readDHTCount = 1; 
-  readNan = 1;
+  readDHTCount = 0; 
+  readNan = 0;
   errorWiFiCount = 0;
 
   // LCD
@@ -406,10 +412,10 @@ void loop() {
     humidity = humDB + randHum;
     lcd.setCursor(15, 1);
     lcd.print(".");
-    readDHTCount = 1;
+    // readDHTCount = 1;
   } else {
     // Calculate the temperature and humidity with calibration values
-    readNan = 1;
+    // readNan = 1;
     calTemp = temperature + tempFromDB;
     humidity = humidity + humFromDB;
     lcd.setCursor(15, 1);
@@ -417,8 +423,8 @@ void loop() {
   }
 
   // Print temperature and humidity calibration values to Serial
-  // Serial.println(calTemp);
-  // Serial.println(humidity);
+  Serial.println(calTemp);
+  Serial.println(humidity);
 
   // Convert float values to string with 1 decimal place
   char bufferCalTemp[6];
@@ -474,6 +480,7 @@ void loop() {
 
   // Send data to the server every 30 readings of the DHT sensor
   delay(5000);
+  Serial.println(readDHTCount);
   if (readDHTCount % 30 == 0) {
     sendLogData();
     getStatus = false;
