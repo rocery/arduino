@@ -1,13 +1,13 @@
 /*
   Board: ESP32 3.1.0
-  GANTI VARIABEL ip DAN loc SESUAI DENGAN SESUAI DENGAN KEBUTUHAN
+  GANTI VARIABEL ip DAN loc SESUAI DENGAN KEBUTUHAN
   GANTI WIFI SESUAI DENGAN KEBUTUHAN
 
   File .ino ini merupakan file template dari projek IoT Sensor Suhu Ruangan yang akan dibuat.
   IP Address yang bisa digunakan: 11 - 24
 
-  V. 1.0.1
-  Update Terakhir : 05-08-2024
+  V. 1.1.0
+  Update Terakhir : 14-05-2025
 
   Komponen:
   1. ESP32                    | 
