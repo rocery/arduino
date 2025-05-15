@@ -1,11 +1,10 @@
 /*
-    V. 0.0.1 Alpha
-    17-04-2025
+  V. 0.0.2 Alpha
+  15-05-2025
 
-    Versi ini dibuat dengan alasan:
-    1. Tidak menggunakan potesiometer sebagai alat kalibrasi
-    2. Kalibrasi dilakukan memlalui value yang diatur database
-
+  Versi ini dibuat dengan alasan:
+  1. Tidak menggunakan potesiometer sebagai alat kalibrasi
+  2. Kalibrasi dilakukan memlalui value yang diatur database
 */
 
 // == Library ==
@@ -23,8 +22,8 @@ const String api_getCalibrationValue = "http://192.168.7.223/temperature_api/get
 const String deviceID = "27";
 
 /*
-    Thermocouple Type K
-    MAX6675 Pin declaration
+  Thermocouple Type K
+  MAX6675 Pin declaration
 */
 #define thermoSO 19
 #define thermoCS 18
@@ -37,30 +36,30 @@ int readingTempLoop = 0;
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
    Total kolom 20
    Total baris 4 */
-   LiquidCrystal_I2C lcd(0x27, 16, 2);
-   uint8_t degree[8] = {
-     0x08,
-     0x14,
-     0x14,
-     0x08,
-     0x00,
-     0x00,
-     0x00,
-     0x00
-   };
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+uint8_t degree[8] = {
+  0x08,
+  0x14,
+  0x14,
+  0x08,
+  0x00,
+  0x00,
+  0x00,
+  0x00
+};
 
 // == WiFi Config ==
 /* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
-   ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis */
-   WiFiMulti wifiMulti;
-   const char* ssid_a = "STTB4";
-   const char* password_a = "siantar123";
-   const char* ssid_b = "Amano2";
-   const char* password_b = "Si4nt4r321";
-   const char* ssid_c = "MT1";
-   const char* password_c = "siantar321";
-   const char* ssid_it = "STTB11";
-   const char* password_it = "Si4nt4r321";
+  ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis */
+WiFiMulti wifiMulti;
+const char* ssid_a = "STTB4";
+const char* password_a = "siantar123";
+const char* ssid_b = "Amano2";
+const char* password_b = "Si4nt4r321";
+const char* ssid_c = "MT1";
+const char* password_c = "siantar321";
+const char* ssid_it = "STTB11";
+const char* password_it = "Si4nt4r321";
 
 // Set IP to Static
 IPAddress staticIP(192, 168, 7, 127);
@@ -83,22 +82,22 @@ int year, month, day, hour, minute, second;
 bool ntpStatus;
 
 void sendLogData() {
-    HTTPClient http;
-    http.begin(api_sendLogData);
-    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    Serial.println(postData);
-    int httpResponseCode = http.POST(postData);
-    String response = http.getString();
+  HTTPClient http;
+  http.begin(api_sendLogData);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  Serial.println(postData);
+  int httpResponseCode = http.POST(postData);
+  String response = http.getString();
 
-    if (httpResponseCode > 0) {
-      Serial.println(response);
-    } else {
-      Serial.println("Error Sending POST");
-      Serial.println(response);
-      Serial.println(httpResponseCode);
-    }
+  if (httpResponseCode > 0) {
+    Serial.println(response);
+  } else {
+    Serial.println("Error Sending POST");
+    Serial.println(response);
+    Serial.println(httpResponseCode);
+  }
 
-    http.end();
+  http.end();
 }
 
 void getLocalTime() {
@@ -162,7 +161,7 @@ void setup() {
   wifiMulti.run();
   lcd.setCursor(0, 0);
   lcd.print("Connecting");
-  
+
   // NTP
   configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
   if (wifiMulti.run() == WL_CONNECTED) {
@@ -207,6 +206,14 @@ void loop() {
   tempData = 0;
   readingTempLoop++;
 
+  // Print Data
+  lcd.setCursor(0, 1);
+  lcd.print("A:");
+  lcd.setCursor(2, 1);
+  lcd.print(tempAveraging);
+  lcd.write(0);
+  lcd.print("C");
+
   if (wifiMulti.run() == WL_CONNECTED) {
     lcd.setCursor(10, 0);
     lcd.print(WiFi.SSID());
@@ -218,10 +225,11 @@ void loop() {
     wifiMulti.run();
   }
 
-  // Print data
+  ip_Address = WiFi.localIP().toString();
 
   // Send data 1x/2 minutes
   if (readingTempLoop % 4 == 0) {
+    postData = "device_id=" + deviceID + "&device_name=" + deviceName + "&temperature=" + String(tempValue) + "&average_temperature=" + String(tempAverage) + "&ip_address=" + ip_Address + "&date=" + dateTime;
     sendLogData();
   }
 
