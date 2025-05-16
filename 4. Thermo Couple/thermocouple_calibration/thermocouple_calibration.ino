@@ -1,6 +1,6 @@
 /*
-  V. 0.1.0 Beta
-  15-05-2025
+  V. 0.1.3 Beta
+  16-05-2025
 
   Versi ini dibuat dengan alasan:
   1. Tidak menggunakan potesiometer sebagai alat kalibrasi
@@ -37,8 +37,8 @@ bool calibrationStatus;
 int readingTempLoop = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
-   Total kolom 20
-   Total baris 4 */
+  Total kolom 20
+  Total baris 4 */
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 uint8_t degree[8] = {
   0x08,
@@ -87,6 +87,25 @@ bool ntpStatus;
 void sendLogData() {
   HTTPClient http;
   http.begin(api_sendLogData);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  Serial.println(postData);
+  int httpResponseCode = http.POST(postData);
+  String response = http.getString();
+
+  if (httpResponseCode > 0) {
+    Serial.println(response);
+  } else {
+    Serial.println("Error Sending POST");
+    Serial.println(response);
+    Serial.println(httpResponseCode);
+  }
+
+  http.end();
+}
+
+void sendLogData2() {
+  HTTPClient http;
+  http.begin(api_sendLogData2);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   Serial.println(postData);
   int httpResponseCode = http.POST(postData);
@@ -219,6 +238,14 @@ void loop() {
     calibrationStatus = false;
   }
 
+  // Print Time
+  lcd.setCursor(10, 1);
+  lcd.print(timeFormat);
+
+  // Print Data
+  lcd.setCursor(0, 1);
+  lcd.print("A:");
+
   // Averaging 30x
   int i = 0;
   while (i < 30) {
@@ -249,21 +276,15 @@ void loop() {
   readingTempLoop++;
 
   // Print Data
-  lcd.setCursor(0, 1);
-  lcd.print("A:");
   lcd.setCursor(2, 1);
   lcd.print(tempAveraging);
   lcd.write(0);
   lcd.print("C");
 
-  // Print Time
-  lcd.setCursor(10, 1);
-  lcd.print(timeFormat);
-
   if (wifiMulti.run() == WL_CONNECTED) {
     lcd.setCursor(10, 0);
     lcd.print(WiFi.SSID());
-    Serial.println(WiFi.SSID());
+    // Serial.println(WiFi.SSID());
     getLocalTime();
   } else {
     lcd.setCursor(10, 0);
@@ -274,14 +295,20 @@ void loop() {
   ip_Address = WiFi.localIP().toString();
 
   // Send data 1x/2 minutes
-  if (readingTempLoop % 4 == 0) {
+  if (readingTempLoop % 8 == 0) {
     postData = "device_id=" + deviceID + "&device_name=" + deviceName + "&temperature=" + String(tempValue) + "&average_temperature=" + String(tempAveraging) + "&ip_address=" + ip_Address + "&date=" + dateTime;
     sendLogData();
     calibrationStatus = true;
   }
 
+  // Send Data every 15 Minutes
+  if (readingTempLoop % 60 == 0) {
+    postData = "device_id=" + deviceID + "&device_name=" + deviceName + "&temperature=" + String(tempValue) + "&average_temperature=" + String(tempAveraging) + "&ip_address=" + ip_Address + "&date=" + dateTime;
+    sendLogData2();
+  }
+
   // LCD Clear Every 10 Reading
-  if (readingTempLoop % 10 == 0) {
+  if (readingTempLoop % 100 == 0) {
     lcd.clear();
   }
 
