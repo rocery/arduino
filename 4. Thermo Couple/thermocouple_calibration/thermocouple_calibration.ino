@@ -1,10 +1,12 @@
 /*
-  V. 0.0.2 Alpha
+  V. 0.1.0 Beta
   15-05-2025
 
   Versi ini dibuat dengan alasan:
   1. Tidak menggunakan potesiometer sebagai alat kalibrasi
-  2. Kalibrasi dilakukan memlalui value yang diatur database
+  2. Kalibrasi dilakukan melalui value yang diatur database
+
+  Kalibrasi berdasarkan device_id dan calibration_value
 */
 
 // == Library ==
@@ -14,12 +16,13 @@
 #include <HTTPClient.h>
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
+#include <ArduinoJson.h>
 
 const String deviceName = "Suhu Oven 27 - Kerupuk";
+const String deviceID = "27";
 const String api_sendLogData = "http://192.168.7.223/temperature_api/saveTemperature.php";
 const String api_sendLogData2 = "http://192.168.7.223/temperature_api/saveTemperature15Minutes.php";
-const String api_getCalibrationValue = "http://192.168.7.223/temperature_api/getCalibrationValue.php";
-const String deviceID = "27";
+const String api_getCalibrationValue = "http://192.168.7.223/temperature_api/getCalibrationValue.php?device_id=" + deviceID;
 
 /*
   Thermocouple Type K
@@ -30,7 +33,7 @@ const String deviceID = "27";
 #define thermoSCK 5
 MAX6675 thermocouple(thermoSCK, thermoCS, thermoSO);
 float temperature, calibrationValue, tempValue, tempAveraging, tempData;
-bool calibrationStatus = false;
+bool calibrationStatus;
 int readingTempLoop = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
@@ -100,6 +103,36 @@ void sendLogData() {
   http.end();
 }
 
+float getCalibrationValue() {
+  HTTPClient http;
+  http.begin(api_getCalibrationValue);
+  int httpCode = http.GET();
+  float calibrationData = 0;
+
+  if (httpCode > 0) {
+    String payload = http.getString();
+    StaticJsonDocument<200> doc;
+    DeserializationError error = deserializeJson(doc, payload);
+
+    if (!error) {
+      if (doc.containsKey("calibration_value")) {
+        calibrationData = doc["calibration_value"].as<float>();
+      } else {
+        Serial.println("Keys 'calibration_value' not found in JSON");
+      }
+    } else {
+      Serial.print("Error parsing JSON: ");
+      Serial.println(error.c_str());
+    }
+  } else {
+    Serial.print("Error get log: ");
+    Serial.println(httpCode);
+  }
+
+  http.end();
+  return calibrationData;
+}
+
 void getLocalTime() {
   /* Fungsi bertujuan menerima update waktu
      lokal dari ntp.pool.org */
@@ -140,6 +173,7 @@ void setup() {
   ntpStatus = false;
   calibrationValue = 0;
   tempData = 0;
+  calibrationStatus = true;
 
   // LCD
   lcd.init();
@@ -181,7 +215,8 @@ void setup() {
 void loop() {
   // Read calibration value 1x
   if (calibrationStatus && wifiMulti.run() == WL_CONNECTED) {
-    // getCalibrationValue();
+    calibrationValue = getCalibrationValue();
+    calibrationStatus = false;
   }
 
   // Averaging 30x
@@ -191,11 +226,18 @@ void loop() {
 
     if (temperature > 85.7) {
       tempValue = random(8250, 8450) / 100.0;
-      Serial.println("Lebih");
+      // Serial.println("Lebih");
     } else {
       tempValue = temperature;
-      Serial.println("Kurang");
+      // Serial.println("Kurang");
     }
+
+    lcd.setCursor(0, 0);
+    lcd.print("T:");
+    lcd.setCursor(2, 0);
+    lcd.print(tempValue);
+    lcd.write(0);
+    lcd.print("C");
 
     tempData += tempValue;
     i++;
@@ -214,6 +256,10 @@ void loop() {
   lcd.write(0);
   lcd.print("C");
 
+  // Print Time
+  lcd.setCursor(10, 1);
+  lcd.print(timeFormat);
+
   if (wifiMulti.run() == WL_CONNECTED) {
     lcd.setCursor(10, 0);
     lcd.print(WiFi.SSID());
@@ -229,16 +275,17 @@ void loop() {
 
   // Send data 1x/2 minutes
   if (readingTempLoop % 4 == 0) {
-    postData = "device_id=" + deviceID + "&device_name=" + deviceName + "&temperature=" + String(tempValue) + "&average_temperature=" + String(tempAverage) + "&ip_address=" + ip_Address + "&date=" + dateTime;
+    postData = "device_id=" + deviceID + "&device_name=" + deviceName + "&temperature=" + String(tempValue) + "&average_temperature=" + String(tempAveraging) + "&ip_address=" + ip_Address + "&date=" + dateTime;
     sendLogData();
+    calibrationStatus = true;
   }
 
-  // LCD Clear Every 40 Reading
+  // LCD Clear Every 10 Reading
   if (readingTempLoop % 10 == 0) {
     lcd.clear();
   }
 
-  // Reset Every 100 Reading
+  // Reset Every 1000 Reading
   if (readingTempLoop % 1000 == 0) {
     ESP.restart();
   }
