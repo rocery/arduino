@@ -7,7 +7,7 @@ info : sastranuralamsyah@gmail.com
 ## Important!
 
 ```
-Library ada di folder '/libraries'
+Semua Library ada di folder '/libraries'
 Semua file Schematic sudah ada di '/fritzing library' dan '/fritzing schematic'
 Arduino IDE yang digunakan versi 2++
 
