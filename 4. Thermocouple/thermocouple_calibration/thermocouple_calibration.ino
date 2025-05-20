@@ -1,6 +1,6 @@
 /*
-  V. 0.1.3 Beta
-  16-05-2025
+  V. 1.0.0
+  20-05-2025
 
   Versi ini dibuat dengan alasan:
   1. Tidak menggunakan potesiometer sebagai alat kalibrasi
@@ -78,11 +78,12 @@ bool sendStatus;
 
 // == Get NTP/RTC ==
 const char* ntpServer = "192.168.7.223";
-const long gmtOffsetSec = 7 * 3600;  // Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
+const long gmtOffsetSec = 7 * 3600;
 const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat, timeLCD;
 int year, month, day, hour, minute, second;
 bool ntpStatus;
+
 
 void sendLogData() {
   HTTPClient http;
