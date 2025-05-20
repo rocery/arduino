@@ -2,9 +2,7 @@
   V. 1.0.0
   20-05-2025
 
-  Versi ini dibuat dengan alasan:
-  1. Tidak menggunakan potesiometer sebagai alat kalibrasi
-  2. Kalibrasi dilakukan melalui value yang diatur database
+  Ganti deviceName, deviceID, dan IP
 
   Kalibrasi berdasarkan device_id dan calibration_value
 */
