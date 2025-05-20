@@ -84,7 +84,6 @@ String dateTime, dateFormat, timeFormat, timeLCD;
 int year, month, day, hour, minute, second;
 bool ntpStatus;
 
-
 void sendLogData() {
   HTTPClient http;
   http.begin(api_sendLogData);
