@@ -1,5 +1,5 @@
 /*
-  V. 1.0.0
+  V. 1.0.0.a
   20-05-2025
 
   Ganti deviceName, deviceID, dan IP
@@ -35,8 +35,8 @@ bool calibrationStatus;
 int readingTempLoop = 0;
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27
-  Total kolom 20
-  Total baris 4 */
+  Total kolom 16
+  Total baris 2 */
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 uint8_t degree[8] = {
   0x08,
@@ -269,6 +269,7 @@ void loop() {
     delay(500);
   }
 
+  // Average
   tempAveraging = tempData / i;
   tempData = 0;
   readingTempLoop++;
@@ -305,7 +306,7 @@ void loop() {
     sendLogData2();
   }
 
-  // LCD Clear Every 10 Reading
+  // LCD Clear Every 100 Reading
   if (readingTempLoop % 100 == 0) {
     lcd.clear();
   }
