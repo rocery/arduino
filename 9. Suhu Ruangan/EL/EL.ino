@@ -12,9 +12,9 @@ struct CalibrationData {
 };
 
 const String deviceName = "Suhu dan Temperature 1";
+const String deviceID = "IoT-EL";
 const String api = "http://192.168.15.223/iot/api/project_universitas/save_data.php";
-const String getCalibration = "http://192.168.15.223/iot/api/project_universitas/get_calibration.php";
-const String deviceID = "IoT-1";
+const String getCalibration = "http://192.168.15.223/iot/api/project_universitas/get_calibration.php?device_id=" + deviceID;
 
 #define ledPin 27
 #define buzzPin 33
