@@ -2,6 +2,7 @@
 #include <WiFi.h>
 
 #define ledPin 27
+#define buzzPin 33
 
 #define DHTPIN 25
 #define DHTTYPE DHT21
@@ -33,6 +34,7 @@ void setup() {
   delay(2500);
 
   pinMode(ledPin, OUTPUT);
+  pinMode(buzzPin, OUTPUT);
 
   WiFi.mode(WIFI_STA);
   WiFi.onEvent(ConnectedToAP_Handler, ARDUINO_EVENT_WIFI_STA_CONNECTED);
@@ -48,12 +50,13 @@ void loop() {
 
   if (temperature > tempThreshold) {
     digitalWrite(ledPin, HIGH);
+    digitalWrite(buzzPin, HIGH);
   } else {
     digitalWrite(ledPin, LOW);
+    digitalWrite(buzzPin, LOW);
   }
 
   Serial.print("T: ");
-  Serial.println(temperature);
   Serial.print("H: ");
   Serial.println(humidity);
 
