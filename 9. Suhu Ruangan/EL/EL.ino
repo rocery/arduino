@@ -30,6 +30,7 @@ int readLoop = 0;
 const char* ssid = "STTB11";
 const char* password = "Si4nt4r321";
 String ip_Address, postData;
+int WiFiStatus;
 
 const char* ntpServer = "pool.ntp.org";
 const long gmtOffsetSec = 7 * 3600;
@@ -81,7 +82,7 @@ void sendData() {
 
 CalibrationData getCalibrationData() {
   HTTPClient http;
-  http.begin(getCal);
+  http.begin(getCalibration);
   int httpCode = http.GET();
 
   CalibrationData calibrationData = { 0.0, 0.0 };  // Initialize with default values
@@ -145,10 +146,10 @@ void setup() {
   Serial.println("Connecting to WiFi Network ..");
   WiFi.begin(ssid, password);
 
+  WiFiStatus = WiFi.status();
   while (WiFiStatus != WL_CONNECTED) {
     delay(250);
     WiFiStatus = WiFi.status();
-    Serial.println(Get_WiFiStatus(WiFiStatus));
   }
   Serial.println("\nConnected To The WiFi Network");
   Serial.print("Local ESP32 IP: ");
@@ -168,7 +169,7 @@ void setup() {
 
 void loop() {
   temperature = dht.readTemperature() + tempCalibration;
-  humidity = dht.readHumidity() humCalibration;
+  humidity = dht.readHumidity() + humCalibration;
 
   if (temperature > tempThreshold) {
     digitalWrite(ledPin, HIGH);
@@ -187,7 +188,7 @@ void loop() {
     CalibrationData data = getCalibrationData();
     tempCalibration = data.temperature;
     humCalibration = data.humidity;
-    getStatus = true;
+    getCalibrationStatus = true;
   }
 
   ip_Address = WiFi.localIP().toString();
@@ -198,6 +199,6 @@ void loop() {
   readLoop++;
   if (readLoop % 30 == 0) {
     sendData();
-    getStatus = false;
+    getCalibrationStatus = false;
   }
 }
