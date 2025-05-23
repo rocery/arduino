@@ -27,6 +27,19 @@ float temperature, humidity, tempCalibration = 0.0, humCalibration = 0.0;
 bool getCalibrationStatus;
 int readLoop = 0;
 
+#define LCDADDR 0x27
+LiquidCrystal_I2C lcd(LCDADDR, 16, 2);
+uint8_t degree[8] = {
+  0x08,
+  0x14,
+  0x14,
+  0x08,
+  0x00,
+  0x00,
+  0x00,
+  0x00
+};
+
 const char* ssid = "STTB11";
 const char* password = "Si4nt4r321";
 String ip_Address, postData;
@@ -112,6 +125,23 @@ CalibrationData getCalibrationData() {
   return calibrationData;
 }
 
+void printLCD(char* temp, char* hum) {
+  // Temperature
+  lcd.setCursor(0, 0);
+  lcd.print("T: ");
+  lcd.setCursor(2, 0);
+  lcd.print(temp);
+  lcd.write(0);
+  lcd.print("C");
+
+  // Humidity
+  lcd.setCursor(0, 1);
+  lcd.print("H: ");
+  lcd.setCursor(2, 1);
+  lcd.print(hum);
+  lcd.print("%");
+}
+
 void ConnectedToAP_Handler(WiFiEvent_t wifi_event, WiFiEventInfo_t wifi_info) {
   Serial.println("Connected To The WiFi Network");
 }
@@ -138,7 +168,16 @@ void setup() {
 
   getCalibrationStatus = false;
 
+  // LCD
+  lcd.init();
+  lcd.clear();
+  lcd.backlight();
+  lcd.createChar(0, degree);
+  lcd.home();
+
   // WiFi
+  lcd.setCursor(0, 0);
+  lcd.print("Connecting...");
   WiFi.mode(WIFI_STA);
   WiFi.onEvent(ConnectedToAP_Handler, ARDUINO_EVENT_WIFI_STA_CONNECTED);
   WiFi.onEvent(GotIP_Handler, ARDUINO_EVENT_WIFI_STA_GOT_IP);
@@ -154,6 +193,8 @@ void setup() {
   Serial.println("\nConnected To The WiFi Network");
   Serial.print("Local ESP32 IP: ");
   Serial.println(WiFi.localIP());
+  lcd.setCursor(0, 0);
+  lcd.print("WiFi Connected!");
 
   // NTP
   configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
@@ -161,10 +202,14 @@ void setup() {
   while (!getTime() && tryNTP <= 5) {
     Serial.print("Getting Time : ");
     Serial.println(tryNTP);
+    lcd.setCursor(0, 1);
+    lcd.print("Getting Time");
     getTime();
     tryNTP++;
     delay(100);
   }
+
+  lcd.clear();
 }
 
 void loop() {
@@ -178,11 +223,23 @@ void loop() {
     digitalWrite(ledPin, LOW);
     digitalWrite(buzzPin, LOW);
   }
-
-  Serial.print("T: ");
+  Serial.println("\n=======DATA========");
+  Serial.print("Temperature : ");
   Serial.println(temperature);
-  Serial.print("H: ");
+  Serial.print("Humidity    : ");
   Serial.println(humidity);
+  Serial.print("Time        : ");
+  Serial.println(dateTime);
+
+  // Convert float values to string with 1 decimal place
+  char bufferCalTemp[6];
+  dtostrf(temperature, 4, 1, bufferCalTemp);  // Convert float to string: 4 is the width, 1 is the number of decimals
+
+  char bufferHumidity[6];                   // Buffer to hold the formatted string for b
+  dtostrf(humidity, 4, 1, bufferHumidity);  // Convert float to string: 4 is the width, 1 is the number of decimals
+
+  // Print temperature and humidity values to LCD
+  printLCD(bufferCalTemp, bufferHumidity);
 
   if (getCalibrationStatus == false) {
     CalibrationData data = getCalibrationData();
@@ -191,13 +248,33 @@ void loop() {
     getCalibrationStatus = true;
   }
 
+  bool ntpStatus = false;
+  // Handle WiFi connectivity
+  if (WiFi.status() == WL_CONNECTED) {
+    lcd.setCursor(10, 0);
+    lcd.print(WiFi.SSID());
+    ntpStatus = getTime();
+  } else {
+    lcd.setCursor(10, 0);
+    lcd.print("Error");
+  }
+
+  // Handle NTP time synchronization
+  if (ntpStatus == false) {
+    lcd.setCursor(10, 1);
+    lcd.print("Error");
+  } else {
+    lcd.setCursor(10, 1);
+    lcd.print(lcdFormat);
+  }
+
   ip_Address = WiFi.localIP().toString();
   postData = "device_id=" + deviceID + "&device_name=" + deviceName + "&temp=" + String(temperature) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip_address=" + ip_Address;
 
-  delay(5000);
+  delay(3000);
 
   readLoop++;
-  if (readLoop % 30 == 0) {
+  if (readLoop % 5 == 0) {
     sendData();
     getCalibrationStatus = false;
   }
