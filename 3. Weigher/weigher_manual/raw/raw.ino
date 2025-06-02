@@ -100,7 +100,7 @@ NTPClient ntpClient(udp, ntpServer, 0, 60000);  // UTC time, update every 60 sec
 String formattedTime;
 unsigned long lastNTPUpdateTime = 0;
 const unsigned long NTP_UPDATE_INTERVAL = 1000;
-int hourNTP, minuteNTP, secondNTP;
+int hourNTP, minuteNTP, secondNTP, yearNTP, monthNTP, dayNTP;
 
 // RTC CONFIGURATION
 RTC_DS3231 rtc;
@@ -834,8 +834,9 @@ String getFormattedDateTime(unsigned long epochTime) {
   hourNTP = hour;
   minuteNTP = minute;
   secondNTP = second;
-  // dayNTP
-  // monthNTP
+  dayNTP = day;
+  monthNTP = month;
+  yearNTP = year;
 
   return String(buffer);
 }
@@ -844,8 +845,22 @@ void updateTime() {
   ntpClient.update();
   unsigned long epochTime = ntpClient.getEpochTime();
   formattedTime = getFormattedDateTime(epochTime);
+}
 
-  // Update Time to RTC
+bool updateRTC() {
+  /* Baris program ini digunakan untuk melakukan update waktu pada RTC,
+    akan digunakan pada final produk untuk menanggulangi masalah pada
+    koneksi NTP jika WiFi tidak terkoneksi internet.
+    Mohon tidak dihapus/dirubah.
+  */
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  rtc.adjust(DateTime(yearNTP, monthNTP, dayNTP, hourNTP, minuteNTP, secondNTP));
+
+  if (now.year() != 1990) {
+    return true;
+  } else if (now.year() == 1990) {
+    return false;
+  }
 }
 
 void setup() {
@@ -917,6 +932,10 @@ void setup() {
   // Begin UDP for NTP
   udp.begin(localNtpPort);
   ntpClient.begin();
+
+  // Cek LAN
+  // IF D Get Time from RTC
+  // else siny time btp to rtc then get time from rtc
 
   // Choose Product
   chooseProduct();
