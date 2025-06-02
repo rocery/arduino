@@ -31,6 +31,7 @@
 #include <ArduinoJson.h>
 #include <NTPClient.h>
 #include <EthernetUdp.h>
+#include <RTClib.h>
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
@@ -100,6 +101,10 @@ String formattedTime;
 unsigned long lastNTPUpdateTime = 0;
 const unsigned long NTP_UPDATE_INTERVAL = 1000;
 int hourNTP, minuteNTP, secondNTP;
+
+// RTC CONFIGURATION
+RTC_DS3231 rtc;
+DateTime now;
 
 // LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2);
