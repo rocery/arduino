@@ -933,9 +933,31 @@ void setup() {
   udp.begin(localNtpPort);
   ntpClient.begin();
 
-  // Cek LAN
-  // IF D Get Time from RTC
-  // else siny time btp to rtc then get time from rtc
+  Ethernet.maintain();
+  if (checkConnectionLan()) {
+    lanStatus = "C";
+  } else {
+    lanStatus = "D";
+  }
+  
+  if (lanStatus == "D") {
+    now = rtc.now();
+  } else {
+    updateTime();
+    if (updateRTC()) {
+      now = rtc.now();
+    }
+  }
+  
+  int rtcYear = now.year();
+  int rtcMonth = now.month();
+  int rtcDay = now.day();
+  int rtcHour = now.hour();
+  int rtcMinute = now.minute();
+  int rtcSecond = now.second();
+  
+  sprintf(formattedTime, "%04d-%02d-%02d %02d:%02d:%02d", rtcYear, rtcMonth, rtcDay, rtcHour, rtcMinute, rtcSecond);
+  
 
   // Choose Product
   chooseProduct();
@@ -960,10 +982,10 @@ void loop() {
   float kgLoadCell = rawLoadCell / 1000;
   // float absValuekgLoadCell = fabs(kgLoadCell);
 
-  if (currentTime - lastNTPUpdateTime >= NTP_UPDATE_INTERVAL) {
-    lastNTPUpdateTime = currentTime;
-    updateTime();
-  }
+  // if (currentTime - lastNTPUpdateTime >= NTP_UPDATE_INTERVAL) {
+  //   lastNTPUpdateTime = currentTime;
+  //   updateTime();
+  // }
 
   dtostrf(kgLoadCell, 5, digitScale, kgLoadCellPrint);
 
