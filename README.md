@@ -15,8 +15,11 @@ Link Board ESP32 dan ESP8266:
 http://arduino.esp8266.com/stable/package_esp8266com_index.json
 https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-Board untuk ESP32 V. 3.1.0
-
+Board Project
+| Project    | Versi |
+|------------|-------|
+| Weigher    | 3.2.0 |
+| Suhu Ruang | 3.1.0 |
 ```
 
 ## Error Note
