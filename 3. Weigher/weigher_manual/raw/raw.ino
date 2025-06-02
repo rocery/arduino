@@ -33,8 +33,8 @@
 #include <EthernetUdp.h>
 
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 32;
-/**/ const String loc = "Kerupuk 32";
+/**/ const int ip = 31;
+/**/ const String loc = "Kerupuk 31";
 /**/ const String prod = "Kerupuk";
 // =====================================
 
@@ -79,7 +79,7 @@ String product[] = {
   "TIC TIC SAMCOL",
   "FUJI CHIPS",
   "TIC TIC BALADO",
-  "TEST_32"
+  "TEST_31"
 };
 #define ARRAY_LENGTH(arr) (sizeof(arr) / sizeof(arr[0]))
 char kgLoadCellPrint[6];
@@ -120,9 +120,9 @@ int buttonSelectState = 0;
 // SD CARD
 #define SD_CS 4
 bool sdStatus = false;
-const char* logName = "/weigherLog32.txt";
-const char* logSave = "/saveLog32.txt";
-const char* logSend = "/sendLog32.txt";
+const char* logName = "/weigherLog31.txt";
+const char* logSave = "/saveLog31.txt";
+const char* logSend = "/sendLog31.txt";
 bool hasReset = false;
 
 // TASK HANDLER CORE 0 FOR SEND DATA
@@ -563,7 +563,7 @@ void sendLog(void* parameter) {
         unsigned long currentPressTime = millis();
 
         // Check if button is pressed for more than 200 ms
-        if (currentPressTime - buttonPressStartTime >= 100 && !buttonProcessed) {
+        if (currentPressTime - buttonPressStartTime >= 200 && !buttonProcessed) {
           // Execute code when button is pressed longer than 0.5 seconds
           if (!sdStatus) {
             if (lanStatus == "D") {
@@ -640,7 +640,7 @@ void sendLog(void* parameter) {
 
                 // Calculate content length more precisely
                 long contentLength =
-                  String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog32.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
+                  String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
 
                 client.println("Content-Length: " + String(contentLength));
                 client.println("Connection: close");
@@ -648,7 +648,7 @@ void sendLog(void* parameter) {
 
                 // Write multipart form data
                 client.println("--" + boundary);
-                client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog32.txt\"");
+                client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"");
                 client.println("Content-Type: text/plain");
                 client.println();
 
@@ -671,7 +671,7 @@ void sendLog(void* parameter) {
                 bool headersComplete = false;
                 String responseBody = "";
 
-                while (client.connected() && millis() - timeout < 10000) {
+                while (client.connected() && millis() - timeout < 30000) {
                   if (client.available()) {
                     String line = client.readStringUntil('\n');
 
@@ -825,9 +825,12 @@ String getFormattedDateTime(unsigned long epochTime) {
   char buffer[20];
   sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
 
+  // Used for auto reset
   hourNTP = hour;
   minuteNTP = minute;
   secondNTP = second;
+  // dayNTP
+  // monthNTP
 
   return String(buffer);
 }
@@ -836,6 +839,8 @@ void updateTime() {
   ntpClient.update();
   unsigned long epochTime = ntpClient.getEpochTime();
   formattedTime = getFormattedDateTime(epochTime);
+
+  // Update Time to RTC
 }
 
 void setup() {
@@ -1053,18 +1058,19 @@ void loop() {
     lastLcdClearTime = currentTime;
   }
 
-  if (isTimeToResetCounterSaveSend(hourNTP, minuteNTP, secondNTP)) {
-    if (!hasReset) {
-      // Reset All Counter
-      deleteLog(logSend);
-      deleteLog(logSave);
+  // Delete counter log in spesific time
+  // if (isTimeToResetCounterSaveSend(hourNTP, minuteNTP, secondNTP)) {
+  //   if (!hasReset) {
+  //     // Reset All Counter
+  //     deleteLog(logSend);
+  //     deleteLog(logSave);
 
-      totalLineCount = 0;
-      saveDataCounter = 0;
+  //     totalLineCount = 0;
+  //     saveDataCounter = 0;
 
-      hasReset = true;
-    } else {
-      hasReset = false;
-    }
-  }
+  //     hasReset = true;
+  //   } else {
+  //     hasReset = false;
+  //   }
+  // }
 }
