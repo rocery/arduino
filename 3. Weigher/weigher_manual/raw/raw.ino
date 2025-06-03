@@ -558,6 +558,13 @@ void sendLog(void* parameter) {
   while (true) {
     unsigned long currentTime = millis();
 
+    Ethernet.maintain();
+    if (checkConnectionLan()) {
+      lanStatus = "C";
+    } else {
+      lanStatus = "D";
+    }
+
     // Save Data
     if (isButtonPressed(buttonSelect)) {
       unsigned long buttonPressStartTime = millis();
@@ -992,12 +999,12 @@ void loop() {
   lcd.setCursor(0, 0);
   lcd.print(productSelected);
 
-  Ethernet.maintain();
-  if (checkConnectionLan()) {
-    lanStatus = "C";
-  } else {
-    lanStatus = "D";
-  }
+  // Ethernet.maintain();
+  // if (checkConnectionLan()) {
+  //   lanStatus = "C";
+  // } else {
+  //   lanStatus = "D";
+  // }
 
   lcd.setCursor(15, 1);
   lcd.print(lanStatus);
