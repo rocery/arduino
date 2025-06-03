@@ -557,12 +557,36 @@ void sendLog(void* parameter) {
   const unsigned long SERVER_CHECK_INTERVAL = 30000;  // 30 seconds
   while (true) {
     unsigned long currentTime = millis();
-
+    
     Ethernet.maintain();
     if (checkConnectionLan()) {
       lanStatus = "C";
     } else {
       lanStatus = "D";
+    }
+
+    if (currentTime - lastNTPUpdateTime >= NTP_UPDATE_INTERVAL) {
+      lastNTPUpdateTime = currentTime;
+      
+      // NTP
+      if (lanStatus == "D") {
+        now = rtc.now();
+      } else {
+        updateTime();
+        if (updateRTC()) {
+          now = rtc.now();
+        }
+      }
+      
+      int rtcYear = now.year();
+      int rtcMonth = now.month();
+      int rtcDay = now.day();
+      int rtcHour = now.hour();
+      int rtcMinute = now.minute();
+      int rtcSecond = now.second();
+      String dateFormat = String(rtcYear) + '-' + String(rtcMonth) + '-' + String(rtcDay);
+      String timeFormat = String(rtcHour) + ':' + String(rtcMinute) + ':' + String(rtcSecond);
+      formattedTime = dateFormat + ' ' + timeFormat;
     }
 
     // Save Data
@@ -940,6 +964,7 @@ void setup() {
   udp.begin(localNtpPort);
   ntpClient.begin();
 
+  // NTP
   Ethernet.maintain();
   if (checkConnectionLan()) {
     lanStatus = "C";
@@ -962,10 +987,10 @@ void setup() {
   int rtcHour = now.hour();
   int rtcMinute = now.minute();
   int rtcSecond = now.second();
+  String dateFormat = String(rtcYear) + '-' + String(rtcMonth) + '-' + String(rtcDay);
+  String timeFormat = String(rtcHour) + ':' + String(rtcMinute) + ':' + String(rtcSecond);
+  formattedTime = dateFormat + ' ' + timeFormat;
   
-  sprintf(formattedTime, "%04d-%02d-%02d %02d:%02d:%02d", rtcYear, rtcMonth, rtcDay, rtcHour, rtcMinute, rtcSecond);
-  
-
   // Choose Product
   chooseProduct();
 
