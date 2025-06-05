@@ -998,7 +998,7 @@ void setup() {
   xTaskCreate(
     sendLog,            // Fungsi task
     "sendLog",          // Nama task
-    4096,               // Ukuran stack
+    8192,               // Ukuran stack
     NULL,               // Parameter task
     1,                  // Prioritas task
     &SendLogTaskHandle  // Task handle
