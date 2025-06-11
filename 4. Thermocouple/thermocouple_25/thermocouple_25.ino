@@ -28,9 +28,9 @@ const String api_getCalibrationValue = "http://192.168.7.223/temperature_api/get
   Thermocouple Type K
   MAX6675 Pin declaration
 */
-#define thermoSO 19
+#define thermoSO 5
 #define thermoCS 18
-#define thermoSCK 5
+#define thermoSCK 19
 MAX6675 thermocouple(thermoSCK, thermoCS, thermoSO);
 float temperature, calibrationValue, tempValue, tempAveraging, tempData;
 bool calibrationStatus;
