@@ -110,7 +110,7 @@ DateTime now;
 // LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 unsigned long lastLcdClearTime = 0;
-const unsigned long LCD_CLEAR_INTERVAL = 30000;
+const unsigned long LCD_CLEAR_INTERVAL = 300000;
 
 // EEPROM
 const int EEPROM_ADDRESS = 0;
