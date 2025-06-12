@@ -31,6 +31,7 @@
 #include <ArduinoJson.h>
 #include <NTPClient.h>
 #include <EthernetUdp.h>
+#include <RTClib.h>
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 31;
@@ -99,7 +100,11 @@ NTPClient ntpClient(udp, ntpServer, 0, 60000);  // UTC time, update every 60 sec
 String formattedTime;
 unsigned long lastNTPUpdateTime = 0;
 const unsigned long NTP_UPDATE_INTERVAL = 1000;
-int hourNTP, minuteNTP, secondNTP;
+int hourNTP, minuteNTP, secondNTP, yearNTP, monthNTP, dayNTP;
+
+// RTC CONFIGURATION
+RTC_DS3231 rtc;
+DateTime now;
 
 // LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -552,6 +557,37 @@ void sendLog(void* parameter) {
   const unsigned long SERVER_CHECK_INTERVAL = 30000;  // 30 seconds
   while (true) {
     unsigned long currentTime = millis();
+    
+    Ethernet.maintain();
+    if (checkConnectionLan()) {
+      lanStatus = "C";
+    } else {
+      lanStatus = "D";
+    }
+
+    if (currentTime - lastNTPUpdateTime >= NTP_UPDATE_INTERVAL) {
+      lastNTPUpdateTime = currentTime;
+      
+      // NTP
+      if (lanStatus == "D") {
+        now = rtc.now();
+      } else {
+        updateTime();
+        if (updateRTC()) {
+          now = rtc.now();
+        }
+      }
+      
+      int rtcYear = now.year();
+      int rtcMonth = now.month();
+      int rtcDay = now.day();
+      int rtcHour = now.hour();
+      int rtcMinute = now.minute();
+      int rtcSecond = now.second();
+      String dateFormat = String(rtcYear) + '-' + String(rtcMonth) + '-' + String(rtcDay);
+      String timeFormat = String(rtcHour) + ':' + String(rtcMinute) + ':' + String(rtcSecond);
+      formattedTime = dateFormat + ' ' + timeFormat;
+    }
 
     // Save Data
     if (isButtonPressed(buttonSelect)) {
@@ -825,9 +861,13 @@ String getFormattedDateTime(unsigned long epochTime) {
   char buffer[20];
   sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
 
+  // Used for auto reset
   hourNTP = hour;
   minuteNTP = minute;
   secondNTP = second;
+  dayNTP = day;
+  monthNTP = month;
+  yearNTP = year;
 
   return String(buffer);
 }
@@ -836,6 +876,22 @@ void updateTime() {
   ntpClient.update();
   unsigned long epochTime = ntpClient.getEpochTime();
   formattedTime = getFormattedDateTime(epochTime);
+}
+
+bool updateRTC() {
+  /* Baris program ini digunakan untuk melakukan update waktu pada RTC,
+    akan digunakan pada final produk untuk menanggulangi masalah pada
+    koneksi NTP jika WiFi tidak terkoneksi internet.
+    Mohon tidak dihapus/dirubah.
+  */
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  rtc.adjust(DateTime(yearNTP, monthNTP, dayNTP, hourNTP, minuteNTP, secondNTP));
+
+  if (now.year() != 1990) {
+    return true;
+  } else if (now.year() == 1990) {
+    return false;
+  }
 }
 
 void setup() {
@@ -908,6 +964,33 @@ void setup() {
   udp.begin(localNtpPort);
   ntpClient.begin();
 
+  // NTP
+  Ethernet.maintain();
+  if (checkConnectionLan()) {
+    lanStatus = "C";
+  } else {
+    lanStatus = "D";
+  }
+  
+  if (lanStatus == "D") {
+    now = rtc.now();
+  } else {
+    updateTime();
+    if (updateRTC()) {
+      now = rtc.now();
+    }
+  }
+  
+  int rtcYear = now.year();
+  int rtcMonth = now.month();
+  int rtcDay = now.day();
+  int rtcHour = now.hour();
+  int rtcMinute = now.minute();
+  int rtcSecond = now.second();
+  String dateFormat = String(rtcYear) + '-' + String(rtcMonth) + '-' + String(rtcDay);
+  String timeFormat = String(rtcHour) + ':' + String(rtcMinute) + ':' + String(rtcSecond);
+  formattedTime = dateFormat + ' ' + timeFormat;
+  
   // Choose Product
   chooseProduct();
 
@@ -915,7 +998,7 @@ void setup() {
   xTaskCreate(
     sendLog,            // Fungsi task
     "sendLog",          // Nama task
-    4096,               // Ukuran stack
+    8192,               // Ukuran stack
     NULL,               // Parameter task
     1,                  // Prioritas task
     &SendLogTaskHandle  // Task handle
@@ -931,22 +1014,22 @@ void loop() {
   float kgLoadCell = rawLoadCell / 1000;
   // float absValuekgLoadCell = fabs(kgLoadCell);
 
-  if (currentTime - lastNTPUpdateTime >= NTP_UPDATE_INTERVAL) {
-    lastNTPUpdateTime = currentTime;
-    updateTime();
-  }
+  // if (currentTime - lastNTPUpdateTime >= NTP_UPDATE_INTERVAL) {
+  //   lastNTPUpdateTime = currentTime;
+  //   updateTime();
+  // }
 
   dtostrf(kgLoadCell, 5, digitScale, kgLoadCellPrint);
 
   lcd.setCursor(0, 0);
   lcd.print(productSelected);
 
-  Ethernet.maintain();
-  if (checkConnectionLan()) {
-    lanStatus = "C";
-  } else {
-    lanStatus = "D";
-  }
+  // Ethernet.maintain();
+  // if (checkConnectionLan()) {
+  //   lanStatus = "C";
+  // } else {
+  //   lanStatus = "D";
+  // }
 
   lcd.setCursor(15, 1);
   lcd.print(lanStatus);
