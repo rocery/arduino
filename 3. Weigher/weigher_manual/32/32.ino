@@ -32,6 +32,7 @@
 #include <NTPClient.h>
 #include <EthernetUdp.h>
 #include <RTClib.h>
+#include "time.h"
 
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 32;
@@ -892,10 +893,12 @@ bool updateRTC() {
   } else if (now.year() == 1990) {
     return false;
   }
+  return true;
 }
 
 void setup() {
   Serial.begin(9600);
+  delay(2000);
 
   // Setup button pins
   pinMode(buttonUp, INPUT_PULLUP);
@@ -963,6 +966,7 @@ void setup() {
   // Begin UDP for NTP
   udp.begin(localNtpPort);
   ntpClient.begin();
+  rtc.begin();
 
   // NTP
   Ethernet.maintain();
@@ -971,7 +975,7 @@ void setup() {
   } else {
     lanStatus = "D";
   }
-  
+
   if (lanStatus == "D") {
     now = rtc.now();
   } else {
@@ -980,7 +984,7 @@ void setup() {
       now = rtc.now();
     }
   }
-  
+
   int rtcYear = now.year();
   int rtcMonth = now.month();
   int rtcDay = now.day();
@@ -991,6 +995,7 @@ void setup() {
   String timeFormat = String(rtcHour) + ':' + String(rtcMinute) + ':' + String(rtcSecond);
   formattedTime = dateFormat + ' ' + timeFormat;
   
+
   // Choose Product
   chooseProduct();
 

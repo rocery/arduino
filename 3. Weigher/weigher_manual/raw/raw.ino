@@ -32,10 +32,11 @@
 #include <NTPClient.h>
 #include <EthernetUdp.h>
 #include <RTClib.h>
+#include "time.h"
 
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 31;
-/**/ const String loc = "Kerupuk 31";
+/**/ const int ip = 32;
+/**/ const String loc = "Kerupuk 32";
 /**/ const String prod = "Kerupuk";
 // =====================================
 
@@ -125,9 +126,9 @@ int buttonSelectState = 0;
 // SD CARD
 #define SD_CS 4
 bool sdStatus = false;
-const char* logName = "/weigherLog31.txt";
-const char* logSave = "/saveLog31.txt";
-const char* logSend = "/sendLog31.txt";
+const char* logName = "/weigherLog32.txt";
+const char* logSave = "/saveLog32.txt";
+const char* logSend = "/sendLog32.txt";
 bool hasReset = false;
 
 // TASK HANDLER CORE 0 FOR SEND DATA
@@ -676,7 +677,7 @@ void sendLog(void* parameter) {
 
                 // Calculate content length more precisely
                 long contentLength =
-                  String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
+                  String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog32.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
 
                 client.println("Content-Length: " + String(contentLength));
                 client.println("Connection: close");
@@ -684,7 +685,7 @@ void sendLog(void* parameter) {
 
                 // Write multipart form data
                 client.println("--" + boundary);
-                client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"");
+                client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog32.txt\"");
                 client.println("Content-Type: text/plain");
                 client.println();
 
@@ -892,10 +893,12 @@ bool updateRTC() {
   } else if (now.year() == 1990) {
     return false;
   }
+  return true;
 }
 
 void setup() {
   Serial.begin(9600);
+  delay(2000);
 
   // Setup button pins
   pinMode(buttonUp, INPUT_PULLUP);
@@ -963,6 +966,7 @@ void setup() {
   // Begin UDP for NTP
   udp.begin(localNtpPort);
   ntpClient.begin();
+  rtc.begin();
 
   // NTP
   Ethernet.maintain();
@@ -971,7 +975,7 @@ void setup() {
   } else {
     lanStatus = "D";
   }
-  
+
   if (lanStatus == "D") {
     now = rtc.now();
   } else {
@@ -980,7 +984,7 @@ void setup() {
       now = rtc.now();
     }
   }
-  
+
   int rtcYear = now.year();
   int rtcMonth = now.month();
   int rtcDay = now.day();
@@ -991,6 +995,7 @@ void setup() {
   String timeFormat = String(rtcHour) + ':' + String(rtcMinute) + ':' + String(rtcSecond);
   formattedTime = dateFormat + ' ' + timeFormat;
   
+
   // Choose Product
   chooseProduct();
 
