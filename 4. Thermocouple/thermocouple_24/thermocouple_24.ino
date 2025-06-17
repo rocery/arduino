@@ -18,8 +18,8 @@
 #include <Wire.h>
 #include <ArduinoJson.h>
 
-const String deviceName = "Suhu Oven 26 - Kerupuk";
-const String deviceID = "26";
+const String deviceName = "Suhu Oven 24 - Kerupuk";
+const String deviceID = "24";
 const String api_sendLogData = "http://192.168.7.223/temperature_api/saveTemperature.php";
 const String api_sendLogData2 = "http://192.168.7.223/temperature_api/saveTemperature15Minutes.php";
 const String api_getCalibrationValue = "http://192.168.7.223/temperature_api/getCalibrationValue.php?device_id=" + deviceID;
@@ -28,9 +28,9 @@ const String api_getCalibrationValue = "http://192.168.7.223/temperature_api/get
   Thermocouple Type K
   MAX6675 Pin declaration
 */
-#define thermoSO 19
+#define thermoSO 5
 #define thermoCS 18
-#define thermoSCK 5
+#define thermoSCK 19
 MAX6675 thermocouple(thermoSCK, thermoCS, thermoSO);
 float temperature, calibrationValue, tempValue, tempAveraging, tempData;
 bool calibrationStatus;
@@ -65,7 +65,7 @@ const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
 
 // Set IP to Static
-IPAddress staticIP(192, 168, 7, 126);
+IPAddress staticIP(192, 168, 7, 124);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);
