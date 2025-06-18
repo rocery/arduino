@@ -1,8 +1,10 @@
 /*
-  V. 1.0.0.a
-  20-05-2025
+  V. 1.0.1
+  18-06-2025
 
-  Ganti deviceName, deviceID, dan IP
+  Versi ini dibuat dengan alasan:
+  1. Tidak menggunakan potesiometer sebagai alat kalibrasi
+  2. Kalibrasi dilakukan melalui value yang diatur database
 
   Kalibrasi berdasarkan device_id dan calibration_value
 */
