@@ -925,6 +925,9 @@ void setup() {
     calibrationProcess();
   }
 
+  lcd.setCursor(0, 0);
+  lcd.print("SET WLAN");
+
   // Load calibration factor from EEPROM then tare
   calibrationFactor = readFloatFromEEPROM(EEPROM_ADDRESS);
   digitScale = readFloatFromEEPROM(EEPROM_ADDRESS + 4);
@@ -934,6 +937,9 @@ void setup() {
   // Inisialisasi Ethernet dan IP statis
   Ethernet.init(W5500_CS);
   Ethernet.begin(mac, ipaddress, gateway, gateway, subnet);
+
+  lcd.setCursor(0, 0);
+  lcd.print("SET SD CARD");
 
   /*
   Inisialisasi SD Card.
