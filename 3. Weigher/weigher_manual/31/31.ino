@@ -35,8 +35,8 @@
 #include "time.h"
 
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 31;
-/**/ const String loc = "Kerupuk 31";
+/**/ const int ip = 32;
+/**/ const String loc = "Kerupuk 32";
 /**/ const String prod = "Kerupuk";
 // =====================================
 
@@ -98,9 +98,9 @@ IPAddress ntpServer(192, 168, 7, 223);
 unsigned int localNtpPort = 2390;
 EthernetUDP udp;
 NTPClient ntpClient(udp, ntpServer, 0, 60000);  // UTC time, update every 60 seconds
-String formattedTime;
+String formattedTime, lcdFormattedTime;
 unsigned long lastNTPUpdateTime = 0;
-const unsigned long NTP_UPDATE_INTERVAL = 3600000;
+const unsigned long NTP_UPDATE_INTERVAL = 1000;
 int hourNTP, minuteNTP, secondNTP, yearNTP, monthNTP, dayNTP;
 
 // RTC CONFIGURATION
@@ -126,9 +126,9 @@ int buttonSelectState = 0;
 // SD CARD
 #define SD_CS 4
 bool sdStatus = false;
-const char* logName = "/weigherLog31.txt";
-const char* logSave = "/saveLog31.txt";
-const char* logSend = "/sendLog31.txt";
+const char* logName = "/weigherLog32.txt";
+const char* logSave = "/saveLog32.txt";
+const char* logSend = "/sendLog32.txt";
 bool hasReset = false;
 
 // TASK HANDLER CORE 0 FOR SEND DATA
@@ -570,14 +570,16 @@ void sendLog(void* parameter) {
       lastNTPUpdateTime = currentTime;
       
       // NTP
-      if (lanStatus == "D") {
-        now = rtc.now();
-      } else {
-        updateTime();
-        if (updateRTC()) {
-          now = rtc.now();
-        }
-      }
+      // if (lanStatus == "D") {
+      //   now = rtc.now();
+      // } else {
+      //   updateTime();
+      //   if (updateRTC()) {
+      //     now = rtc.now();
+      //   }
+      // }
+
+      now = rtc.now();
       
       int rtcYear = now.year();
       int rtcMonth = now.month();
@@ -588,6 +590,7 @@ void sendLog(void* parameter) {
       String dateFormat = String(rtcYear) + '-' + String(rtcMonth) + '-' + String(rtcDay);
       String timeFormat = String(rtcHour) + ':' + String(rtcMinute) + ':' + String(rtcSecond);
       formattedTime = dateFormat + ' ' + timeFormat;
+      lcdFormattedTime = String(rtcYear) + String(rtcMonth) + String(rtcDay) + ' ' + String(rtcHour) + String(rtcMinute) + String(rtcSecond);
     }
 
     // Save Data
@@ -677,7 +680,7 @@ void sendLog(void* parameter) {
 
                 // Calculate content length more precisely
                 long contentLength =
-                  String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
+                  String("--" + boundary + "\r\n").length() + String("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog32.txt\"\r\n").length() + String("Content-Type: text/plain\r\n\r\n").length() + fileSize + String("\r\n--" + boundary + "--\r\n").length();
 
                 client.println("Content-Length: " + String(contentLength));
                 client.println("Connection: close");
@@ -685,7 +688,7 @@ void sendLog(void* parameter) {
 
                 // Write multipart form data
                 client.println("--" + boundary);
-                client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog31.txt\"");
+                client.println("Content-Disposition: form-data; name=\"file\"; filename=\"weigherLog32.txt\"");
                 client.println("Content-Type: text/plain");
                 client.println();
 
@@ -788,7 +791,17 @@ void sendLog(void* parameter) {
 
                   totalLineCount = 0;
                   saveDataCounter = 0;
-                }
+
+                  // NTP
+                  if (lanStatus == "D") {
+                    now = rtc.now();
+                  } else {
+                    updateTime();
+                    if (updateRTC()) {
+                      now = rtc.now();
+                    }
+                  }
+                } 
 
                 lastServerCheckTime = currentTime;
               } else {
@@ -925,6 +938,9 @@ void setup() {
     calibrationProcess();
   }
 
+  lcd.setCursor(0, 0);
+  lcd.print("SET WLAN");
+
   // Load calibration factor from EEPROM then tare
   calibrationFactor = readFloatFromEEPROM(EEPROM_ADDRESS);
   digitScale = readFloatFromEEPROM(EEPROM_ADDRESS + 4);
@@ -934,6 +950,9 @@ void setup() {
   // Inisialisasi Ethernet dan IP statis
   Ethernet.init(W5500_CS);
   Ethernet.begin(mac, ipaddress, gateway, gateway, subnet);
+
+  lcd.setCursor(0, 0);
+  lcd.print("SET SD CARD");
 
   /*
   Inisialisasi SD Card.
@@ -963,6 +982,9 @@ void setup() {
     saveDataCounter = readCounterSaveSend(logSave);
   }
 
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("LOAD NTP");
   // Begin UDP for NTP
   udp.begin(localNtpPort);
   ntpClient.begin();
@@ -976,7 +998,11 @@ void setup() {
     lanStatus = "D";
   }
 
+  lcd.setCursor(0, 0);
+  lcd.print("UPDATE NTP");
   if (lanStatus == "D") {
+    lcd.setCursor(0, 1);
+    lcd.print("LAN TERCABUT");
     now = rtc.now();
   } else {
     updateTime();
@@ -994,11 +1020,19 @@ void setup() {
   String dateFormat = String(rtcYear) + '-' + String(rtcMonth) + '-' + String(rtcDay);
   String timeFormat = String(rtcHour) + ':' + String(rtcMinute) + ':' + String(rtcSecond);
   formattedTime = dateFormat + ' ' + timeFormat;
-  
+  lcdFormattedTime = String(rtcYear) + String(rtcMonth) + String(rtcDay) + ' ' + String(rtcHour) + String(rtcMinute) + String(rtcSecond);
+
+  if (lanStatus == "D") {
+    lcd.setCursor(0, 0);
+    lcd.print(formattedTime);
+    delay(5000);
+  }
 
   // Choose Product
   chooseProduct();
 
+  lcd.setCursor(0, 0);
+  lcd.print("FINISHING");
   // Buat task untuk mengirim data
   xTaskCreate(
     sendLog,            // Fungsi task
@@ -1057,7 +1091,8 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("      TARE      ");
       lcd.setCursor(0, 1);
-      lcd.print("                ");
+      lcd.print(lcdFormattedTime);
+      lcd.print("    ");
     }
     tareScale();
     lcd.clear();
@@ -1123,11 +1158,20 @@ void loop() {
             } else {
               lcd.setCursor(0, 0);
               lcd.print("    SEND DATA   ");
-              lcd.setCursor(0, 1);
-              lcd.print("                ");
+              delay(3000);
+              
+              if (totalLineCount == 0) {
+                lcd.setCursor(0, 1);
+                lcd.print("    BERHASIL");
+              } else {
+                lcd.setCursor(0, 1);
+                lcd.print("    GAGAL");
+              }
+              
               delay(1000);
               lcd.clear();
             }
+            
           }
         }
       }
