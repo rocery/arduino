@@ -100,7 +100,7 @@ EthernetUDP udp;
 NTPClient ntpClient(udp, ntpServer, 0, 60000);  // UTC time, update every 60 seconds
 String formattedTime;
 unsigned long lastNTPUpdateTime = 0;
-const unsigned long NTP_UPDATE_INTERVAL = 1000;
+const unsigned long NTP_UPDATE_INTERVAL = 3600000;
 int hourNTP, minuteNTP, secondNTP, yearNTP, monthNTP, dayNTP;
 
 // RTC CONFIGURATION

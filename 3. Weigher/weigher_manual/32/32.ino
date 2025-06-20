@@ -98,7 +98,7 @@ IPAddress ntpServer(192, 168, 7, 223);
 unsigned int localNtpPort = 2390;
 EthernetUDP udp;
 NTPClient ntpClient(udp, ntpServer, 0, 60000);  // UTC time, update every 60 seconds
-String formattedTime;
+String formattedTime, lcdFormattedTime;
 unsigned long lastNTPUpdateTime = 0;
 const unsigned long NTP_UPDATE_INTERVAL = 1000;
 int hourNTP, minuteNTP, secondNTP, yearNTP, monthNTP, dayNTP;
@@ -570,14 +570,16 @@ void sendLog(void* parameter) {
       lastNTPUpdateTime = currentTime;
       
       // NTP
-      if (lanStatus == "D") {
-        now = rtc.now();
-      } else {
-        updateTime();
-        if (updateRTC()) {
-          now = rtc.now();
-        }
-      }
+      // if (lanStatus == "D") {
+      //   now = rtc.now();
+      // } else {
+      //   updateTime();
+      //   if (updateRTC()) {
+      //     now = rtc.now();
+      //   }
+      // }
+
+      now = rtc.now();
       
       int rtcYear = now.year();
       int rtcMonth = now.month();
@@ -588,6 +590,7 @@ void sendLog(void* parameter) {
       String dateFormat = String(rtcYear) + '-' + String(rtcMonth) + '-' + String(rtcDay);
       String timeFormat = String(rtcHour) + ':' + String(rtcMinute) + ':' + String(rtcSecond);
       formattedTime = dateFormat + ' ' + timeFormat;
+      lcdFormattedTime = String(rtcYear) + String(rtcMonth) + String(rtcDay) + ' ' + String(rtcHour) + String(rtcMinute) + String(rtcSecond);
     }
 
     // Save Data
@@ -788,7 +791,17 @@ void sendLog(void* parameter) {
 
                   totalLineCount = 0;
                   saveDataCounter = 0;
-                }
+
+                  // NTP
+                  if (lanStatus == "D") {
+                    now = rtc.now();
+                  } else {
+                    updateTime();
+                    if (updateRTC()) {
+                      now = rtc.now();
+                    }
+                  }
+                } 
 
                 lastServerCheckTime = currentTime;
               } else {
@@ -969,6 +982,8 @@ void setup() {
     saveDataCounter = readCounterSaveSend(logSave);
   }
 
+  lcd.setCursor(0, 0);
+  lcd.print("LOAD NTP");
   // Begin UDP for NTP
   udp.begin(localNtpPort);
   ntpClient.begin();
@@ -982,6 +997,8 @@ void setup() {
     lanStatus = "D";
   }
 
+  lcd.setCursor(0, 0);
+  lcd.print("UPDATE NTP");
   if (lanStatus == "D") {
     now = rtc.now();
   } else {
@@ -1000,11 +1017,13 @@ void setup() {
   String dateFormat = String(rtcYear) + '-' + String(rtcMonth) + '-' + String(rtcDay);
   String timeFormat = String(rtcHour) + ':' + String(rtcMinute) + ':' + String(rtcSecond);
   formattedTime = dateFormat + ' ' + timeFormat;
+  lcdFormattedTime = String(rtcYear) + String(rtcMonth) + String(rtcDay) + ' ' + String(rtcHour) + String(rtcMinute) + String(rtcSecond);
   
-
   // Choose Product
   chooseProduct();
 
+  lcd.setCursor(0, 0);
+  lcd.print("FINISHING");
   // Buat task untuk mengirim data
   xTaskCreate(
     sendLog,            // Fungsi task
@@ -1063,7 +1082,8 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("      TARE      ");
       lcd.setCursor(0, 1);
-      lcd.print("                ");
+      lcd.print(lcdFormattedTime);
+      lcd.print("    ");
     }
     tareScale();
     lcd.clear();
