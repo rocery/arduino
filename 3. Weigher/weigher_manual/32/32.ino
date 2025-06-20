@@ -982,6 +982,7 @@ void setup() {
     saveDataCounter = readCounterSaveSend(logSave);
   }
 
+  lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("LOAD NTP");
   // Begin UDP for NTP
@@ -1000,6 +1001,8 @@ void setup() {
   lcd.setCursor(0, 0);
   lcd.print("UPDATE NTP");
   if (lanStatus == "D") {
+    lcd.setCursor(0, 1);
+    lcd.print("LAN TERCABUT");
     now = rtc.now();
   } else {
     updateTime();
@@ -1018,7 +1021,13 @@ void setup() {
   String timeFormat = String(rtcHour) + ':' + String(rtcMinute) + ':' + String(rtcSecond);
   formattedTime = dateFormat + ' ' + timeFormat;
   lcdFormattedTime = String(rtcYear) + String(rtcMonth) + String(rtcDay) + ' ' + String(rtcHour) + String(rtcMinute) + String(rtcSecond);
-  
+
+  if (lanStatus == "D") {
+    lcd.setCursor(0, 0);
+    lcd.print(formattedTime);
+    delay(5000);
+  }
+
   // Choose Product
   chooseProduct();
 
@@ -1149,11 +1158,20 @@ void loop() {
             } else {
               lcd.setCursor(0, 0);
               lcd.print("    SEND DATA   ");
-              lcd.setCursor(0, 1);
-              lcd.print("                ");
+              delay(3000);
+              
+              if (totalLineCount == 0) {
+                lcd.setCursor(0, 1);
+                lcd.print("    BERHASIL");
+              } else {
+                lcd.setCursor(0, 1);
+                lcd.print("    GAGAL");
+              }
+              
               delay(1000);
               lcd.clear();
             }
+            
           }
         }
       }
