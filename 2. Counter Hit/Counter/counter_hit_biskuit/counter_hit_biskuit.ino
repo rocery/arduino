@@ -10,15 +10,12 @@
   4. IR Sensor E18-D80NK                        (5v/Vin, GND, 26) -> 5V Brown/Red, GND Blue, Out Black
   5. Module SD Card + SD Card (FAT32 1-16 GB)   (3.3v, GND, SPI(Mosi 23, Miso 19, CLK 18, CS 5))
   6. Tacticle Button 1x1 cm @3                  (3.3v, GND, 34, 35, 25)
-  -- Belum diimplementasikan --
-  7. Active Buzzer 3-5 v                        (3.3v, 26)
-  8. Fan 5V                                     (5v/Vin, GND)
 
   Program ini berfungsi untuk melakukan penghitungan barang pada conveyor.
   Penjelasan program terdapat pada comment baris pada program.
 
   Semua fungsi Serial.print() pada program ini sebenarnya bisa dihapus/di-comment,
-  masih dipertahankan untuk fungsi debuging. Akan di-comment/dihapus pada saat final
+  tapi bisa digunakan untuk debuging. Akan di-comment/dihapus pada saat final
   program sudah tercapai demi menghemat rosource pada ESP32.
 
   Module RTC pada program ini beleum digunakan, program ini masih memanfaatkan waktu dari
