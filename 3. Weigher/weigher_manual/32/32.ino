@@ -1000,16 +1000,18 @@ void setup() {
 
   lcd.setCursor(0, 0);
   lcd.print("UPDATE NTP");
-  if (lanStatus == "D") {
-    lcd.setCursor(0, 1);
-    lcd.print("LAN TERCABUT");
-    now = rtc.now();
-  } else {
-    updateTime();
-    if (updateRTC()) {
-      now = rtc.now();
-    }
-  }
+  // if (lanStatus == "D") {
+  //   lcd.setCursor(0, 1);
+  //   lcd.print("LAN TERCABUT");
+  //   now = rtc.now();
+  // } else {
+  //   updateTime();
+  //   if (updateRTC()) {
+  //     now = rtc.now();
+  //   }
+  // }
+
+  now = rtc.now();
 
   int rtcYear = now.year();
   int rtcMonth = now.month();
