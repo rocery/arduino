@@ -17,19 +17,11 @@ void setup() {
 
 void loop() {
   // Check if data is available from GM66
-  if (GM66Serial.available()) {
+  while (GM66Serial.available()) {
     String barcode = GM66Serial.readString();
-    barcode.trim(); // Remove whitespace/newlines
-    
-    if (barcode.length() > 0) {
-      Serial.println("Barcode scanned: " + barcode);
-      
-      // Process your barcode here
-      processBarcode(barcode);
-    }
+    //Serial.println(barcode);
+    processBarcode(barcode);
   }
-  
-  delay(100);
 }
 
 void processBarcode(String code) {

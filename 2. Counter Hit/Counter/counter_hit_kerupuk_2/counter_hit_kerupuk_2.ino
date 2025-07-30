@@ -47,7 +47,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define selectButton 32
 
 // Sensor IR disambungkan ke pin 13
-#define sensorPin 25
+#define sensorPin 14
 #define sensorReject 26
 
 // == WiFi Config ==
@@ -67,7 +67,7 @@ const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
 
 // Atur IP Static yang digunakan
-IPAddress staticIP(192, 168, 7, 213);
+IPAddress staticIP(192, 168, 7, 212);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
 // Optional
@@ -112,8 +112,8 @@ String productCodeTwo = "P-0722-00239";
 String nameProductTwo = "Tic Tic Bwg 2000";
 String productCodeThree = "P-0922-00257";
 String nameProductThree = "Tic Tic Bwg 5000";
-String productCodeFour = "Test_Mode_213";
-String nameProductFour = "Test_Mode_213";
+String productCodeFour = "Test_Mode_212";
+String nameProductFour = "Test_Mode_212";
 
 // == SD Card ==
 int lineAsInt;

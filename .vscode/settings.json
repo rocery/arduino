@@ -22,5 +22,6 @@
         "tuple": "cpp",
         "type_traits": "cpp",
         "utility": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/home/sastr/Arduino/libraries/ArduinoJson"
 }
