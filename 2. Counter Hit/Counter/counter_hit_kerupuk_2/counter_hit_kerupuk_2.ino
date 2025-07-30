@@ -46,7 +46,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define downButton 35
 #define selectButton 32
 
-// Sensor IR disambungkan ke pin 13
+// Sensor IR disambungkan ke pin 14
 #define sensorPin 14
 #define sensorReject 26
 
