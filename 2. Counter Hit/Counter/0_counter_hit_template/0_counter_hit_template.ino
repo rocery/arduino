@@ -19,4 +19,24 @@
   
 */
 
-// 
+// ===== Add All the Libraries
+#include <WiFi.h>
+#include <WiFiMulti.h>
+#include <HTTPClient.h>
+#include <Arduino_JSON.h>
+#include <LiquidCrystal_I2C.h>
+#include "FS.h"
+#include "SD.h"
+#include "SPI.h"
+#include <RTClib.h>
+#include "time.h"
+
+// ===== Device Identity
+const String deviceName = "Counter - Tic Tic";
+const int deviceID = 213;
+
+/* ==== LCD I2C 0x27 
+  Column 20
+  Row 4 */
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+
