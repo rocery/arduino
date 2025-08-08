@@ -40,3 +40,17 @@ const int deviceID = 213;
   Row 4 */
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
+/* ==== Button 
+  There are 3 buttons => up, down and select
+*/
+#define upButton 34
+#define downButton 35
+#define selectButton 32
+
+/* IR Sensor 
+  There are 2 sensors (counter and reject).
+  You can choose use either 1 or 2 sensors.
+*/
+#define sensorPin 14
+#define rejectPin 27
+
