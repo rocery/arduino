@@ -63,7 +63,7 @@ struct DeviceData {
   @param api = URL API Menyimpan data ke Database
   @param getCal = URL API Mengambil data kalibrasi dari Database
   @param getData = URL API mengambil data last dari 'device'
-  @param verbose = Variabel untuk melihat error
+  @param verbose = Variabel untuk melihat error di database
 */
 // ========= INISIALISASI AWAL =========
 /**/ const int ip = 22;
