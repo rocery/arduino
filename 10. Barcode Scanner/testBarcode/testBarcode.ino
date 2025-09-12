@@ -39,6 +39,7 @@ void processBarcode(String code) {
   Serial.println("Processing: " + code);
   // lcd.clear();
   lcd.setCursor(0, 0);
+  
   lcd.print("Scanned: " + code);
   // Example: Send to web server, save to SD card, etc.
 }
