@@ -519,7 +519,7 @@ void setup() {
   Serial.println(WiFi.localIP());
   
   // Jika ingin memilih product tanpa memunculkan menu, comment baris dibawah.
-  // selectMenu();  // Tampilkan pilihan product yang bisa dipilih
+  selectMenu();
   
   // Uncomment jika ingin memilih product tanpa memunculkan menu
   productSelected = productCodeOne;
