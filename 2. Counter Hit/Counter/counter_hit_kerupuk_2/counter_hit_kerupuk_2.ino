@@ -1,28 +1,8 @@
 /*
-  V. 1.1.0
-  Update Terakhir : 13-01-2025
+  Update Terakhir : 17-09-2025
+  Lihat 0_counter_hit_template untuk penjelasan kode
+  */
 
-  PENTING = Harus menggunakan Dual Core Micro Controller/Microprocessor
-  Komponen:
-  1. Micro Controller : ESP32
-  2. LCD I2C 20x4                               (3.3v, GND, I2C (22 = SCL, 21 = SDA))
-  3. RTC DS3231                                 (3.3v, GND, I2C (22 = SCL, 21 = SDA))
-  4. IR Sensor                                  (5v/Vin, GND, 13)
-  5. Module SD Card + SD Card (FAT32 1-16 GB)   (3.3v, GND, SPI(Mosi 23, Miso 19, CLK 18, CS 5))
-  6. Tacticle Button 1x1 cm @3                  (3.3v, GND, 34, 35, 25)
-  -- Belum diimplementasikan --
-  7. Active Buzzer 3-5 v                        (3.3v, 26)
-  8. Fan 5V                                     (5v/Vin, GND)
-
-  Program ini berfungsi untuk melakukan penghitungan barang pada conveyor.
-  Penjelasan program terdapat pada comment baris pada program.
-
-  Semua fungsi Serial.print() pada program ini sebenarnya bisa dihapus/di-comment,
-  masih dipertahankan untuk fungsi debuging. Akan di-comment/dihapus pada saat final
-  program sudah tercapai demi menghemat resource pada ESP32.
-*/
-
-// == Deklarasi semua Library yang digunakan ==
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
@@ -34,7 +14,7 @@
 #include <RTClib.h>
 #include "time.h"
 
-String ESPName = "Counter-Tic Tic";
+String ESPName = "Counter-222";
 
 /* Mendeklarasikan LCD dengan alamat I2C 0x27                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
    Total kolom 20
@@ -67,7 +47,7 @@ const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
 
 // Atur IP Static yang digunakan
-IPAddress staticIP(192, 168, 7, 212);
+IPAddress staticIP(192, 168, 7, 222);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
 // Optional
@@ -112,8 +92,8 @@ String productCodeTwo = "P-0722-00239";
 String nameProductTwo = "Tic Tic Bwg 2000";
 String productCodeThree = "P-0922-00257";
 String nameProductThree = "Tic Tic Bwg 5000";
-String productCodeFour = "Test_Mode_212";
-String nameProductFour = "Test_Mode_212";
+String productCodeFour = "Test_Mode_222";
+String nameProductFour = "Test_Mode_222";
 
 // == SD Card ==
 int lineAsInt;
@@ -150,39 +130,7 @@ void counterHit(void* parameter) {
   }
 }
 
-// Jika PNP
-// void counterHit(void* parameter) {
-//   for (;;) {
-//     // IR Counter
-//     pinMode(sensorPin, INPUT_PULLUP);
-//     static int lastIRState = LOW;
-//     int irState = digitalRead(sensorPin);
-//     if (irState == HIGH && lastIRState == LOW) {
-//       counter++;
-//     }
-//     lastIRState = irState;
-//     delay(50);
-
-//     // IR Reject
-//     pinMode(sensorReject, INPUT_PULLUP);
-//     static int lastIRStateReject = LOW;
-//     int irStateReject = digitalRead(sensorReject);
-//     if (irStateReject == HIGH && lastIRStateReject == LOW) {
-//       counterReject++;
-//     }
-//     lastIRStateReject = irStateReject;
-//     delay(50);
-// +
-//     Serial.print("Counter 1:" );
-//     Serial.println(counter);
-//     Serial.print("Counter 2: ");
-//     Serial.println(counterReject);
-//   }
-// }
-
 void getLocalTime() {
-  /* Fungsi bertujuan menerima update waktu
-     lokal dari ntp server */
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) {
     ntpStatus = false;
@@ -208,11 +156,6 @@ void getLocalTime() {
 }
 
 void updateRTC() {
-  /* Baris program ini digunakan untuk melakukan update waktu pada RTC,
-    akan digunakan pada final produk untuk menanggulangi masalah pada
-    koneksi NTP jika WiFi tidak terkoneksi internet.
-    Mohon tidak dihapus/dirubah.
-  */
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   rtc.adjust(DateTime(year, month, day, hour, minute, second));
 
@@ -224,9 +167,6 @@ void updateRTC() {
 }
 
 void sendLogData() {
-  /* Mengirim data ke local server
-     Ganti isi variabel api sesuai dengan form php
-  */
   String api = "http://192.168.7.223/counter_hit_api/saveCounter.php";
   HTTPClient http;
   http.begin(api);
@@ -243,27 +183,6 @@ void sendLogData() {
   }
   http.end();
 }
-
-// void sendLogReject() {
-//   /* Mengirim data ke local server
-//       Ganti isi variabel api sesuai dengan form php
-//   */
-//   String api = "http://192.168.7.223/counter_hit_api/saveCounterReject.php";
-//   HTTPClient http;
-//   http.begin(api);
-//   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-//   int httpResponseCode = http.POST(postDataReject);
-
-//   if (httpResponseCode > 0) {
-//     String response = http.getString();
-//     Serial.println(response);
-//   } else {
-//     String response = http.getString();
-//     Serial.println(response);
-//     Serial.print("Error on sending POST data Reject");
-//   }
-//   http.end();
-// }
 
 void getLogData() {
   /* Untung mendapatkan data terakhir dari DB, 
@@ -433,10 +352,6 @@ void menuSelected() {
   }
 }
 
-/**
- * Reads the last line of a file from the SD card and extracts information from it.
- * @param path The path of the file to read.
- */
 void readLastLineSDCard(String path) {
   // Open the file for reading
   File file = SD.open(path);
