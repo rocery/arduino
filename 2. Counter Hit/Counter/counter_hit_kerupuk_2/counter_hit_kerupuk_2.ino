@@ -398,12 +398,6 @@ void readLastLineSDCard(String path) {
   ipAddressSD = line.substring(fourthCommaIndex + 1);
 }
 
-/**
- * Writes a line of text to the end of a file on the SD card.
- *
- * @param path The path of the file to write to.
- * @param line The line of text to write.
- */
 void insertLastLineSDCard(String path, String line) {
   // Open the file for writing
   File file = SD.open(path, FILE_WRITE);
