@@ -623,30 +623,6 @@ void loop() {
 
   ip_Address = WiFi.localIP().toString();
 
-  /* Untung mendapatkan data terakhir dari DB, 
-    saat ini tidak digunakan karena sudah menggunakan SD Card
-    Kode dibawah mohon untuk tidak dihapus.
-    */
-  // Get Data Here
-  // if (counter == 0) {
-  //   getLogData();
-  //   if (counterValueDB != 0) {
-  //     counter = counterValueDB;
-  //   }
-  // }
-
-  /* Jika dibutuhkan, baris program dibawah memungkinkan otomatis reset nilai counter
-    Jika ingin mereset alat, panggil fungsi ResetESP().
-    */
-  // if ((hour == 7 && minute == 50 && second == 0) || (hour == 19 && minute == 50 && second == 0)) {
-  //   counter = 0;
-  //   delay(1000);
-  //   sendLogData();
-  //   delay(1000);
-  //   lcd.clear();
-  //   delay(100);
-  // }
-
   /* Simpan data SD
      Data akan disimpan setiap kali nilai counter bertambah
     */
