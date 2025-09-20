@@ -185,10 +185,6 @@ void sendLogData() {
 }
 
 void getLogData() {
-  /* Untung mendapatkan data terakhir dari DB, 
-  saat ini tidak digunakan karena sudah menggunakan SD Card
-  Kode dibawah mohon untuk tidak dihapus.
-  */
   HTTPClient http;
   String getData = "http://192.168.7.223/counter_hit_api/getDataLastCounter.php?kode_product=" + productSelected;
   http.begin(getData);
