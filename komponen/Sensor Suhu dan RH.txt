@@ -1,0 +1,31 @@
+Sensor Suhu dan RH Produksi
+
+ESP32 Module Devkit
+https://tk.tokopedia.com/ZSDn5CWWs/
+
+LCD I2C 1602 Green
+https://tk.tokopedia.com/ZSDhPFh71/
+
+DHT21 AM2301
+https://tk.tokopedia.com/ZSDhPfH3v/
+
+MODULE DHT11
+https://tk.tokopedia.com/ZSDhPNUT2/
+
+JHT XH2.54 4P
+https://tk.tokopedia.com/ZSDhPsSms/
+
+JHT XH2.54 3P
+https://tk.tokopedia.com/ZSDhPQCAj/
+
+JHT XH2.54 2P
+https://tk.tokopedia.com/ZSDhPKwTf/
+
+Black Box X4
+https://tk.tokopedia.com/ZSDh5MtDk/
+
+LM2596 DC-DC LED Volmeter
+https://tk.tokopedia.com/ZSDh5V2TG/
+
+SINGLE PCB 7x9
+https://tk.tokopedia.com/ZSDna1vdX/
