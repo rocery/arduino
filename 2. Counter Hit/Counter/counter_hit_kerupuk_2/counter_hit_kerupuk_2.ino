@@ -447,12 +447,10 @@ void setup() {
   pinMode(downButton, INPUT);
   pinMode(selectButton, INPUT);
 
-  // LCD
   lcd.init();
   lcd.clear();
   lcd.backlight();
 
-  // SD Card
   if (!SD.begin()) {
     Serial.println("Card Mount Failed");
     lcd.setCursor(0, 0);
@@ -479,7 +477,6 @@ void setup() {
 
   wifiMulti.run();
 
-  // NTP-RTC
   configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
   rtc.begin();
 
@@ -497,7 +494,6 @@ void setup() {
   }
   now = rtc.now();
 
-  // Adjust RTC berdasarkan NTP
   if (ntpStatus == true) {
     updateRTC();
     if (statusUpdateRTC == true) {
@@ -510,22 +506,18 @@ void setup() {
     }
   }
 
-  lcd.clear();  // Clear LCD sebelum memilih menu
+  lcd.clear();
   Serial.println("Select Menu");
   Serial.println(WiFi.localIP());
-  
-  // Jika ingin memilih product tanpa memunculkan menu, comment baris dibawah.
+
   selectMenu();
-  
-  // Uncomment jika ingin memilih product tanpa memunculkan menu
+
   productSelected = productCodeOne;
   nameProductSelected = nameProductOne;
   
   logName = "/logCounter_" + productSelected + ".txt";
 
   if (SD.begin()) {
-    // Cek Last Counter
-    // Saat pertama kali alat dihidupkan, cek counter terakhir pada File Log, gunakan log itu
     int tryUpdateStatusSD = 0;
     while (readStatusSD == false && tryUpdateStatusSD <= 5) {
       readLastLineSDCard(logName);
@@ -534,7 +526,6 @@ void setup() {
       tryUpdateStatusSD++;
     }
 
-    // Jika Cek Last Counter, Gagal Buat File Baru
     if (readStatusSD == false) {
       File myFile = SD.open(logName, FILE_WRITE);
       myFile.println("0,0,0,0");
@@ -548,18 +539,17 @@ void setup() {
   }
 
   xTaskCreatePinnedToCore(
-    counterHit, /* Fungsi untuk mengimplementasikan tugas */
-    "Task1",    /* Nama tugas */
-    10000,      /* Ukuran stack dalam kata */
-    NULL,       /* Parameter input tugas */
-    0,          /* Prioritas tugas */
-    &Task1,     /* Handle tugas. */
-    0           /* Core tempat tugas harus dijalankan */
+    counterHit,
+    "Task1",
+    10000,
+    NULL,
+    0,
+    &Task1,
+    0
   );
 }
 
 void loop() {
-  // Print Counter Hit
   lcd.setCursor(1, 2);
   lcd.print("Total : ");
   lcd.setCursor(9, 2);
@@ -569,15 +559,11 @@ void loop() {
   // lcd.setCursor(14, 2);
   // lcd.print(counterReject);
 
-  // Print Produk
   lcd.setCursor(1, 0);
   lcd.print(productSelected);
   lcd.setCursor(1, 1);
   lcd.print(nameProductSelected);
 
-  /* Jika WiFi status WiFi tidak terkoneksi,
-     coba ulang koneksi
-  */
   if (wifiMulti.run() == WL_CONNECTED) {
     lcd.setCursor(1, 3);
     lcd.print(WiFi.SSID());
@@ -588,7 +574,6 @@ void loop() {
     wifiMulti.run();
   }
 
-  // Set RTC berdasarkan NTP
   now = rtc.now();
   if (ntpStatus == true) {
     updateRTC();
@@ -600,7 +585,6 @@ void loop() {
       rtcMinute = now.minute();
       rtcSecond = now.second();
     }
-    // Jika NTP gagal (Tidak ada koneksi WiFi)
   } else if (ntpStatus == false) {
     rtcYear = now.year();
     rtcMonth = now.month();
@@ -613,15 +597,11 @@ void loop() {
     dateTime = dateFormat + ' ' + timeFormat;
   }
 
-  // Print Waktu hh:mm:ss
   lcd.setCursor(12, 3);
   lcd.print(timeFormat);
 
   ip_Address = WiFi.localIP().toString();
 
-  /* Simpan data SD
-     Data akan disimpan setiap kali nilai counter bertambah
-    */
   logData = productSelected + ',' + String(counter) + ',' + String(counterReject) + ',' + dateTime + ',' + ip_Address;
   newCounter = counter;
   if (oldCounter != newCounter) {
@@ -629,16 +609,10 @@ void loop() {
     oldCounter = newCounter;
   }
 
-  /* Pengiriman data ke DB dilakukan setiap 15 detik
-      Jika dirasa terlalu sering, ganti value second sesuai keperluan
-      Misal, if ((second == 0 || second == 30) && !sendStatus) --> Akan mengirim data setiap detik 0 dan 30
-    */
   if ((second == 30 || second == 0) && !sendStatus) {
     lcd.setCursor(7, 3);
     lcd.print("SDB");
     if (!SD.begin()) {
-      // Jika gagal membaca SD Card, maka data yang dikirim adalah data real time
-      // Jika alat mati, maka data tidak disimpan
       postData = "kode_product=" + productSelected + "&counter=" + String(counter) + "&rejector=" + String(counterReject) + "&date=" + dateTime + "&ip_address=" + ip_Address;
     } else if (SD.begin()) {
       readLastLineSDCard(logName);
