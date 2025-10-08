@@ -31,9 +31,6 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define sensorReject 26
 
 // == WiFi Config ==
-/* Deklarasikan semua WiFi yang bisa diakses oleh ESP32
-   ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
-*/
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB4";
 const char* password_a = "Si4nt4r321";
