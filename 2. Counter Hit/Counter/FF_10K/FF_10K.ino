@@ -16,21 +16,15 @@
 
 String ESPName = "FF 10000";
 
-/* Mendeklarasikan LCD dengan alamat I2C 0x27                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-   Total kolom 20
-   Total baris 4 */
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
-// Terdapat 3 tombol pada project ini, up, down, select
 #define upButton 34
 #define downButton 35
 #define selectButton 32
 
-// Sensor IR disambungkan ke pin 14
 #define sensorPin 14
 #define sensorReject 26
 
-// == WiFi Config ==
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB4";
 const char* password_a = "Si4nt4r321";
@@ -43,18 +37,14 @@ const char* password_c = "siantar321";
 const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
 
-// Atur IP Static yang digunakan
 IPAddress staticIP(192, 168, 7, 222);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
-// Optional
 IPAddress primaryDNS(8, 8, 8, 8);
 IPAddress secondaryDNS(8, 8, 4, 4);
 String ip_Address;
 
-// == Get NTP/RTC ==
 const char* ntpServer = "192.168.7.223";
-// Karena Bekasi ada di GMT+7, maka Offset ditambah 7 jam
 const long gmtOffsetSec = 7 * 3600;
 const int daylightOffsetSec = 0;
 String dateTime, dateFormat, timeFormat;
@@ -68,18 +58,14 @@ RTC_DS3231 rtc;
 DateTime now;
 bool ntpStatus, statusUpdateRTC;
 
-// == Counter ==
 TaskHandle_t Task1;
 int counter, newCounter, oldCounter, counterReject;
 
-// == Data Send/Get ==
 bool sendStatus, getStatus;
 const char* counterFromDB;
 int counterValueDB;
 String postData;
 
-// == Product/Menu Related Section ==
-// Add Menu Heree
 bool menuSelect;
 int menu = 1;
 String productSelected, nameProductSelected;
@@ -92,7 +78,6 @@ String nameProductThree = "Tic Tic Bwg 5000";
 String productCodeFour = "Test_Mode_222";
 String nameProductFour = "Test_Mode_222";
 
-// == SD Card ==
 int lineAsInt;
 String dateTimeSD, productSelectedSD, counterSD, counterRejectSD, ipAddressSD, line, logName, logData;
 bool statusSD, readStatusSD, insertLastLineSDCardStatus;
