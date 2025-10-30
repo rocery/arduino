@@ -283,18 +283,7 @@ void updateMenu() {
       lcd.print(">" + nameProductThree);
       break;
     case 4:
-      lcd.clear();
-      lcd.setCursor(2, 0);
-      lcd.print("==PILIH PRODUK==");
-      lcd.setCursor(1, 1);
-      lcd.print(nameProductTwo);
-      lcd.setCursor(1, 2);
-      lcd.print(nameProductThree);
-      lcd.setCursor(0, 3);
-      lcd.print(">" + nameProductFour);
-      break;
-    case 5:
-      menu = 4;
+      menu = 3;
       break;
   }
 }
@@ -316,12 +305,6 @@ void menuSelected() {
     case 3:
       productSelected = productCodeThree;
       nameProductSelected = nameProductThree;
-      delay(1000);
-      lcd.clear();
-      break;
-    case 4:
-      productSelected = productCodeFour;
-      nameProductSelected = nameProductFour;
       delay(1000);
       lcd.clear();
       break;
