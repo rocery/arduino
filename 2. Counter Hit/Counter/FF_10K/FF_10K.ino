@@ -69,12 +69,10 @@ String postData;
 bool menuSelect;
 int menu = 1;
 String productSelected, nameProductSelected;
-String productCodeOne = "P-1024-00291";
-String nameProductOne = "Twisko Premium 10K";
+String productCodeOne = "P-0722-00243";
+String nameProductOne = "FF 10000";
 String productCodeTwo = "P-0722-00239";
-String nameProductTwo = "Tic Tic Bwg 2000";
-String productCodeThree = "P-0922-00257";
-String nameProductThree = "Tic Tic Bwg 5000";
+String nameProductTwo = "FF 10000 (M-LOW)";
 String productCodeFour = "Test_Mode_222";
 String nameProductFour = "Test_Mode_222";
 
