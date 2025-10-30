@@ -23,7 +23,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define selectButton 32
 
 #define sensorPin 14
-#define sensorReject 26
+// #define sensorReject 26
 
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB4";
@@ -96,19 +96,19 @@ void counterHit(void* parameter) {
     delay(50);
 
     // IR Reject
-    pinMode(sensorReject, INPUT_PULLUP);
-    static int lastIRStateReject = LOW;
-    int irStateReject = digitalRead(sensorReject);
-    if (irStateReject == HIGH && lastIRStateReject == LOW) {
-      counterReject++;
-    }
-    lastIRStateReject = irStateReject;
-    delay(50);
+    // pinMode(sensorReject, INPUT_PULLUP);
+    // static int lastIRStateReject = LOW;
+    // int irStateReject = digitalRead(sensorReject);
+    // if (irStateReject == HIGH && lastIRStateReject == LOW) {
+    //   counterReject++;
+    // }
+    // lastIRStateReject = irStateReject;
+    // delay(50);
 
     Serial.print("Counter 1:" );
     Serial.println(counter);
-    Serial.print("Counter 2: ");
-    Serial.println(counterReject);
+    // Serial.print("Counter 2: ");
+    // Serial.println(counterReject);
   }
 }
 
