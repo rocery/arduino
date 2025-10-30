@@ -59,7 +59,8 @@ DateTime now;
 bool ntpStatus, statusUpdateRTC;
 
 TaskHandle_t Task1;
-int counter, newCounter, oldCounter, counterReject;
+int newCounter, oldCounter, counterReject;
+volatile unsigned long counter = 0;
 
 bool sendStatus, getStatus;
 const char* counterFromDB;
@@ -82,10 +83,10 @@ bool statusSD, readStatusSD, insertLastLineSDCardStatus;
 
 // Jika NPN
 void counterHit(void* parameter) {
+  pinMode(sensorPin, INPUT_PULLUP);
+  int lastIRState = digitalRead(sensorPin);
+  delay(1000);
   for (;;) {
-    // IR Counter
-    pinMode(sensorPin, INPUT_PULLUP);
-    static int lastIRState = HIGH;
     int irState = digitalRead(sensorPin);
     if (irState == LOW && lastIRState == HIGH) {
       counter++;
@@ -103,8 +104,8 @@ void counterHit(void* parameter) {
     // lastIRStateReject = irStateReject;
     // delay(50);
 
-    Serial.print("Counter 1:" );
-    Serial.println(counter);
+    // Serial.print("Counter 1:" );
+    // Serial.println(counter);
     // Serial.print("Counter 2: ");
     // Serial.println(counterReject);
   }
@@ -474,9 +475,6 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   selectMenu();
-
-  productSelected = productCodeOne;
-  nameProductSelected = nameProductOne;
   
   logName = "/logCounter_" + productSelected + ".txt";
 
