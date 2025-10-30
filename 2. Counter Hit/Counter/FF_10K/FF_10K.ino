@@ -27,7 +27,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB4";
-const char* password_a = "Si4nt4r321";
+const char* password_a = "siantar123";
 const char* ssid_d = "STTB1";
 const char* password_d = "Si4nt4r321";
 const char* ssid_b = "MT1";
