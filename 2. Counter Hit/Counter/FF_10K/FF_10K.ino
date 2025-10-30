@@ -73,8 +73,8 @@ String productCodeOne = "P-0722-00243";
 String nameProductOne = "FF 10000";
 String productCodeTwo = "P-0722-00239";
 String nameProductTwo = "FF 10000 (M-LOW)";
-String productCodeFour = "Test_Mode_222";
-String nameProductFour = "Test_Mode_222";
+String productCodeThree = "Test_Mode_222";
+String nameProductThree = "Test_Mode_222";
 
 int lineAsInt;
 String dateTimeSD, productSelectedSD, counterSD, counterRejectSD, ipAddressSD, line, logName, logData;
