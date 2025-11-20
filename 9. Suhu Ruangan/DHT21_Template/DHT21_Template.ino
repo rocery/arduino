@@ -14,7 +14,7 @@
   Komponen:
   1. ESP32                    | 
   2. LCD 16x2 I2C             | I2C
-  3. DHT21                    | 14
+  3. DHT21                    | 14/33
   4. Stepdown DC-DC           |
   5. Adaptor 6-24 V DC        |
   6. Micro USB                |
