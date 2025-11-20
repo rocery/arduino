@@ -194,6 +194,10 @@ void readDHT() {
   
 }
 
+/**
+ * @brief Retrieves the local time from the NTP server and updates the date and time variables.
+ * If the time retrieval fails, it sets the ntpStatus to false.
+ */
 void getLocalTime() {
   /* Fungsi bertujuan menerima update waktu
   lokal dari ntpServer */
@@ -223,6 +227,10 @@ void getLocalTime() {
   }
 }
 
+/**
+ * @brief Sends log data to the server using HTTP POST request.
+ * The data includes device ID, device name, temperature, humidity, date, and IP address.
+ */
 void sendLogData() {
   /* Mengirim data ke local server
   Ganti isi variabel api sesuai dengan form php
@@ -241,6 +249,12 @@ void sendLogData() {
   http.end();
 }
 
+/**
+ * @brief Fetches calibration data from the server using HTTP GET request.
+ * Parses the JSON response to extract temperature and humidity calibration values.
+ * 
+ * @return CalibrationData Struct containing temperature and humidity calibration values.
+ */
 CalibrationData getCalibrationData() {
   HTTPClient http;
   http.begin(getCal);
@@ -273,6 +287,12 @@ CalibrationData getCalibrationData() {
   return calibrationData;
 }
 
+/**
+ * @brief Fetches the last recorded device data from the server using HTTP GET request.
+ * Parses the JSON response to extract temperature and humidity values.
+ * 
+ * @return DeviceData Struct containing temperature and humidity values.
+ */
 DeviceData getDeviceData() {
   HTTPClient http;
   http.begin(getData);
@@ -305,6 +325,12 @@ DeviceData getDeviceData() {
   return deviceData;
 }
 
+/**
+ * @brief Prints temperature and humidity values to the LCD.
+ * 
+ * @param temp Character array representing the temperature value.
+ * @param hum Character array representing the humidity value.
+ */
 void printLCD(char* temp, char* hum) {
   // Temperature
   lcd.setCursor(0, 0);
