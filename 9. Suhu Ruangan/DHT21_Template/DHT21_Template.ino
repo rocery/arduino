@@ -4,10 +4,12 @@
   GANTI WIFI SESUAI DENGAN KEBUTUHAN
 
   File .ino ini merupakan file template dari projek IoT Sensor Suhu Ruangan yang akan dibuat.
-  IP Address yang bisa digunakan: 11 - 24
+  IP Address yang bisa digunakan: 11 - 25
+  Lokasi ruangan dan Produksi bisa diisi sesuai kebutuhan.
+  Pastikan untuk mengubah variabel ip, loc, dan prod pada bagian inisialisasi awal.
 
-  V. 1.1.0
-  Update Terakhir : 14-05-2025
+  V. 1.1.1
+  Update Terakhir : 20-11-2025
 
   Komponen:
   1. ESP32                    | 
@@ -58,7 +60,7 @@ struct DeviceData {
 
 /*
   Isi variabel dibawah sebagai inisialisasi awal projek,
-  @param ip = IP Address ESP32 ==> 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24
+  @param ip = IP Address ESP32 ==> 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25
   @param loc = Lokasi ruangan untuk diukur  ==> Produksi Kerupuk, Line Gorio, etc
   @param prod = Lokasi Produksi ==> Kerupuk, Biskuit, Mie, dll
   @param api = URL API Menyimpan data ke Database
@@ -136,7 +138,7 @@ uint8_t degree[8] = {
   0x00
 };
 
-// Set IP to Static
+// Set IP to Static 192.168.7.xxx
 IPAddress staticIP(192, 168, 7, ip);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
