@@ -1,5 +1,5 @@
 /*
-  Board: ESP32 3.1.0
+  Board: ESP32 3.1.0 (Versi lebih baru belum diuji)
   GANTI VARIABEL ip DAN loc SESUAI DENGAN KEBUTUHAN
   GANTI WIFI SESUAI DENGAN KEBUTUHAN
 
