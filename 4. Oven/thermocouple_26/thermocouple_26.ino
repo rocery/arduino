@@ -1,6 +1,6 @@
 /*
-  V. 0.1.3 Beta
-  16-05-2025
+  V. 1.0.0
+  24-11-2025
 
   Versi ini dibuat dengan alasan:
   1. Tidak menggunakan potesiometer sebagai alat kalibrasi
