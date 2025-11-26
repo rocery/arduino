@@ -1,5 +1,5 @@
 /*
-  Board: ESP32 3.1.0 (Versi lebih baru belum diuji)
+  Board: ESP32 3.1.1 (Versi lebih baru belum diuji)
   GANTI VARIABEL ip DAN loc SESUAI DENGAN KEBUTUHAN
   GANTI WIFI SESUAI DENGAN KEBUTUHAN
 
@@ -8,8 +8,8 @@
   Lokasi ruangan dan Produksi bisa diisi sesuai kebutuhan.
   Pastikan untuk mengubah variabel ip, loc, dan prod pada bagian inisialisasi awal.
 
-  V. 1.1.1
-  Update Terakhir : 20-11-2025
+  V. 1.1.2
+  Update Terakhir : 26-11-2025
 
   Komponen:
   1. ESP32                    | 
