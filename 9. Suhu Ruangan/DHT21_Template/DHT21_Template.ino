@@ -189,9 +189,6 @@ void readDHT() {
   } else {
     readDHTCount++;
   }
-
-  // Increment the counter for the number of times the DHT sensor has been read
-  
 }
 
 /**
