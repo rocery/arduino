@@ -142,8 +142,8 @@ uint8_t degree[8] = {
 IPAddress staticIP(192, 168, 7, ip);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
-IPAddress primaryDNS(8, 8, 8, 8);    //optional
-IPAddress secondaryDNS(8, 8, 4, 4);  //optional
+IPAddress primaryDNS(8, 8, 8, 8);
+IPAddress secondaryDNS(8, 8, 4, 4);
 String ip_Address, postData;
 
 // ===== NTP =====
