@@ -2,6 +2,9 @@
 #include <WiFiMulti.h>
 #include <WebServer.h>
 #include <DHT.h>
+#include "FS.h"
+#include "SD.h"
+#include "SPI.h"
 
 // ================== SENSOR ==================
 #define DHTPIN 33
@@ -100,7 +103,7 @@ void handleData() {
   server.send(200, "text/html", "OK");
 }
 
-// ================= READ DHT ================
+// =================== DHT ===================
 void readDHT() {
   temp = dht.readTemperature() + calTemp;
   hum = dht.readHumidity() + calHum;
@@ -109,6 +112,10 @@ void readDHT() {
     temp = 0;
     hum = 0;
   }
+}
+
+void saveDHT(float temp, float hum) {
+  // Placeholder for saving DHT data if needed
 }
 
 // ================== SETUP ==================
