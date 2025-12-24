@@ -192,6 +192,16 @@ void handleDailyCSV() {
   if (date.length() != 10 || date.charAt(4) != '-' || date.charAt(7) != '-') {
     server.send(400, "text/plain", "Invalid date format");
     return;
+  } else if (date == "all") {
+    File file = SD.open("/data_all.csv");
+    if (!file) {
+      server.send(404, "text/plain", "File tidak ditemukan");
+      return;
+    }
+
+    server.streamFile(file, "text/csv");
+    file.close();
+    return;
   }
 
   String dailyPath = "/data/" + date + ".csv";
