@@ -14,11 +14,13 @@ float calTemp = -0.5;
 float calHum = 0.0;
 float temp, hum;
 #define LED 2
+float lastTemp = 0;
+float lastHum = 0;
 
 // ================== WIFI ==================
 WiFiMulti wifiMulti;
-const char* ssid_home = "A52s";
-const char* password_ssid_home = "Welive99_";
+const char* ssid_home = "TP-Link_7764";
+const char* password_ssid_home = "78384767";
 const char* ssid_sttb = "STTB11";
 const char* password_ssid_sttb = "Si4nt4r321";
 
@@ -108,7 +110,102 @@ void handleRoot() {
 }
 
 void handleData() {
-  server.send(200, "text/html", "OK");
+  String html;
+
+  html += "<!DOCTYPE html>";
+  html += "<html>";
+  html += "<head>";
+  html += "<title>Data Harian ESP32 DHT22</title>";
+  html += "<meta name='viewport' content='width=device-width, initial-scale=1'>";
+  html += "<meta charset='UTF-8'>";
+
+  // ===== STYLE SAMA =====
+  html += "<style>";
+  html += "body{font-family:Arial;background:#0f172a;color:#e5e7eb;text-align:center;}";
+  html += ".card{background:#1e293b;padding:25px;margin:40px auto;width:90%;max-width:900px;";
+  html += "border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,0.5);}";
+
+  html += "h1{color:#237599;margin-bottom:20px;}";
+
+  html += "table{width:100%;border-collapse:collapse;margin-top:10px;}";
+  html += "th,td{border:1px solid #334155;padding:8px;font-size:14px;}";
+  html += "th{background:#020617;color:#38bdf8;}";
+  html += "tr:nth-child(even){background:#020617;}";
+  html += "</style>";
+
+  html += "</head><body>";
+
+  html += "<div class='card'>";
+  html += "<h1>Data Sensor Harian</h1>";
+  html += "<p class='ip'>Tanggal: " + dateFormat + "</p>";
+
+  html += "<table>";
+  html += "<tr><th>Tanggal</th><th>Waktu</th><th>Suhu (&#8451;)</th><th>Kelembapan (%)</th></tr>";
+
+  // ===== FILE HARIAN =====
+  String dailyPath = "/data/" + dateFormat + ".csv";
+  File file = SD.open(dailyPath);
+
+  if (file) {
+    while (file.available()) {
+      String line = file.readStringUntil('\n');
+      line.trim();
+      if (line.length() == 0) continue;
+
+      line.replace(",", "</td><td>");
+      html += "<tr><td>" + line + "</td></tr>";
+    }
+    file.close();
+  } else {
+    html += "<tr><td colspan='4'>Data belum tersedia</td></tr>";
+  }
+
+  html += "</table>";
+  html += "</div>";
+
+  html += "</body></html>";
+
+  server.send(200, "text/html", html);
+}
+
+void handleCSV() {
+  File file = SD.open("/data_all.csv");
+  if (!file) {
+    server.send(404, "text/plain", "File tidak ditemukan");
+    return;
+  }
+
+  server.streamFile(file, "text/csv");
+  file.close();
+}
+
+void handleDailyCSV() {
+  // Check if date parameter exists
+  if (!server.hasArg("date")) {
+    server.send(400, "text/plain", "Missing '?date=YYYY-MM-DD' parameter");
+    return;
+  }
+
+  String date = server.arg("date");
+
+  // Basic validation (length & format)
+  if (date.length() != 10 || date.charAt(4) != '-' || date.charAt(7) != '-') {
+    server.send(400, "text/plain", "Invalid date format");
+    return;
+  }
+
+  String dailyPath = "/data/" + date + ".csv";
+
+  File file = SD.open(dailyPath);
+  if (!file) {
+    server.send(404, "text/plain", "File not found for selected date");
+    return;
+  }
+
+  server.sendHeader("Content-Disposition",
+                    "attachment; filename=\"" + date + ".csv\"");
+  server.streamFile(file, "text/csv");
+  file.close();
 }
 
 // =================== DHT ===================
@@ -122,8 +219,58 @@ void readDHT() {
   }
 }
 
-void saveDHT(float temp, float hum) {
-  // Placeholder for saving DHT data if needed
+void ensureDataDir() {
+  if (!SD.exists("/data")) {
+    SD.mkdir("/data");
+  }
+}
+
+void saveToSD() {
+  // Tidak ada perubahan
+  if (temp == lastTemp && hum == lastHum) {
+    return;
+  }
+
+  // Validasi waktu
+  if (!getLocalTimeStatus) {
+    Serial.println("Waktu belum tersedia");
+    return;
+  }
+
+  // Pastikan folder ada
+  ensureDataDir();
+
+  // ===== File ALL DATA =====
+  File allFile = SD.open("/data_all.csv", FILE_APPEND);
+  if (!allFile) {
+    Serial.println("Gagal membuka data_all.csv");
+    return;
+  }
+
+  // ===== File PER TANGGAL =====
+  String dailyPath = "/data/" + dateFormat + ".csv";
+  File dailyFile = SD.open(dailyPath, FILE_APPEND);
+  if (!dailyFile) {
+    allFile.close();
+    Serial.println("Gagal membuka file harian");
+    return;
+  }
+
+  // Format data
+  String line = dateFormat + "," + timeFormat + "," + String(temp, 2) + "," + String(hum, 2);
+
+  // Tulis ke kedua file
+  allFile.println(line);
+  dailyFile.println(line);
+
+  allFile.close();
+  dailyFile.close();
+
+  // Update state setelah sukses
+  lastTemp = temp;
+  lastHum = hum;
+
+  Serial.println("Data tersimpan (global & harian)");
 }
 
 // ================== TIME ===================
@@ -159,12 +306,12 @@ void setup() {
   Serial.begin(115200);
   dht.begin();
 
-  pinMode(LED,OUTPUT);
+  pinMode(LED, OUTPUT);
 
   WiFi.config(local_IP, gateway, subnet, dns1, dns2);
   wifiMulti.addAP(ssid_home, password_ssid_home);
   wifiMulti.addAP(ssid_sttb, password_ssid_sttb);
-  
+
   while (wifiMulti.run() != WL_CONNECTED) {
     digitalWrite(LED, LOW);
     delay(100);
@@ -183,6 +330,8 @@ void setup() {
 
   server.on("/", handleRoot);
   server.on("/data", handleData);
+  server.on("/download_all_data", handleCSV);
+  server.on("/download_daily_data", handleDailyCSV);
   server.begin();
 }
 
@@ -199,4 +348,6 @@ void loop() {
     delay(100);
   }
   getLocalTime();
+  saveToSD();
+  delay(1000);
 }
