@@ -168,55 +168,117 @@ void handleData() {
   server.send(200, "text/html", html);
 }
 
-void handleCSV() {
-  File file = SD.open("/data_all.csv");
-  if (!file) {
-    server.send(404, "text/plain", "File tidak ditemukan");
-    return;
-  }
-
-  server.streamFile(file, "text/csv");
-  file.close();
-}
-
-void handleDailyCSV() {
-  // Check if date parameter exists
+void downloadCSV() {
   if (!server.hasArg("date")) {
-    server.send(400, "text/plain", "Missing '?date=YYYY-MM-DD' parameter");
+    server.send(400, "text/plain", "Missing '?date=YYYY-MM-DD' or '?date=all'");
     return;
   }
 
   String date = server.arg("date");
+  File file;
 
-  // Basic validation (length & format)
+  // ===== DOWNLOAD ALL DATA =====
   if (date == "all") {
-    File file = SD.open("/data_all.csv");
+    file = SD.open("/data_all.csv");
     if (!file) {
-      server.send(404, "text/plain", "File tidak ditemukan");
+      server.send(404, "text/plain", "data_all.csv not found");
       return;
     }
 
+    server.sendHeader(
+      "Content-Disposition",
+      "attachment; filename=\"data_all.csv\""
+    );
     server.streamFile(file, "text/csv");
     file.close();
     return;
-  } else if (date.length() != 10 || date.charAt(4) != '-' || date.charAt(7) != '-') {
-    server.send(400, "text/plain", "Invalid date format");
+  }
+
+  // ===== VALIDATE DATE FORMAT =====
+  if (date.length() != 10 || date.charAt(4) != '-' || date.charAt(7) != '-') {
+    server.send(400, "text/plain", "Invalid date format (YYYY-MM-DD)");
     return;
   }
 
+  // ===== DAILY FILE =====
   String dailyPath = "/data/" + date + ".csv";
-
-  File file = SD.open(dailyPath);
+  file = SD.open(dailyPath);
   if (!file) {
     server.send(404, "text/plain", "File not found for selected date");
     return;
   }
 
-  server.sendHeader("Content-Disposition",
-                    "attachment; filename=\"" + date + ".csv\"");
+  server.sendHeader(
+    "Content-Disposition",
+    "attachment; filename=\"" + date + ".csv\""
+  );
   server.streamFile(file, "text/csv");
   file.close();
 }
+
+void handleDownloadPage() {
+  String html;
+
+  html += "<!DOCTYPE html><html><head>";
+  html += "<title>Download Data ESP32</title>";
+  html += "<meta name='viewport' content='width=device-width, initial-scale=1'>";
+  html += "<meta charset='UTF-8'>";
+
+  // ===== STYLE (konsisten dengan UI Anda) =====
+  html += "<style>";
+  html += "body{font-family:Arial;background:#0f172a;color:#e5e7eb;text-align:center;}";
+  html += ".card{background:#1e293b;padding:25px;margin:40px auto;width:90%;max-width:420px;";
+  html += "border-radius:12px;box-shadow:0 0 20px rgba(0,0,0,0.5);}";
+
+  html += "h1{color:#237599;}";
+  html += "select,button{width:100%;padding:10px;margin-top:15px;";
+  html += "border-radius:6px;border:none;font-size:16px;}";
+  html += "button{background:#237599;color:white;cursor:pointer;}";
+  html += "button:hover{background:#1d4ed8;}";
+  html += "</style>";
+
+  html += "</head><body>";
+  html += "<div class='card'>";
+  html += "<h1>Download Data</h1>";
+
+  html += "<select id='date'>";
+
+  // ===== OPTION ALL DATA =====
+  html += "<option value='all'>All Data</option>";
+
+  // ===== READ SD DIRECTORY =====
+  File dir = SD.open("/data");
+  if (dir) {
+    File entry;
+    while ((entry = dir.openNextFile())) {
+      String name = entry.name();   // e.g. 2025-12-24.csv
+      entry.close();
+
+      if (name.endsWith(".csv")) {
+        name.replace(".csv", "");
+        html += "<option value='" + name + "'>" + name + "</option>";
+      }
+    }
+    dir.close();
+  }
+
+  html += "</select>";
+
+  html += "<button onclick='download()'>Download</button>";
+
+  // ===== SCRIPT =====
+  html += "<script>";
+  html += "function download(){";
+  html += "var d=document.getElementById('date').value;";
+  html += "window.location='/download_data?date='+d;";
+  html += "}";
+  html += "</script>";
+
+  html += "</div></body></html>";
+
+  server.send(200, "text/html", html);
+}
+
 
 // =================== DHT ===================
 void readDHT() {
@@ -340,8 +402,8 @@ void setup() {
 
   server.on("/", handleRoot);
   server.on("/data", handleData);
-  server.on("/download_all_data", handleCSV);
-  server.on("/download_daily_data", handleDailyCSV);
+  server.on("/download_data", downloadCSV);
+  server.on("/download", handleDownloadPage);
   server.begin();
 }
 
