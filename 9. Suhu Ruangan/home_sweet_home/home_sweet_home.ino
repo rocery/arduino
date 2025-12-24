@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include <WiFiMulti.h>
 #include <WebServer.h>
 #include <DHT.h>
 
@@ -11,6 +12,12 @@ DHT dht(DHTPIN, DHTTYPE);
 // ================== WIFI ==================
 const char* ssid = "STTB11";
 const char* password = "Si4nt4r321";
+
+WiFiMulti wifiMulti;
+const char* ssid_a_biskuit_mie = "STTB8";
+const char* password_a_biskuit_mie = "siantar123";
+const char* ssid_b_biskuit_mie = "STTB1";
+const char* password_b_biskuit_mie = "Si4nt4r321";
 
 IPAddress local_IP(192, 168, 15, 230);
 IPAddress gateway(192, 168, 15, 250);
