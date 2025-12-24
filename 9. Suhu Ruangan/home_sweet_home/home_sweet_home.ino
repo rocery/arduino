@@ -101,6 +101,10 @@ void handleRoot() {
   server.send(200, "text/html", buildHTML(temp, hum));
 }
 
+void handleData() {
+  server.send(200, "text/html", "OK");
+}
+
 // ================== SETUP ==================
 void setup() {
   Serial.begin(115200);
@@ -120,6 +124,7 @@ void setup() {
   }
 
   server.on("/", handleRoot);
+  server.on("/data", handleData);
   server.begin();
 }
 
