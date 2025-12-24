@@ -35,6 +35,7 @@ String buildHTML(float temp, float hum) {
   html += "<!DOCTYPE html>";
   html += "<html>";
   html += "<head>";
+  html += "<title>ESP32 DHT22</title>";
   html += "<meta name='viewport' content='width=device-width, initial-scale=1'>";
   html += "<meta http-equiv='refresh' content='3'>";
   html += "<style>";
