@@ -87,7 +87,7 @@ String rootPage(float temp, float hum) {
 
   html += "</div>";
 
-  html += "<p class='ip'>" + WiFi.localIP().toString() + "</p>";
+  html += "<p class='ip'>" + WiFi.localIP().toString() + " | " + dateTime + "</p>";
   html += "</div>";
   html += "</body>";
   html += "</html>";
@@ -172,7 +172,7 @@ void setup() {
     delay(100);
   }
 
-  configTime(ntpServer, daylightOffsetSec, ntpServer);
+  configTime(gmtOffsetSec, daylightOffsetSec, ntpServer);
   getLocalTime();
 
   if (SD.begin()) {
