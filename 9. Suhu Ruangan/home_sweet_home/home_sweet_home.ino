@@ -77,7 +77,7 @@ String rootPage(float temp, float hum) {
 
   html += "<div class='div1'>";
   html += "<p class='label'>Temperature</p>";
-  html += "<p class='value'>" + String(temp, 1) + " &#8451;</p>";
+  html += "<p class='value'>" + String(temp, 1) + " &degC</p>";
   html += "</div>";
 
   html += "<div class='div2'>";
