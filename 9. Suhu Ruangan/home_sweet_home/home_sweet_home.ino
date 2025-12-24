@@ -29,15 +29,16 @@ IPAddress dns2(8, 8, 4, 4);
 WebServer server(80);
 
 // ================== HTML BUILDER ==================
-String buildHTML(float temp, float hum) {
+String rootPage(float temp, float hum) {
   String html = "";
 
   html += "<!DOCTYPE html>";
   html += "<html>";
   html += "<head>";
-  html += "<title>ESP32 DHT22</title>";
+  html += "<title>&#8451; ESP32 DHT22</title>";
   html += "<meta name='viewport' content='width=device-width, initial-scale=1'>";
   html += "<meta http-equiv='refresh' content='3'>";
+  html += "<meta charset='UTF-8'>";
   html += "<style>";
 
   html += "body{font-family:Arial;background:#0f172a;color:#e5e7eb;text-align:center;}";
@@ -65,7 +66,7 @@ String buildHTML(float temp, float hum) {
 
   html += "<div class='div1'>";
   html += "<p class='label'>Temperature</p>";
-  html += "<p class='value'>" + String(temp, 1) + " &deg;C</p>";
+  html += "<p class='value'>" + String(temp, 1) + " &#8451;</p>";
   html += "</div>";
 
   html += "<div class='div2'>";
@@ -92,7 +93,7 @@ void handleRoot() {
   digitalWrite(LED, LOW);
   delay(100);
 
-  server.send(200, "text/html", buildHTML(temp, hum));
+  server.send(200, "text/html", rootPage(temp, hum));
 }
 
 void handleData() {
