@@ -7,6 +7,9 @@
 #define DHTPIN 33
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
+float calTemp = -0.5;
+float calHum = 0.0;
+float temp, hum;
 #define LED 2
 
 // ================== WIFI ==================
@@ -88,21 +91,22 @@ void handleRoot() {
   digitalWrite(LED, LOW);
   delay(100);
 
-  float calTemp = -0.5;
-  float calHum = 0.0;
-  float temp = dht.readTemperature() + calTemp;
-  float hum = dht.readHumidity() + calHum;
-
-  if (isnan(temp) || isnan(hum)) {
-    server.send(500, "text/plain", "Sensor read error");
-    return;
-  }
-
   server.send(200, "text/html", buildHTML(temp, hum));
 }
 
 void handleData() {
   server.send(200, "text/html", "OK");
+}
+
+// ================= READ DHT ================
+void readDHT() {
+  temp = dht.readTemperature() + calTemp;
+  hum = dht.readHumidity() + calHum;
+
+  if (isnan(temp) || isnan(hum)) {
+    temp = 0;
+    hum = 0;
+  }
 }
 
 // ================== SETUP ==================
@@ -130,6 +134,7 @@ void setup() {
 
 // ================== LOOP ==================
 void loop() {
+  readDHT();
   server.handleClient();
   digitalWrite(LED, HIGH);
 
