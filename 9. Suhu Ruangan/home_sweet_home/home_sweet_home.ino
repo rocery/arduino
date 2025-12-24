@@ -10,14 +10,11 @@ DHT dht(DHTPIN, DHTTYPE);
 #define LED 2
 
 // ================== WIFI ==================
-const char* ssid = "STTB11";
-const char* password = "Si4nt4r321";
-
 WiFiMulti wifiMulti;
-const char* ssid_a_biskuit_mie = "STTB8";
-const char* password_a_biskuit_mie = "siantar123";
-const char* ssid_b_biskuit_mie = "STTB1";
-const char* password_b_biskuit_mie = "Si4nt4r321";
+const char* ssid_home = "A52s";
+const char* password_ssid_home = "Welive99_";
+const char* ssid_sttb = "STTB11";
+const char* password_ssid_sttb = "Si4nt4r321";
 
 IPAddress local_IP(192, 168, 15, 230);
 IPAddress gateway(192, 168, 15, 250);
@@ -112,10 +109,14 @@ void setup() {
   pinMode(LED,OUTPUT);
 
   WiFi.config(local_IP, gateway, subnet, dns1, dns2);
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+  wifiMulti.addAP(ssid_home, password_ssid_home);
+  wifiMulti.addAP(ssid_sttb, password_ssid_sttb);
+  
+  while (wifiMulti.run() != WL_CONNECTED) {
+    digitalWrite(LED, LOW);
+    delay(100);
+    digitalWrite(LED, HIGH);
+    delay(100);
   }
 
   server.on("/", handleRoot);
@@ -126,4 +127,11 @@ void setup() {
 void loop() {
   server.handleClient();
   digitalWrite(LED, HIGH);
+
+  while (wifiMulti.run() != WL_CONNECTED) {
+    digitalWrite(LED, LOW);
+    delay(100);
+    digitalWrite(LED, HIGH);
+    delay(100);
+  }
 }
