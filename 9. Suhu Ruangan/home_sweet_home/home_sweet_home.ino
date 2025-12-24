@@ -189,10 +189,7 @@ void handleDailyCSV() {
   String date = server.arg("date");
 
   // Basic validation (length & format)
-  if (date.length() != 10 || date.charAt(4) != '-' || date.charAt(7) != '-') {
-    server.send(400, "text/plain", "Invalid date format");
-    return;
-  } else if (date == "all") {
+  if (date == "all") {
     File file = SD.open("/data_all.csv");
     if (!file) {
       server.send(404, "text/plain", "File tidak ditemukan");
@@ -201,6 +198,9 @@ void handleDailyCSV() {
 
     server.streamFile(file, "text/csv");
     file.close();
+    return;
+  } else if (date.length() != 10 || date.charAt(4) != '-' || date.charAt(7) != '-') {
+    server.send(400, "text/plain", "Invalid date format");
     return;
   }
 
