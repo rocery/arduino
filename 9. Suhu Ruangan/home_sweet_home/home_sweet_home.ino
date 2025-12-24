@@ -279,7 +279,6 @@ void handleDownloadPage() {
   server.send(200, "text/html", html);
 }
 
-
 // =================== DHT ===================
 void readDHT() {
   temp = dht.readTemperature() + calTemp;
