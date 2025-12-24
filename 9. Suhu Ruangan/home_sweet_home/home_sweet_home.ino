@@ -28,6 +28,14 @@ IPAddress subnet(255, 255, 255, 0);
 IPAddress dns1(8, 8, 8, 8);
 IPAddress dns2(8, 8, 4, 4);
 
+// ================== NTP ==================
+const char* ntpServer = "pool.ntp.org";
+const long gmtOffsetSec = 7 * 3600;
+const int daylightOffsetSec = 0;
+bool getLocalTimeStatus = false;
+int year, month, day, hour, minute, second;
+String dateTime, dateFormat, timeFormat;
+
 // ================== SERVER ==================
 WebServer server(80);
 
@@ -118,6 +126,34 @@ void saveDHT(float temp, float hum) {
   // Placeholder for saving DHT data if needed
 }
 
+// ================== TIME ===================
+void getLocalTime() {
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    getLocalTimeStatus = false;
+    return;
+  }
+  getLocalTimeStatus = true;
+
+  char timeStringBuff[50];
+  strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
+  dateTime = String(timeStringBuff);
+
+  // Save time data to variabel
+  year = timeinfo.tm_year + 1900;
+  month = timeinfo.tm_mon + 1;
+  day = timeinfo.tm_mday;
+  hour = timeinfo.tm_hour;
+  minute = timeinfo.tm_min;
+  second = timeinfo.tm_sec;
+
+  // YYYY-MM-DD
+  dateFormat = String(year) + '-' + String(month) + '-' + String(day);
+
+  // hh:mm:ss
+  timeFormat = String(hour) + ':' + String(minute) + ':' + String(second);
+}
+
 // ================== SETUP ==================
 void setup() {
   Serial.begin(115200);
@@ -134,6 +170,15 @@ void setup() {
     delay(100);
     digitalWrite(LED, HIGH);
     delay(100);
+  }
+
+  configTime(ntpServer, daylightOffsetSec, ntpServer);
+  getLocalTime();
+
+  if (SD.begin()) {
+    Serial.println("SD Card Initialized");
+  } else {
+    Serial.println("SD Card Initialization Failed");
   }
 
   server.on("/", handleRoot);
@@ -153,4 +198,5 @@ void loop() {
     digitalWrite(LED, HIGH);
     delay(100);
   }
+  getLocalTime();
 }
