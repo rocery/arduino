@@ -31,3 +31,4 @@ const int MAX_DISTANCE = 750;         // cm (max range sensor based on datasheet
 
 // Interval pembacaan
 const unsigned long READ_INTERVAL = 2000;  // ms
+
