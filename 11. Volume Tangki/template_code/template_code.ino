@@ -32,3 +32,9 @@ const int MAX_DISTANCE = 750;         // cm (max range sensor based on datasheet
 // Interval pembacaan
 const unsigned long READ_INTERVAL = 2000;  // ms
 
+// ========== VARIABEL GLOBAL ==========
+HardwareSerial sensorSerial(1);  // UART1 untuk sensor
+unsigned long lastReadTime = 0;
+float currentDistance = 0;
+float currentOilHeight = 0;
+float currentVolume = 0;
