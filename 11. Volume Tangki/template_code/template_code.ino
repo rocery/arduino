@@ -94,8 +94,22 @@ float readDistance() {
     rs485.read();
   }
 
+  if (rs485.available() >= 4) {
+    byte header = rs485.read();
+    if (header == 0xFF) {
+      byte highByte = rs485.read();
+      byte lowByte = rs485.read();
+      byte checksum = rs485.read();
 
-  unsigned long currentTime = millis();
+      int sum = (0xFF + highByte + lowByte) & 0x00FF;
+      if (sum == checksum) {
+        int distance = (highByte << 8) + lowByte;
+        if (distance >= MIN_DISTANCE && distance <= MAX_DISTANCE) {
+          return (float)distance;
+        }
+      }
+    }
+  }
 
   return 0;
 }
