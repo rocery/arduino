@@ -17,8 +17,8 @@
 #include <HardwareSerial.h>
 
 // ========== KONFIGURASI ==========
-#define SENSOR_RX 16  // Pin RX2 ESP32 ke TX sensor
-#define SENSOR_TX 17  // Pin TX2 ESP32 ke RX sensor
+#define RS485_RX 16  // Pin RX2 ESP32 ke TX sensor
+#define RS485_TX 17  // Pin TX2 ESP32 ke RX sensor
 
 // Dimensi Tank
 const float TANK_HEIGHT = 600.0;      // cm
@@ -30,14 +30,23 @@ const int MIN_DISTANCE = 28;          // cm (dead zone sensor)
 const int MAX_DISTANCE = 750;         // cm (max range sensor based on datasheet)
 
 // Interval pembacaan
-const unsigned long READ_INTERVAL = 2000;  // ms
+const unsigned long READ_INTERVAL = 2000;
 
 // ========== VARIABEL GLOBAL ==========
-HardwareSerial (1);  // UART1 untuk sensor
+HardwareSerial rs485(1);
 unsigned long lastReadTime = 0;
 float currentDistance = 0;
 float currentOilHeight = 0;
 float currentVolume = 0;
 
-// ========== FUNGSI: BACA JARAK SENSOR ==========
-int readSensorDistance() 
+void setup() {
+    Serial.begin(115200);
+    rs485.begin(9600, SERIAL_8N1, RS485_RX, RS485_TX);
+
+    Serial.println("========================================");
+    Serial.println("ESP32 Oil Tank Volume Monitor");
+    Serial.println("Sensor: A01NYUB Waterproof Ultrasonic");
+    Serial.println("========================================");
+
+    delay(1000);
+}
