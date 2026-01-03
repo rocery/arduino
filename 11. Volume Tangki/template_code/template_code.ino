@@ -1,17 +1,17 @@
 /*
-    Volume Tangki Minyak
-    Menghitung volume tangki minyak berdasarkan dimensi yang diberikan.
-    
-    Dibuat oleh: [Sastra Nur Alamsyah]
-    Tanggal: [02-12-2026]
-    
-    Deskripsi:
-    Program ini menghitung volume tangki minyak berbentuk silinder atau kubus
-    berdasarkan input dimensi dari pengguna. Hasil volume ditampilkan dalam liter.
-    
-    Catatan:
-    - Pastikan untuk memasukkan dimensi dalam satuan yang sesuai (cm).
-    - Volume dihitung dalam liter (1 liter = 1000 cm³).
+  Volume Tangki Minyak
+  Menghitung volume tangki minyak berdasarkan dimensi yang diberikan.
+
+  Dibuat oleh: [Sastra Nur Alamsyah]
+  Tanggal: [02-12-2026]
+
+  Deskripsi:
+  Program ini menghitung volume tangki minyak berbentuk silinder atau kubus
+  berdasarkan input dimensi dari pengguna. Hasil volume ditampilkan dalam liter.
+
+  Catatan:
+  - Pastikan untuk memasukkan dimensi dalam satuan yang sesuai (cm).
+  - Volume dihitung dalam liter (1 liter = 1000 cm³).
 */
 
 #include <HardwareSerial.h>
@@ -52,40 +52,39 @@ void setup() {
 }
 
 void loop() {
-    unsigned long currentTime = millis();
-    if (currentTime - lastReadTime >= READ_INTERVAL) {
-        lastReadTime = currentTime;
-    
-        float distance = readDistance();
+  unsigned long currentTime = millis();
+  if (currentTime - lastReadTime >= READ_INTERVAL) {
+    lastReadTime = currentTime;
 
-        if (distance > 0) {
-            currentDistance = distance;
-      
-            // Hitung tinggi minyak
-            currentOilHeight = TANK_HEIGHT - currentDistance - SENSOR_OFFSET;
-            if (currentOilHeight < 0) currentOilHeight = 0;
-            if (currentOilHeight > TANK_HEIGHT) currentOilHeight = TANK_HEIGHT;
-      
-            // Hitung volume minyak
-            float heightM = currentOilHeight / 100.0;
-            float radiusM = TANK_RADIUS / 100.0;
-            currentVolume = PI * radiusM * radiusM * heightM;  // m³
-      
-            // Tampilkan hasil
-            Serial.print("Jarak Sensor: ");
-            Serial.print(currentDistance, 1);
-            Serial.print(" cm | Tinggi Minyak: ");
-            Serial.print(currentOilHeight, 1);
-            Serial.print(" cm | Volume Minyak: ");
-            Serial.print(currentVolume, 2);
-            Serial.print(" m³ (");
-            Serial.print(currentVolume * 1000, 0);
-            Serial.println(" liter)");
-        } else {
-            Serial.println("Waiting... (check wiring if no data)");
-        }
-    
+    float distance = readDistance();
+
+    if (distance > 0) {
+      currentDistance = distance;
+
+      // Hitung tinggi minyak
+      currentOilHeight = TANK_HEIGHT - currentDistance - SENSOR_OFFSET;
+      if (currentOilHeight < 0) currentOilHeight = 0;
+      if (currentOilHeight > TANK_HEIGHT) currentOilHeight = TANK_HEIGHT;
+
+      // Hitung volume minyak
+      float heightM = currentOilHeight / 100.0;
+      float radiusM = TANK_RADIUS / 100.0;
+      currentVolume = PI * radiusM * radiusM * heightM;  // m³
+
+      // Tampilkan hasil
+      Serial.print("Jarak Sensor: ");
+      Serial.print(currentDistance, 1);
+      Serial.print(" cm | Tinggi Minyak: ");
+      Serial.print(currentOilHeight, 1);
+      Serial.print(" cm | Volume Minyak: ");
+      Serial.print(currentVolume, 2);
+      Serial.print(" m³ (");
+      Serial.print(currentVolume * 1000, 0);
+      Serial.println(" liter)");
+    } else {
+      Serial.println("Waiting... (check wiring if no data)");
     }
+  }
 }
 
 
