@@ -50,3 +50,16 @@ void setup() {
 
     delay(1000);
 }
+
+
+
+
+float readDistance() {
+
+    while (rs485.available()) {
+        rs485.read();
+    }
+
+    
+    unsigned long currentTime = millis();
+}
