@@ -1,5 +1,4 @@
-/* macro definition -----------------------------------------------------------------------*/
-#define SOFT_VERSION "MB-211123-A0"  //Software version
+#define SOFT_VERSION "MB-211123-A0"
 #define LED_BUILTIN 2
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
