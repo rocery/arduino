@@ -1,8 +1,3 @@
-/*
-  Update Terakhir : 22-09-2025
-  Lihat 0_counter_hit_template untuk penjelasan kode
-  */
-
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
@@ -14,7 +9,7 @@
 #include <RTClib.h>
 #include "time.h"
 
-String ESPName = "Twitsko 10000";
+String ESPName = "Twistko 10000";
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
