@@ -14,7 +14,7 @@
 #include <RTClib.h>
 #include "time.h"
 
-String ESPName = "FF 10000";
+String ESPName = "Twitsko 10000";
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
@@ -23,7 +23,6 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define selectButton 32
 
 #define sensorPin 14
-// #define sensorReject 26
 
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB4";
@@ -37,7 +36,7 @@ const char* password_c = "siantar321";
 const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
 
-IPAddress staticIP(192, 168, 7, 222);
+IPAddress staticIP(192, 168, 7, 213);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);
@@ -70,13 +69,12 @@ String postData;
 bool menuSelect;
 int menu = 1;
 String productSelected, nameProductSelected;
-String productCodeOne = "P-0722-00243";
-String nameProductOne = "FF 10000";
-// String productCodeTwo = "P-0722-00239";
-String productCodeTwo = "P-0524-00290";
-String nameProductTwo = "FF 10000 (M-LOW)";
-String productCodeThree = "Test_Mode_222";
-String nameProductThree = "Test_Mode_222";
+String productCodeOne = "P-1024-00291";
+String nameProductOne = "TWISTKO BBQ 10000";
+String productCodeTwo = "P-1024-00293";
+String nameProductTwo = "TWISTKO BBQ 2000";
+String productCodeThree = "Test_Mode_213";
+String nameProductThree = "Test_Mode_213";
 
 int lineAsInt;
 String dateTimeSD, productSelectedSD, counterSD, counterRejectSD, ipAddressSD, line, logName, logData;
