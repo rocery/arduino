@@ -17,7 +17,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define downButton 35
 #define selectButton 32
 
-#define sensorPin 14
+#define sensorPin 26
 
 WiFiMulti wifiMulti;
 const char* ssid_a = "STTB4";
