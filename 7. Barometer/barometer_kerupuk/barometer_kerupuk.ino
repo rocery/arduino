@@ -51,8 +51,8 @@ ESP32 akan memilih WiFi dengan sinyal paling kuat secara otomatis
 Gunakan tidak lebih dari 3 WiFi (WiFi Utama, WiFi Cadangan, WiFi Test)
 */
 WiFiMulti wifiMulti;
-const char* ssid_a = "STTB1";
-const char* password_a = "Si4nt4r321";
+const char* ssid_a = "STTB4";
+const char* password_a = "siantar123";
 const char* ssid_b = "MT1";
 const char* password_b = "siantar321";
 const char* ssid_c = "MT3";
