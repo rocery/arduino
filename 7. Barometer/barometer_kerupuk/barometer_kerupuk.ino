@@ -1,6 +1,6 @@
 /*
   V. 1.0.0
-  Update Terakhir : 15-07-2024
+  Update Terakhir : 18-02-2026
 
   Komponen:
   1. ESP32
