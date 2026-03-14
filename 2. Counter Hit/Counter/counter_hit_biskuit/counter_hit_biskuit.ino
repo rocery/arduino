@@ -95,7 +95,7 @@ int counter, newCounter, oldCounter;
 // == Data Send/Get ==
 bool sendStatus, getStatus;
 const char* counterFromDB;
-int counterValueDB;
+int counterValueDB = 0;
 String postData;
 
 // == Product/Menu Related Section ==
@@ -214,6 +214,7 @@ int getLogData(String product) {
     Serial.print("Error get log");
   }
   http.end();
+  return counterValueDB;
 }
 
 void resetESP() {
