@@ -509,6 +509,8 @@ void setup() {
     &Task1,
     0
   );
+
+  lcd.clear();
 }
 
 void loop() {
