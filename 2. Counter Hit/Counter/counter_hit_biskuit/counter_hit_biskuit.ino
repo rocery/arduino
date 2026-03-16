@@ -118,10 +118,11 @@ String dateTimeSD, productSelectedSD, counterSD, ipAddressSD;
 bool statusSD, readStatusSD, insertLastLineSDCardStatus;
 
 void counterHit(void* parameter) {
+  // Deklarasi mode pin sensor
+  pinMode(irPin, INPUT_PULLUP);
+  static int lastIRState = HIGH;
+  delay(1000);
   for (;;) {
-    // Deklarasi mode pin sensor
-    pinMode(irPin, INPUT_PULLUP);
-    static int lastIRState = HIGH;
     // Membaca output Sensor
     int irState = digitalRead(irPin);
     if (irState == LOW && lastIRState == HIGH) {
@@ -189,6 +190,8 @@ void sendLogData() {
     String response = http.getString();
     Serial.println(response);
   } else {
+    String response = http.getString();
+    Serial.println(response);
     Serial.print("Error on sending POST");
   }
   http.end();
