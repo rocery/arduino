@@ -197,7 +197,7 @@ void sendLogData() {
   http.end();
 }
 
-int getLogData(String product) {
+void getLogData(String product) {
   /* Untung mendapatkan data terakhir dari DB, 
   saat ini tidak digunakan karena sudah menggunakan SD Card
   Kode dibawah mohon untuk tidak dihapus.
@@ -212,12 +212,10 @@ int getLogData(String product) {
     JSONVar myArray = JSON.parse(payload);
     counterFromDB = myArray["counter"];
     counterValueDB = atoi(counterFromDB);
-    return counterValueDB;
   } else {
     Serial.print("Error get log");
   }
-  http.end();
-  return counterValueDB;
+  http.end();=
 }
 
 void resetESP() {
