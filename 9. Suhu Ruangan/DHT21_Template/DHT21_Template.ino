@@ -69,9 +69,9 @@ struct DeviceData {
   @param verbose = Variabel untuk melihat error di database
 */
 // ========= INISIALISASI AWAL =========
-/**/ const int ip = 21;
-/**/ const String loc = "Maddock Twistko";
-/**/ const String prod = "Kerupuk";
+/**/ const int ip = 25;
+/**/ const String loc = "Penyimpanan Gula";
+/**/ const String prod = "Biskuit";
 /**/ const bool verbose = true;
 // =====================================
 const String api = "http://192.168.7.223/iot/api/save_suhu_rh.php";
