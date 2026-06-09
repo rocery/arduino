@@ -32,6 +32,9 @@ In Linux based OS, in order to upload code, you need to add your user to dialout
 Just run this command: 
 sudo usermod -G dialout $USER then logout.
 
+Or if you use Arch based os:
+sudo usermod -aG uucp,lock $USER
+
 ```
 
 s.id/iotsttb
