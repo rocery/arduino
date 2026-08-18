@@ -86,3 +86,49 @@ void blinkLED(int times, int duration) {
     delay(duration);
   }
 }
+
+// ============================================
+// FUNCTION: Read PZEM Sensors
+// ============================================
+
+bool readPZEMData() {
+  pzemData.voltage = pzem.voltage();
+  pzemData.current = pzem.current();
+  pzemData.power = pzem.power();
+  pzemData.energy = pzem.energy();
+
+  if (isnan(pzemData.voltage) || isnan(pzemData.current) || 
+      isnan(pzemData.power) || isnan(pzemData.energy)) {
+    Serial.println("[ERROR] PZEM read failed");
+    return false;
+  }
+
+  return true;
+}
+
+// ============================================
+// FUNCTION: Print PZEM Data
+// ============================================
+
+void printPZEMData() {
+  Serial.println("=== PZEM Data ===");
+  
+  Serial.print("Voltage: ");
+  Serial.print(pzemData.voltage, 2);
+  Serial.println(" V");
+  
+  Serial.print("Current: ");
+  Serial.print(pzemData.current, 2);
+  Serial.println(" A");
+  
+  Serial.print("Power: ");
+  Serial.print(pzemData.power, 2);
+  Serial.println(" W");
+  
+  Serial.print("Energy: ");
+  Serial.print(pzemData.energy, 4);
+  Serial.println(" kWh");
+  
+  Serial.println();
+}
+
