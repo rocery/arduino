@@ -132,3 +132,38 @@ void printPZEMData() {
   Serial.println();
 }
 
+// ============================================
+// FUNCTION: HTTP POST Request
+// ============================================
+
+bool sendHTTPRequest(const char* endpoint, const String& postData) {
+  HTTPClient http;
+  WiFiClient client;
+
+  String url = String("http://") + API_HOST + endpoint;
+  
+  http.begin(client, url);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  http.setTimeout(5000);
+
+  int httpCode = http.POST(postData);
+  
+  Serial.print("[HTTP] POST to ");
+  Serial.print(endpoint);
+  Serial.print(" - Response: ");
+  Serial.println(httpCode);
+
+  if (httpCode == HTTP_CODE_OK) {
+    String response = http.getString();
+    Serial.print("[HTTP] Response: ");
+    Serial.println(response);
+    http.end();
+    return true;
+  } else {
+    Serial.print("[ERROR] HTTP Error: ");
+    Serial.println(httpCode);
+    http.end();
+    return false;
+  }
+}
+
