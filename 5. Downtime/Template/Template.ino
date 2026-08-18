@@ -167,3 +167,31 @@ bool sendHTTPRequest(const char* endpoint, const String& postData) {
   }
 }
 
+// ============================================
+// FUNCTION: Send Status Data
+// ============================================
+
+bool sendStatusData() {
+  String postData = "voltage=" + String(pzemData.voltage, 2) +
+                    "&device_name=" + String(DEVICE_NAME) +
+                    "&ip_address=" + deviceIP;
+
+  Serial.println("[SEND] Status Data: " + postData);
+  return sendHTTPRequest(API_STATUS_ENDPOINT, postData);
+}
+
+// ============================================
+// FUNCTION: Send Log Data
+// ============================================
+
+bool sendLogData() {
+  String postData = "power=" + String(pzemData.power, 2) +
+                    "&energy=" + String(pzemData.energy, 4) +
+                    "&voltage=" + String(pzemData.voltage, 2) +
+                    "&current=" + String(pzemData.current, 2) +
+                    "&ip_address=" + deviceIP;
+
+  Serial.println("[SEND] Log Data: " + postData);
+  return sendHTTPRequest(API_LOG_ENDPOINT, postData);
+}
+
