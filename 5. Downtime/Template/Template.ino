@@ -195,3 +195,87 @@ bool sendLogData() {
   return sendHTTPRequest(API_LOG_ENDPOINT, postData);
 }
 
+bool connectToWiFi() {
+  Serial.println("\n[WIFI] Starting connection...");
+
+  if (!WiFi.config(STATIC_IP, GATEWAY, SUBNET, PRIMARY_DNS, SECONDARY_DNS)) {
+    Serial.println("[ERROR] Failed to configure static IP");
+    return false;
+  }
+
+  WiFi.mode(WIFI_STA);
+  int scanResult = WiFi.scanNetworks();
+
+  if (scanResult == 0) {
+    Serial.println("[ERROR] No WiFi networks found");
+    return false;
+  }
+
+  int retries = 0;
+  int networkIndex = 0;
+
+  while ((WiFi.status() != WL_CONNECTED) && (retries < WIFI_RETRY_LIMIT)) {
+    for (int i = 0; i < scanResult; i++) {
+      String scannedSSID = WiFi.SSID(i);
+      
+      for (int j = 0; j < WIFI_NETWORKS_COUNT; j++) {
+        if (scannedSSID == WIFI_NETWORKS[j][0]) {
+          Serial.print("[WIFI] Attempting to connect to: ");
+          Serial.println(WIFI_NETWORKS[j][0]);
+          
+          WiFi.begin(WIFI_NETWORKS[j][0], WIFI_NETWORKS[j][1]);
+          
+          for (int k = 0; k < 20; k++) {
+            if (WiFi.status() == WL_CONNECTED) {
+              break;
+            }
+            delay(250);
+            Serial.print(".");
+          }
+          
+          if (WiFi.status() == WL_CONNECTED) {
+            break;
+          }
+        }
+      }
+    }
+
+    if (WiFi.status() != WL_CONNECTED) {
+      retries++;
+      delay(WIFI_RETRY_TIMEOUT);
+    }
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    deviceIP = WiFi.localIP().toString();
+    Serial.println("\n[WIFI] Connected!");
+    Serial.print("[WIFI] IP Address: ");
+    Serial.println(deviceIP);
+    blinkLED(3, 200);
+    return true;
+  } else {
+    Serial.println("\n[ERROR] WiFi connection failed");
+    blinkLED(5, 100);
+    return false;
+  }
+}
+
+// ============================================
+// FUNCTION: System Check
+// ============================================
+
+void systemCheck() {
+  Serial.println("\n=== SYSTEM CHECK ===");
+  Serial.print("Device Name: ");
+  Serial.println(DEVICE_NAME);
+  Serial.print("Device ID: ");
+  Serial.println(DEVICE_ID);
+  Serial.print("PZEM Address: 0x");
+  Serial.println(PZEM_ADDRESS, HEX);
+  Serial.print("API Host: ");
+  Serial.println(API_HOST);
+  Serial.print("WiFi Status: ");
+  Serial.println(WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected");
+  Serial.println();
+}
+
