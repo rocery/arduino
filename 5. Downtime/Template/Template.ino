@@ -13,5 +13,8 @@
 #define PZEM_RX_PIN 12
 #define PZEM_TX_PIN 13
 #define LED_PIN 2
+#define PZEM_ADDRESS 0x14
 
-// PZEM Config
+// Device Config
+#define DEVICE_NAME "Isi dengan nama device"
+#define DEVICE_ID 1
