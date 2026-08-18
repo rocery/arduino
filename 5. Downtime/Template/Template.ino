@@ -39,3 +39,50 @@ const char* API_HOST = "192.168.7.223";
 const char* API_STATUS_ENDPOINT = "/molding_api/saveStatus.php";
 const char* API_LOG_ENDPOINT = "/molding_api/createFile.php";
 const int API_PORT = 80;
+
+// Timing Configuration
+const unsigned long PZEM_READ_INTERVAL = 100;
+const unsigned long DATA_SEND_INTERVAL = 15000;
+const unsigned int RESET_COUNTER_LIMIT = 480;
+const unsigned long WIFI_RETRY_TIMEOUT = 500;
+const int WIFI_RETRY_LIMIT = 15;
+
+// Voltage Threshold (dalam Volt)
+const float VOLTAGE_THRESHOLD = 0.0;
+
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
+
+SoftwareSerial pzemSerial(PZEM_RX_PIN, PZEM_TX_PIN);
+PZEM004Tv30 pzem(pzemSerial, PZEM_ADDRESS);
+
+struct ElectricalData {
+  float voltage;
+  float current;
+  float power;
+  float energy;
+};
+
+ElectricalData pzemData = {0, 0, 0, 0};
+unsigned int sendDataCounter = 0;
+unsigned long lastReadTime = 0;
+unsigned long lastSendTime = 0;
+String deviceIP = "";
+
+// ============================================
+// FUNCTION: LED Control
+// ============================================
+
+void setLED(bool state) {
+  digitalWrite(LED_PIN, state ? HIGH : LOW);
+}
+
+void blinkLED(int times, int duration) {
+  for (int i = 0; i < times; i++) {
+    setLED(true);
+    delay(duration);
+    setLED(false);
+    delay(duration);
+  }
+}
