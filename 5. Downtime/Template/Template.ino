@@ -279,3 +279,77 @@ void systemCheck() {
   Serial.println();
 }
 
+// ============================================
+// SETUP
+// ============================================
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+  
+  Serial.println("\n\n=== ESP8266 PZEM Template Starting ===");
+  
+  pzemSerial.begin(9600);
+  pinMode(LED_PIN, OUTPUT);
+  setLED(false);
+
+  systemCheck();
+
+  if (!connectToWiFi()) {
+    Serial.println("[WARNING] Proceeding without WiFi");
+  }
+
+  delay(1000);
+}
+
+// ============================================
+// LOOP
+// ============================================
+
+void loop() {
+  unsigned long currentTime = millis();
+
+  // Read PZEM data
+  if (currentTime - lastReadTime >= PZEM_READ_INTERVAL) {
+    lastReadTime = currentTime;
+    
+    if (readPZEMData()) {
+      printPZEMData();
+      
+      if (pzemData.voltage > VOLTAGE_THRESHOLD) {
+        setLED(true);
+      } else {
+        setLED(false);
+      }
+    }
+  }
+
+  // Send data to server
+  if (currentTime - lastSendTime >= DATA_SEND_INTERVAL) {
+    lastSendTime = currentTime;
+
+    if (WiFi.status() == WL_CONNECTED) {
+      bool statusSent = sendStatusData();
+      delay(500);
+      bool logSent = sendLogData();
+      
+      if (statusSent && logSent) {
+        sendDataCounter++;
+        Serial.print("[SYNC] Data sent successfully. Counter: ");
+        Serial.println(sendDataCounter);
+      }
+    } else {
+      Serial.println("[WARNING] WiFi disconnected, attempting reconnection...");
+      connectToWiFi();
+    }
+
+    // Reset system after reaching limit
+    if (sendDataCounter >= RESET_COUNTER_LIMIT) {
+      Serial.print("[SYSTEM] Resetting after ");
+      Serial.print(RESET_COUNTER_LIMIT);
+      Serial.println(" successful sends");
+      delay(1000);
+      ESP.reset();
+    }
+  }
+}
