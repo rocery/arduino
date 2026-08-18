@@ -1,3 +1,23 @@
+/*
+  V 0.9.2
+  Update Terakhir : 18-08-2026
+  Last Change Log {
+    1. 
+  }
+
+  Komponen:
+  1. NodeMCU ESP8266 V.3
+  2. PZEM-004T V 3.0
+  3. LED @1
+
+  Program ini berfungsi menghitung instrumen listrik pada kabel.
+  Projek ini mengunakan ESP8266 sebagai microcontroller karena memiliki fitur SerialSoftware,
+  sehingga komunikasi UART bisa digunakan sebanyak mungkin selama address-nya berbeda dan daya
+  dari ESP8266 kuat.
+
+  Proses koneksi WiFi tidak disarakn menggunakan Library MultiWiFiESP8266.h, kecuali Micon yang digunakan ESP32
+*/
+
 #include <PZEM004Tv30.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
@@ -12,8 +32,8 @@
 // Pin RX dari PZEM dihubungkan ke pin (7) ESP8266
 #define PZEM_RX_PIN 12
 #define PZEM_TX_PIN 13
-#define LED_PIN 2
 #define PZEM_ADDRESS 0x14
+#define LED_PIN 2
 
 // Device Config
 #define DEVICE_NAME "Molding Line 4 - Biskuit"
