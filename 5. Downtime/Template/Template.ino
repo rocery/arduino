@@ -32,7 +32,7 @@
 // Pin RX dari PZEM dihubungkan ke pin (7) ESP8266
 #define PZEM_RX_PIN 12
 #define PZEM_TX_PIN 13
-#define PZEM_ADDRESS 0x14
+#define PZEM_ADDRESS 0x15
 #define LED_PIN 2
 
 // Device Config
