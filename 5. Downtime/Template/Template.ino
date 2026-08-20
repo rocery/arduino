@@ -1,8 +1,8 @@
 /*
-  V 0.9.2
-  Update Terakhir : 18-08-2026
+  V 0.9.3
+  Update Terakhir : 19-08-2026
   Last Change Log {
-    1. 
+    1. Added machine state change detection for immediate data sending
   }
 
   Komponen:
@@ -89,6 +89,11 @@ unsigned int sendDataCounter = 0;
 unsigned long lastReadTime = 0;
 unsigned long lastSendTime = 0;
 String deviceIP = "";
+
+bool machineWasOn = false;
+bool machineIsOn = false;
+unsigned long stateChangeDebounceTime = 0;
+const unsigned long STATE_CHANGE_DEBOUNCE = 2000;
 
 // ============================================
 // FUNCTION: LED Control
@@ -214,6 +219,34 @@ bool sendLogData() {
   Serial.println("[SEND] Log Data: " + postData);
   return sendHTTPRequest(API_LOG_ENDPOINT, postData);
 }
+
+// ============================================
+// FUNCTION: Detect Machine State Change
+// ============================================
+
+bool detectMachineStateChange() {
+  unsigned long currentTime = millis();
+  
+  machineIsOn = (pzemData.voltage > VOLTAGE_THRESHOLD);
+  
+  if (machineIsOn != machineWasOn) {
+    if (currentTime - stateChangeDebounceTime >= STATE_CHANGE_DEBOUNCE) {
+      machineWasOn = machineIsOn;
+      stateChangeDebounceTime = currentTime;
+      
+      Serial.print("[STATE] Machine ");
+      Serial.println(machineIsOn ? "TURNED ON" : "TURNED OFF");
+      
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// ============================================
+// FUNCTION: WiFi Connection
+// ============================================
 
 bool connectToWiFi() {
   Serial.println("\n[WIFI] Starting connection...");
@@ -341,10 +374,28 @@ void loop() {
       } else {
         setLED(false);
       }
+      
+      // Detect machine state change and send immediately
+      if (detectMachineStateChange()) {
+        if (WiFi.status() == WL_CONNECTED) {
+          bool statusSent = sendStatusData();
+          delay(500);
+          bool logSent = sendLogData();
+          
+          if (statusSent && logSent) {
+            sendDataCounter++;
+            Serial.print("[SYNC] State change data sent. Counter: ");
+            Serial.println(sendDataCounter);
+          }
+        } else {
+          Serial.println("[WARNING] WiFi disconnected, attempting reconnection...");
+          connectToWiFi();
+        }
+      }
     }
   }
 
-  // Send data to server
+  // Send data to server at regular interval
   if (currentTime - lastSendTime >= DATA_SEND_INTERVAL) {
     lastSendTime = currentTime;
 
@@ -355,7 +406,7 @@ void loop() {
       
       if (statusSent && logSent) {
         sendDataCounter++;
-        Serial.print("[SYNC] Data sent successfully. Counter: ");
+        Serial.print("[SYNC] Interval data sent successfully. Counter: ");
         Serial.println(sendDataCounter);
       }
     } else {
