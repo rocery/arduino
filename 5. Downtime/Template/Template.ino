@@ -30,10 +30,11 @@
 // Digunakan pin 12 dan 13 (6, 7) sebagai pin UART (RX, TX)
 // Pin TX dari PZEM dihubungkan ke pin (6) ESP8266
 // Pin RX dari PZEM dihubungkan ke pin (7) ESP8266
+// Pin LED VCC ke pin 1
 #define PZEM_RX_PIN 12
 #define PZEM_TX_PIN 13
 #define PZEM_ADDRESS 0x15
-#define LED_PIN 2
+#define LED_PIN 5
 
 // Device Config
 #define DEVICE_NAME "Molding Line 4 - Biskuit"
