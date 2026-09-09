@@ -37,14 +37,14 @@
 #define LED_PIN 5
 
 // Device Config
-#define DEVICE_NAME "Molding Line 4 - Biskuit"
-#define DEVICE_ID  194 // Isi dengan IP
+#define DEVICE_NAME "Downtime 196"
+#define DEVICE_ID  196 // Isi dengan IP
 
 // WiFi Configuration
 const char* WIFI_NETWORKS[3][2] = {
-  {"STTB1", "Si4nt4r321"},
-  {"STTB2", "Si4nt4r321"},
-  {"MT3", "siantar321"}
+  {"STTB4", "siantar123"},
+  {"MT3", "Si4rt4r321"},
+  {"STTB2", "siantar321"}
 };
 const int WIFI_NETWORKS_COUNT = 3;
 
