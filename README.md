@@ -1,6 +1,6 @@
 # Projek IoT STTB
 
-info : sastranuralamsyah@gmail.com
+info : sastranuralamsyah@gmail.com / sastra@sttbekasi.com
 
 ---
 
@@ -30,7 +30,7 @@ may be incompatible with your current board which runs on esp32 architecture(s).
 
 In Linux based OS, in order to upload code, you need to add your user to dialout group.
 Just run this command: 
-sudo usermod -G dialout $USER then logout.
+sudo usermod -G dialout $USER
 
 Or if you use Arch based os:
 sudo usermod -aG uucp,lock $USER
