@@ -41,7 +41,7 @@ SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
 // Untuk merubah alamat ini jalankan program "ChangeAdressPzem004T"
 PZEM004Tv30 pzem14(pzemSWSerial, 0x15);
 
-const char* ssid_1 = "STTB1";
+const char* ssid_1 = "STTB2";
 const char* password_1 = "Si4nt4r321";
 const char* ssid_2 = "STTB11";
 const char* password_2 = "Si4nt4r321";

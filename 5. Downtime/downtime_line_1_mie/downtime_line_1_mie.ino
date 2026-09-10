@@ -40,15 +40,15 @@ SoftwareSerial pzemSWSerial(PZEM_RX_PIN, PZEM_TX_PIN);
 // Untuk merubah alamat ini jalankan program "ChangeAdressPzem004T"
 PZEM004Tv30 pzem14(pzemSWSerial, 0x15);
 
-const char* ssid_1 = "STTB1";
+const char* ssid_1 = "STTB2";
 const char* password_1 = "Si4nt4r321";
-const char* ssid_2 = "TesterITB";
+const char* ssid_2 = "STTB11";
 const char* password_2 = "Si4nt4r321";
 const char* ssid_3 = "MT3";
 const char* password_3 = "siantar321";
 
 // Set your Static IP address
-IPAddress staticIP(192, 168, 7, 192);
+IPAddress staticIP(192, 168, 7, 195);
 IPAddress gateway(192, 168, 15, 250);
 IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(8, 8, 8, 8);    //optional
@@ -58,7 +58,7 @@ String postData;
 String ip_address;
 int sendDataDB = 0;
 
-String pzem14Chanel = "Roller Line 1 - Mie";
+String pzem14Chanel = "Test";
 
 void sendData(float Voltage, String deviceName, String IP) {
   HTTPClient http;     // http object of clas HTTPClient

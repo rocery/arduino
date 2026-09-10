@@ -41,12 +41,13 @@
 #define DEVICE_ID  195 // Isi dengan IP
 
 // WiFi Configuration
-const char* WIFI_NETWORKS[3][2] = {
+const char* WIFI_NETWORKS[4][2] = {
   {"STTB4", "siantar123"},
-  {"MT3", "Si4rt4r321"},
-  {"STTB2", "siantar321"}
+  {"MT3", "siantar321"},
+  {"STTB9", "Si4nt4r321"},
+  {"STTB2", "Si4nt4r321"}
 };
-const int WIFI_NETWORKS_COUNT = 3;
+const int WIFI_NETWORKS_COUNT = 4;
 
 // Network Configuration
 IPAddress STATIC_IP(192, 168, 7, DEVICE_ID);
