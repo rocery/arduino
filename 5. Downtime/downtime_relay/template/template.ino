@@ -1,10 +1,11 @@
 /*
-  V 0.9.4
+  V 0.9.5
   Update Terakhir : 19-08-2026
   Last Change Log {
-    1. Adjusted to match PHP API endpoints (saveStatus + createFile)
-    2. Removed device_name from createFile.php POST data
-    3. Optimized data sending flow
+    1. Sensor PZEM dipasang di sisi output AC relay (bukan input mesin langsung)
+    2. Mesin dianggap OFF hanya jika voltase tidak terdeteksi >= 2 menit berturut-turut
+    3. Transisi OFF -> ON tetap dilaporkan segera (tanpa debounce), karena relay bisa on/off < 1 detik
+    4. Proses pengiriman data (saveStatus + createFile) tidak diubah
   }
 
   Komponen:
@@ -51,12 +52,15 @@ const char* API_LOG_ENDPOINT = "/molding_api/createFile.php";
 const int API_PORT = 80;
 
 const unsigned long PZEM_READ_INTERVAL = 100;
-const unsigned long DATA_SEND_INTERVAL = 30000;
+const unsigned long DATA_SEND_INTERVAL = 15000;
 const unsigned int RESET_COUNTER_LIMIT = 480;
 const unsigned long WIFI_RETRY_TIMEOUT = 500;
 const int WIFI_RETRY_LIMIT = 15;
 
-const float VOLTAGE_THRESHOLD = 0.0;
+const float VOLTAGE_THRESHOLD = 180.0;
+
+// Lama voltase harus hilang terus-menerus sebelum mesin dinyatakan OFF
+const unsigned long OFF_CONFIRM_DURATION = 120000; // 2 menit
 
 // ============================================
 // GLOBAL VARIABLES
@@ -78,10 +82,16 @@ unsigned long lastReadTime = 0;
 unsigned long lastSendTime = 0;
 String deviceIP = "";
 
-bool machineWasOn = false;
-bool machineIsOn = false;
-unsigned long stateChangeDebounceTime = 0;
-const unsigned long STATE_CHANGE_DEBOUNCE = 2000;
+// Status mesin yang sudah dikonfirmasi (dipakai untuk kirim data & LED)
+bool machineConfirmedOn = false;
+
+// 0 berarti tidak sedang dalam kondisi "voltase hilang"
+unsigned long voltageLostSince = 0;
+
+// Voltase terakhir yang terbaca saat mesin confirmed ON.
+// Dipakai supaya heartbeat 30 detik tidak melaporkan 0 sebelum
+// status OFF benar-benar dikonfirmasi (setelah 2 menit).
+float lastVoltageWhileOn = 0;
 
 // ============================================
 // FUNCTION: LED Control
@@ -105,15 +115,26 @@ void blinkLED(int times, int duration) {
 // ============================================
 
 bool readPZEMData() {
-  pzemData.voltage = pzem.voltage();
-  pzemData.current = pzem.current();
-  pzemData.power = pzem.power();
-  pzemData.energy = pzem.energy();
+  float v = pzem.voltage();
+  float c = pzem.current();
+  float p = pzem.power();
+  float e = pzem.energy();
 
-  if (isnan(pzemData.voltage) || isnan(pzemData.current) || isnan(pzemData.power) || isnan(pzemData.energy)) {
-    Serial.println("[ERROR] PZEM read failed");
+  if (isnan(v) || isnan(c) || isnan(p) || isnan(e)) {
+    // PZEM tidak merespons - biasanya berarti PZEM sendiri kehilangan daya
+    // (mis. dicabut dari output relay). Perlakukan sebagai "tidak ada voltase"
+    // supaya detectMachineStateChange() tetap bisa mendeteksi mesin OFF.
+    Serial.println("[ERROR] PZEM read failed (no response)");
+    pzemData.voltage = 0;
+    pzemData.current = 0;
+    pzemData.power = 0;
     return false;
   }
+
+  pzemData.voltage = v;
+  pzemData.current = c;
+  pzemData.power = p;
+  pzemData.energy = e;
 
   return true;
 }
@@ -179,7 +200,11 @@ bool sendHTTPRequest(const char* endpoint, const String& postData) {
 // ============================================
 
 bool sendStatusData() {
-  String postData = "voltage=" + String(pzemData.voltage, 2) + "&device_name=" + String(DEVICE_NAME) + "&ip_address=" + deviceIP;
+  // Pakai voltase versi confirmed (bukan pembacaan sesaat), supaya heartbeat
+  // 30 detik tidak melaporkan OFF sebelum debounce 2 menit selesai.
+  float reportedVoltage = machineConfirmedOn ? lastVoltageWhileOn : 0;
+
+  String postData = "voltage=" + String(reportedVoltage, 2) + "&device_name=" + String(DEVICE_NAME) + "&ip_address=" + deviceIP;
 
   Serial.println("[SEND] Status Data: " + postData);
   return sendHTTPRequest(API_STATUS_ENDPOINT, postData);
@@ -190,7 +215,9 @@ bool sendStatusData() {
 // ============================================
 
 bool sendLogData() {
-  String postData = "power=" + String(pzemData.power, 2) + "&energy=" + String(pzemData.energy, 4) + "&voltage=" + String(pzemData.voltage, 2) + "&current=" + String(pzemData.current, 2) + "&ip_address=" + deviceIP;
+  String statusStr = machineConfirmedOn ? "ON" : "OFF";
+
+  String postData = "power=" + String(pzemData.power, 2) + "&energy=" + String(pzemData.energy, 4) + "&voltage=" + String(pzemData.voltage, 2) + "&current=" + String(pzemData.current, 2) + "&ip_address=" + deviceIP + "&status=" + statusStr;
 
   Serial.println("[SEND] Log Data: " + postData);
   return sendHTTPRequest(API_LOG_ENDPOINT, postData);
@@ -199,22 +226,33 @@ bool sendLogData() {
 // ============================================
 // FUNCTION: Detect Machine State Change
 // ============================================
-
+// - Voltase terdeteksi (relay ON)        -> mesin langsung dinyatakan ON (segera, tanpa debounce)
+// - Voltase tidak terdeteksi terus-menerus selama >= OFF_CONFIRM_DURATION -> mesin dinyatakan OFF
+// - Kehilangan voltase sesaat (< durasi tsb, misal relay berkedip < 1 detik) diabaikan
 bool detectMachineStateChange() {
   unsigned long currentTime = millis();
+  bool voltageDetected = (pzemData.voltage > VOLTAGE_THRESHOLD);
 
-  machineIsOn = (pzemData.voltage > VOLTAGE_THRESHOLD);
+  if (voltageDetected) {
+    voltageLostSince = 0;
+    lastVoltageWhileOn = pzemData.voltage;
 
-  if (machineIsOn != machineWasOn) {
-    // if (currentTime - stateChangeDebounceTime >= STATE_CHANGE_DEBOUNCE) {
-      machineWasOn = machineIsOn;
-      stateChangeDebounceTime = currentTime;
-
-      Serial.print("[STATE] Machine ");
-      Serial.println(machineIsOn ? "TURNED ON" : "TURNED OFF");
-
+    if (!machineConfirmedOn) {
+      machineConfirmedOn = true;
+      Serial.println("[STATE] Machine TURNED ON");
       return true;
-    // }
+    }
+  } else {
+    if (machineConfirmedOn) {
+      if (voltageLostSince == 0) {
+        voltageLostSince = currentTime;
+      } else if (currentTime - voltageLostSince >= OFF_CONFIRM_DURATION) {
+        machineConfirmedOn = false;
+        voltageLostSince = 0;
+        Serial.println("[STATE] Machine TURNED OFF (no voltage for 2 minutes)");
+        return true;
+      }
+    }
   }
 
   return false;
@@ -340,33 +378,33 @@ void loop() {
   if (currentTime - lastReadTime >= PZEM_READ_INTERVAL) {
     lastReadTime = currentTime;
 
-    if (readPZEMData()) {
+    bool readOk = readPZEMData();
+
+    if (readOk) {
       printPZEMData();
+    }
 
-      if (detectMachineStateChange()) {
-        if (WiFi.status() == WL_CONNECTED) {
-          bool statusSent = sendStatusData();
-          delay(500);
-          bool logSent = sendLogData();
+    // Dipanggil terlepas dari readOk, karena pzemData.voltage sudah
+    // diset ke 0 saat gagal baca (lihat readPZEMData()).
+    if (detectMachineStateChange()) {
+      if (WiFi.status() == WL_CONNECTED) {
+        bool statusSent = sendStatusData();
+        delay(500);
+        bool logSent = sendLogData();
 
-          if (statusSent && logSent) {
-            sendDataCounter++;
-            Serial.print("[SYNC] State change data sent. Counter: ");
-            Serial.println(sendDataCounter);
-          }
-        } else {
-          Serial.println("[WARNING] WiFi disconnected, attempting reconnection...");
-          connectToWiFi();
+        if (statusSent && logSent) {
+          sendDataCounter++;
+          Serial.print("[SYNC] State change data sent. Counter: ");
+          Serial.println(sendDataCounter);
         }
+      } else {
+        Serial.println("[WARNING] WiFi disconnected, attempting reconnection...");
+        connectToWiFi();
       }
     }
   }
 
-  if (pzemData.voltage > VOLTAGE_THRESHOLD) {
-    setLED(true);
-  } else {
-    setLED(false);
-  }
+  setLED(machineConfirmedOn);
 
   if (currentTime - lastSendTime >= DATA_SEND_INTERVAL) {
     lastSendTime = currentTime;
