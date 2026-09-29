@@ -276,7 +276,7 @@ CalibrationData getCalibrationData() {
       Serial.println(error.c_str());
     }
   } else {
-    Serial.print("Error get log: ");
+    Serial.print("Error get calibration data: ");
     Serial.println(httpCode);
   }
 
@@ -314,7 +314,7 @@ DeviceData getDeviceData() {
       Serial.println(error.c_str());
     }
   } else {
-    Serial.print("Error get log: ");
+    Serial.print("Error get device data: ");
     Serial.println(httpCode);
   }
 
@@ -498,7 +498,7 @@ void loop() {
   postData = "device_id=" + deviceID + "&device_name=" + ESPName + "&temp=" + String(calTemp) + "&hum=" + String(humidity) + "&date=" + dateTime + "&ip_address=" + ip_Address;
 
   // Restart the device every 1200 readings of the DHT sensor
-  if (readDHTCount % 1200 == 0 || readNan >= 25 || errorWiFiCount >= 20) {
+  if (readDHTCount % 1200 == 0 || readNan >= 30 || errorWiFiCount >= 30) {
     sendLogData();
     delay(1000);
     ESP.restart();
