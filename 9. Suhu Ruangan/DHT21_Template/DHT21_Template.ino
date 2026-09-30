@@ -9,7 +9,7 @@
   Pastikan untuk mengubah variabel ip, loc, dan prod pada bagian inisialisasi awal.
 
   V. 1.1.2
-  Update Terakhir : 26-11-2025
+  Update Terakhir : 30-09-2026
 
   Komponen:
   1. ESP32                    | 
