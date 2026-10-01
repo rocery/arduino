@@ -16,6 +16,11 @@
   Program ini berfungsi menghitung instrumen listrik pada kabel.
 */
 
+#include <esp_system.h>
+#include <WiFi.h>
+#include <WiFiMulti.h>
+#include <HTTPClient.h>
+
 #define PC817_PIN_1 27
 #define PC817_PIN_2 26
 #define PC817_PIN_3 25
@@ -27,24 +32,47 @@ const uint8_t PC817_PINS[4] = {
   PC817_PIN_3,
   PC817_PIN_4
 };
-
 int pinState[4];
 
-void setup()
-{
-  Serial.begin(115200);
+WiFiMulti wifiMulti;
+const char* ssid_a_biskuit_mie = "STTB8";
+const char* password_a_biskuit_mie = "siantar123";
+const char* ssid_b_biskuit_mie = "STTB1";
+const char* password_b_biskuit_mie = "Si4nt4r321";
+const char* ssid_c_biskuit_mie = "MT3";
+const char* password_c_biskuit_mie = "siantar321";
+const char* ssid_a_kerupuk = "STTB4";
+const char* password_a_kerupuk = "siantar123";
+const char* ssid_b_kerupuk = "MT1";
+const char* password_b_kerupuk = "siantar321";
+const char* ssid_c_kerupuk = "Amano2";
+const char* password_c_kerupuk = "Si4nt4r321";
+const char* ssid_it = "STTB11";
+const char* password_it = "Si4nt4r321";
 
+void setupPin_PC817() {
   for (int i = 0; i < 4; i++) {
     pinMode(PC817_PINS[i], INPUT_PULLUP);
   }
 }
 
-void loop()
-{
-  // Baca semua input PC817
+int readPin_PC817() {
   for (int i = 0; i < 4; i++) {
     pinState[i] = digitalRead(PC817_PINS[i]);
   }
+  return 0;
+}
+
+void setup()
+{
+  Serial.begin(115200);
+  setupPin_PC817();
+}
+
+void loop()
+{
+  // Baca semua input PC817
+  readPin_PC817();
 
   // Tampilkan status
   for (int i = 0; i < 4; i++) {
