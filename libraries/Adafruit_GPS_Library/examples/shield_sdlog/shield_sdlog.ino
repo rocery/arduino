@@ -1,7 +1,7 @@
 #include <SPI.h>
 #include <Adafruit_GPS.h>
 #include <SoftwareSerial.h>
-#include <SD.h>
+#include <SdFat_Adafruit_Fork.h>
 #include <avr/sleep.h>
 
 // Ladyada's logger modified by Bill Greiman to use the SdFat library
@@ -36,7 +36,10 @@ bool usingInterrupt = false;
 #define chipSelect 10
 #define ledPin 13
 
-File logfile;
+SdFat SD;
+// Raw NMEA logging only needs the base file API. Avoid the Arduino Stream
+// wrapper, whose virtual methods also pull unused read/seek code into flash.
+SdBaseFile logfile;
 
 // read a Hex value and return the decimal equivalent
 uint8_t parseHex(char c) {
@@ -74,6 +77,8 @@ void error(uint8_t errno) {
   }
 }
 
+// Keep SD initialization buffers off the stack once logging starts.
+void setup() __attribute__((noinline));
 void setup() {
   // for Leonardos, if you want to debug SD issues, uncomment this line
   // to see serial output
@@ -82,7 +87,7 @@ void setup() {
   // connect at 115200 so we can read the GPS fast enough and echo without dropping chars
   // also spit it out
   Serial.begin(115200);
-  Serial.println("\r\nUltimate GPSlogger Shield");
+  Serial.println(F("\r\nUltimate GPSlogger Shield"));
   pinMode(ledPin, OUTPUT);
 
   // make sure that the default chip select pin is set to
@@ -90,43 +95,59 @@ void setup() {
   pinMode(10, OUTPUT);
 
   if (!SD.begin(chipSelect)) {
-    Serial.println("Card init. failed!");
+    Serial.println(F("Card init. failed!"));
     error(2);
   }
   char filename[15];
-  strcpy(filename, "GPSLOG00.TXT");
-  for (uint8_t i = 0; i < 100; i++) {
-    filename[6] = '0' + i/10;
-    filename[7] = '0' + i%10;
-    // create if does not exist, do not open existing, write, sync after write
-    if (! SD.exists(filename)) {
+  strcpy(filename, "GPSLOG0000.TXT");
+  // Find an unused long filename, then create it without opening an old log.
+  while (SD.exists(filename)) {
+    // Carry through the four digits, keeping the filename as the counter.
+    int8_t digit = 9;
+    while (digit >= 6 && filename[digit] == '9') {
+      filename[digit] = '0';
+      digit--;
+    }
+    if (digit < 6) {
+      // All 10000 names exist. Exclusive creation below will fail safely.
       break;
     }
+    filename[digit]++;
   }
 
-  logfile = SD.open(filename, FILE_WRITE);
-  if( ! logfile ) {
-    Serial.print("Couldnt create ");
+  if (!logfile.open(filename, O_WRONLY | O_CREAT | O_EXCL)) {
+    Serial.print(F("Couldnt create "));
     Serial.println(filename);
     error(3);
   }
-  Serial.print("Writing to ");
+  Serial.print(F("Writing to "));
   Serial.println(filename);
 
   // connect to the GPS at the desired rate
   GPS.begin(9600);
 
   // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  GPS.sendCommand(F(PMTK_SET_NMEA_OUTPUT_RMCGGA));
   // uncomment this line to turn on only the "minimum recommended" data
-  //GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
+  //GPS.sendCommand(F(PMTK_SET_NMEA_OUTPUT_RMCONLY));
   // For logging data, we don't suggest using anything but either RMC only or RMC+GGA
   // to keep the log files at a reasonable size
   // Set the update rate
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 100 millihertz (once every 10 seconds), 1Hz or 5Hz update rate
+  GPS.sendCommand(F(PMTK_SET_NMEA_UPDATE_1HZ));   // 100 millihertz (once every 10 seconds), 1Hz or 5Hz update rate
 
-  // Turn off updates on antenna status, if the firmware permits it
-  GPS.sendCommand(PGCMD_NOANTENNA);
+  // Disable antenna status on old and new modules, if the firmware permits it.
+  GPS.sendCommand(F(PGCMD_NOANTENNA));
+  GPS.sendCommand(F(CDCMD_NOANTENNA));
+
+  // Drain startup command replies before the first SD write. Their rapid
+  // arrival can otherwise reuse a GPS receive buffer while it is being saved.
+  uint32_t start = millis();
+  while (millis() - start < 2000) {
+    GPS.read();
+    if (GPS.newNMEAreceived()) {
+      GPS.lastNMEA();
+    }
+  }
 
   // the nice thing about this code is you can have a timer0 interrupt go off
   // every 1 millisecond, and read data from the GPS for you. that makes the
@@ -135,7 +156,7 @@ void setup() {
   useInterrupt(true);
 #endif
 
-  Serial.println("Ready!");
+  Serial.println(F("Ready!"));
 }
 
 
@@ -192,19 +213,19 @@ void loop() {
       return;  // we can fail to parse a sentence in which case we should just wait for another
 
     // Sentence parsed!
-    Serial.println("OK");
+    Serial.println(F("OK"));
     if (LOG_FIXONLY && !GPS.fix) {
-      Serial.print("No Fix");
+      Serial.print(F("No Fix"));
       return;
     }
 
     // Rad. lets log it!
-    Serial.println("Log");
+    Serial.println(F("Log"));
 
     uint8_t stringsize = strlen(stringptr);
     if (stringsize != logfile.write((uint8_t *)stringptr, stringsize))    //write the string to the SD file
         error(4);
-    if (strstr(stringptr, "RMC") || strstr(stringptr, "GGA"))   logfile.flush();
+    if (strstr(stringptr, "RMC") || strstr(stringptr, "GGA"))   logfile.sync();
     Serial.println();
   }
 }

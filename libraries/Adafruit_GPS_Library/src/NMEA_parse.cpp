@@ -20,7 +20,26 @@
 */
 /**************************************************************************/
 
+#include <Adafruit_GNSS.h>
 #include <Adafruit_GPS.h>
+
+const char PROGMEM Adafruit_GPS::sources[][4] = {"II", "WI", "GP", "PG", "GL",
+                                                 "GA", "GN", "HC", "TI", "SD",
+                                                 "AI", "P",  "ZZZ"};
+#ifdef NMEA_EXTENSIONS
+const char PROGMEM Adafruit_GPS::sentences_parsed[][4] = {
+    "GGA", "GLL", "GSA", "RMC", "CD",  "DBT", "HDM", "HDT", "MDA", "MTW", "MWV",
+    "RMB", "TOP", "TXT", "VHW", "VLW", "VPW", "VWR", "WCV", "XTE", "ZZZ"};
+const char PROGMEM Adafruit_GPS::sentences_known[][4] = {
+    "APB", "DPT", "GSV", "HDG", "MWD", "ROT",
+    "RPM", "RSA", "VDR", "VTG", "ZDA", "ZZZ"};
+#else // make the lists short to save flash on small boards
+const char PROGMEM Adafruit_GPS::sentences_parsed[][4] = {
+    "GGA", "GLL", "GSA", "RMC", "TOP", "CD", "ZZZ"};
+const char PROGMEM Adafruit_GPS::sentences_known[][4] = {"DBT", "HDM", "HDT",
+                                                         "ZZZ"};
+#endif
+#include <ctype.h>
 
 /**************************************************************************/
 /*!
@@ -51,40 +70,41 @@
 bool Adafruit_GPS::parse(char *nmea) {
   if (!check(nmea))
     return false;
+  // Count fields before parsing so a truncated sentence cannot change GPS data
+  // or make a comma lookup run past the end of the sentence.
+  size_t fields = 0;
+  for (char *p = nmea; *p && *p != '*'; p++) {
+    if (*p == ',')
+      fields++;
+  }
+  // All current sentence handlers require fields. Revisit this guard if a
+  // zero-field sentence is added; the comma lookup below also assumes a field.
+  if (fields == 0)
+    return false;
   // passed the check, so there's a valid source in thisSource and a valid
   // sentence in thisSentence
   char *p = nmea; // Pointer to move through the sentence -- good parsers are
                   // non-destructive
   p = strchr(p, ',') + 1; // Skip to char after the next comma, then check.
 
+  // Validate every field consumed by a standard navigation decoder before
+  // changing any fix data. The enclosing frame has already passed check().
+  nmea_span_t type = {thisSentence, strlen(thisSentence)};
+  nmea_span_t dataFields = {p, (size_t)(strchr(p, '*') - p)};
+  gnss_sentence_status_t status = updatePosition(type, dataFields);
+  if (status == GNSS_SENTENCE_UNSUPPORTED)
+    status = Adafruit_GNSS::validateNavigation(type, dataFields).status;
+  if (status != GNSS_SENTENCE_VALID && status != GNSS_SENTENCE_UNSUPPORTED)
+    return false;
+
   // This may look inefficient, but an M0 will get down the list in about 1 us /
   // strcmp()! Put the GPS sentences from Adafruit_GPS at the top to make
   // pruning excess code easier. Otherwise, keep them alphabetical for ease of
   // reading.
   if (!strcmp(thisSentence, "GGA")) { //************************************GGA
-    // Adafruit from Actisense NGW-1 from SH CP150C
-    parseTime(p);
-    p = strchr(p, ',') + 1; // parse time with specialized function
-    // parse out both latitude and direction, then go to next field, or fail
-    if (parseCoord(p, &latitudeDegrees, &latitude, &latitude_fixed, &lat))
-      newDataValue(NMEA_LAT, latitudeDegrees);
-    p = strchr(p, ',') + 1;
-    p = strchr(p, ',') + 1;
-    // parse out both longitude and direction, then go to next field, or fail
-    if (parseCoord(p, &longitudeDegrees, &longitude, &longitude_fixed, &lon))
-      newDataValue(NMEA_LON, longitudeDegrees);
-    p = strchr(p, ',') + 1;
-    p = strchr(p, ',') + 1;
-    if (!isEmpty(p)) { // if it's a , (or a * at end of sentence) the value is
-                       // not included
-      fixquality = atoi(p); // needs additional processing
-      if (fixquality > 0) {
-        fix = true;
-        lastFix = sentTime;
-      } else
-        fix = false;
-    }
-    p = strchr(p, ',') + 1; // then move on to the next
+    // Position, time, and fix are already decoded by the shared core.
+    for (uint8_t i = 0; i < 6; i++)
+      p = strchr(p, ',') + 1;
     // Most can just be parsed with atoi() or atof(), then move on to the next.
     if (!isEmpty(p))
       satellites = atoi(p);
@@ -100,50 +120,16 @@ bool Adafruit_GPS::parse(char *nmea) {
       geoidheight = atof(p); // skip the rest
 
   } else if (!strcmp(thisSentence, "RMC")) { //*****************************RMC
-    // in Adafruit from Actisense NGW-1 from SH CP150C
-    parseTime(p);
-    p = strchr(p, ',') + 1;
-    parseFix(p);
-    p = strchr(p, ',') + 1;
-    // parse out both latitude and direction, then go to next field, or fail
-    if (parseCoord(p, &latitudeDegrees, &latitude, &latitude_fixed, &lat))
-      newDataValue(NMEA_LAT, latitudeDegrees);
-    p = strchr(p, ',') + 1;
-    p = strchr(p, ',') + 1;
-    // parse out both longitude and direction, then go to next field, or fail
-    if (parseCoord(p, &longitudeDegrees, &longitude, &longitude_fixed, &lon))
-      newDataValue(NMEA_LON, longitudeDegrees);
-    p = strchr(p, ',') + 1;
-    p = strchr(p, ',') + 1;
+    for (uint8_t i = 0; i < 6; i++)
+      p = strchr(p, ',') + 1;
     if (!isEmpty(p))
       newDataValue(NMEA_SOG, speed = atof(p));
     p = strchr(p, ',') + 1;
     if (!isEmpty(p))
       newDataValue(NMEA_COG, angle = atof(p));
-    p = strchr(p, ',') + 1;
-    if (!isEmpty(p)) {
-      uint32_t fulldate = atof(p);
-      day = fulldate / 10000;
-      month = (fulldate % 10000) / 100;
-      year = (fulldate % 100);
-      lastDate = sentTime;
-    } // skip the rest
 
   } else if (!strcmp(thisSentence, "GLL")) { //*****************************GLL
-    // in Adafruit from Actisense NGW-1 from SH CP150C
-    // parse out both latitude and direction, then go to next field, or fail
-    if (parseCoord(p, &latitudeDegrees, &latitude, &latitude_fixed, &lat))
-      newDataValue(NMEA_LAT, latitudeDegrees);
-    p = strchr(p, ',') + 1;
-    p = strchr(p, ',') + 1;
-    // parse out both longitude and direction, then go to next field, or fail
-    if (parseCoord(p, &longitudeDegrees, &longitude, &longitude_fixed, &lon))
-      newDataValue(NMEA_LON, longitudeDegrees);
-    p = strchr(p, ',') + 1;
-    p = strchr(p, ',') + 1;
-    parseTime(p);
-    p = strchr(p, ',') + 1;
-    parseFix(p); // skip the rest
+    // All GLL fields are handled by the shared position decoder.
 
   } else if (!strcmp(thisSentence, "GSA")) { //*****************************GSA
     // in Adafruit from Actisense NGW-1
@@ -165,14 +151,27 @@ bool Adafruit_GPS::parse(char *nmea) {
     if (!isEmpty(p))
       VDOP = atof(p); // last before checksum
 
-  } else if (!strcmp(thisSentence, "TOP")) { //*****************************TOP
-    // See:
-    // https://learn.adafruit.com/adafruit-ultimate-gps-featherwing/antenna-options
-    // There is an output sentence that will tell you the status of the
-    // antenna. $PGTOP,11,x where x is the status number. If x is 3 that means
-    // it is using the external antenna. If x is 2 it's using the internal
+  } else if (!strcmp(thisSentence, "TOP") ||
+             !strcmp_P(thisSentence, PSTR("CD"))) { // Antenna status
+    if (fields < 2)
+      return false;
+    bool cdtop = !strcmp_P(thisSentence, PSTR("CD"));
+    // Only PCD subtype 11 describes the antenna; other CD messages differ.
+    if (cdtop && strncmp_P(nmea, PSTR("$PCD,11,"), 8))
+      return false;
     p = strchr(p, ',') + 1;
-    parseAntenna(p);
+    if (!parseAntenna(p))
+      return false;
+    if (cdtop) {
+      // PCD uses 1=internal, 2=external, 3=shorted. Preserve the public
+      // PGTOP convention: 1=problem, 2=internal, 3=external.
+      if (antenna == 1)
+        antenna = 2;
+      else if (antenna == 2)
+        antenna = 3;
+      else
+        antenna = 1;
+    }
   }
 
 #ifdef NMEA_EXTENSIONS // Sentences not required for basic GPS functionality
@@ -181,6 +180,8 @@ bool Adafruit_GPS::parse(char *nmea) {
     return false;
 
   } else if (!strcmp(thisSentence, "DBT")) { //*****************************DBT
+    if (fields < 5)
+      return false;
     // from Actisense NGW-1
     // feet, metres, fathoms below transducer coerced to water depth from
     // surface in metres
@@ -218,6 +219,8 @@ bool Adafruit_GPS::parse(char *nmea) {
       newDataValue(NMEA_HDT, atof(p)); // skip the rest
 
   } else if (!strcmp(thisSentence, "MDA")) { //*****************************MDA
+    if (fields < 9)
+      return false;
     // from Actisense NGW-1
     if (!isEmpty(p))
       newDataValue(NMEA_BAROMETER, atof(p) * 3386.39);
@@ -259,6 +262,8 @@ bool Adafruit_GPS::parse(char *nmea) {
       newDataValue(NMEA_HUMIDITY, atof(p)); // skip the rest
 
   } else if (!strcmp(thisSentence, "MTW")) { //*****************************MTW
+    if (fields < 2)
+      return false;
     nmea_float_t T = 100000.;
     char u = 'C';
     if (!isEmpty(p))
@@ -278,6 +283,8 @@ bool Adafruit_GPS::parse(char *nmea) {
     return false;
 
   } else if (!strcmp(thisSentence, "MWV")) { //*****************************MWV
+    if (fields < 5)
+      return false;
     // from Actisense NGW-1
     nmea_float_t ang = 100000.;
     char ref = 'T';
@@ -321,6 +328,8 @@ bool Adafruit_GPS::parse(char *nmea) {
     }
 
   } else if (!strcmp(thisSentence, "RMB")) { //*****************************RMB
+    if (fields < 12)
+      return false;
     // from Actisense NGW-1 from SH CP150C
     // RMB Recommended Minimum Navigation Information
     //       1 2   3 4    5    6       7 8        9 10  11 12  13 14
@@ -346,16 +355,9 @@ bool Adafruit_GPS::parse(char *nmea) {
     if (!isEmpty(p))
       xteDir = *p;
     p = strchr(p, ',') + 1;
-    if (xte < 10000.0f && xteDir != 'X') {
-      if (xteDir == 'L')
-        xte *= -1.0f;
-      newDataValue(NMEA_XTE, xte);
-    }
-    if (!isEmpty(p))
-      parseStr(toID, p, NMEA_MAX_WP_ID);
+    char *toIDField = p;
     p = strchr(p, ',') + 1;
-    if (!isEmpty(p))
-      parseStr(fromID, p, NMEA_MAX_WP_ID);
+    char *fromIDField = p;
     p = strchr(p, ',') + 1;
     nmea_float_t latitudeWP = 0;
     nmea_float_t longitudeWP = 0;
@@ -372,8 +374,6 @@ bool Adafruit_GPS::parse(char *nmea) {
       if (!parseCoord(p, &latitudeDegreesWP, &latitudeWP, &latitude_fixedWP,
                       &latWP))
         return false;
-      else
-        newDataValue(NMEA_LATWP, latitudeDegreesWP);
     }
     p = strchr(p, ',') + 1;
     p = strchr(p, ',') + 1;
@@ -383,9 +383,24 @@ bool Adafruit_GPS::parse(char *nmea) {
       if (!parseCoord(p, &longitudeDegreesWP, &longitudeWP, &longitude_fixedWP,
                       &lonWP))
         return false;
-      else
-        newDataValue(NMEA_LONWP, longitudeDegreesWP);
     }
+
+    // Any supplied coordinates passed validation. Save the cross-track error,
+    // waypoint IDs, and coordinates now; a rejected sentence must leave the
+    // previous data and history intact.
+    if (xte < 10000.0f && xteDir != 'X') {
+      if (xteDir == 'L')
+        xte *= -1.0f;
+      newDataValue(NMEA_XTE, xte);
+    }
+    if (!isEmpty(toIDField))
+      parseStr(toID, toIDField, NMEA_MAX_WP_ID);
+    if (!isEmpty(fromIDField))
+      parseStr(fromID, fromIDField, NMEA_MAX_WP_ID);
+    if (latWP != 'X')
+      newDataValue(NMEA_LATWP, latitudeDegreesWP);
+    if (lonWP != 'X')
+      newDataValue(NMEA_LONWP, longitudeDegreesWP);
     p = strchr(p, ',') + 1;
     p = strchr(p, ',') + 1;
     if (!isEmpty(p))
@@ -408,6 +423,8 @@ bool Adafruit_GPS::parse(char *nmea) {
     return false;
 
   } else if (!strcmp(thisSentence, "TXT")) { //*****************************TXT
+    if (fields < 4)
+      return false;
     if (!isEmpty(p))
       txtTot = atoi(p);
     p = strchr(p, ',') + 1;
@@ -425,6 +442,8 @@ bool Adafruit_GPS::parse(char *nmea) {
     return false;
 
   } else if (!strcmp(thisSentence, "VHW")) { //*****************************VHW
+    if (fields < 5)
+      return false;
     // from Actisense NGW-1
     if (!isEmpty(p))
       newDataValue(NMEA_HDT, atof(p));
@@ -438,6 +457,8 @@ bool Adafruit_GPS::parse(char *nmea) {
       newDataValue(NMEA_VTW, atof(p)); // skip the other units
 
   } else if (!strcmp(thisSentence, "VLW")) { //*****************************VLW
+    if (fields < 3)
+      return false;
     // from Actisense NGW-1
     if (!isEmpty(p))
       newDataValue(NMEA_LOG, atof(p));
@@ -447,6 +468,8 @@ bool Adafruit_GPS::parse(char *nmea) {
       newDataValue(NMEA_LOGR, atof(p)); // skip the other units
 
   } else if (!strcmp(thisSentence, "VPW")) { //*****************************VPW
+    if (fields < 3)
+      return false;
     // knots, metres/s coerced to knots
     nmea_float_t vmg = 100000.;
     if (!isEmpty(p))
@@ -462,6 +485,8 @@ bool Adafruit_GPS::parse(char *nmea) {
     return false;
 
   } else if (!strcmp(thisSentence, "VWR")) { //*****************************VWR
+    if (fields < 8)
+      return false;
     // from Actisense NGW-1
     nmea_float_t ang = 1000.;
     if (!isEmpty(p))
@@ -515,6 +540,8 @@ bool Adafruit_GPS::parse(char *nmea) {
       newDataValue(NMEA_VMGWP, atof(p)); // skip the rest
 
   } else if (!strcmp(thisSentence, "XTE")) { //*****************************XTE
+    if (fields < 5)
+      return false;
     // from Actisense NGW-1 from SH CP150C
     p = strchr(p, ',') + 1; // skip status 1
     p = strchr(p, ',') + 1; // skip status 2
@@ -551,9 +578,8 @@ bool Adafruit_GPS::parse(char *nmea) {
 
 /**************************************************************************/
 /*!
-    @brief Check an NMEA string for basic format, valid source ID and valid
-    and valid sentence ID. Update the values of thisCheck, thisSource and
-    thisSentence.
+    @brief Validate NMEA framing and checksum, then recognize its source and
+    complete sentence ID. Update thisCheck, thisSource and thisSentence.
     @param nmea Pointer to the NMEA string
     @return True if well formed, false if it has problems
 */
@@ -561,48 +587,35 @@ bool Adafruit_GPS::parse(char *nmea) {
 bool Adafruit_GPS::check(char *nmea) {
   thisCheck = 0; // new check
   *thisSentence = *thisSource = 0;
-  if (*nmea != '$' && *nmea != '!')
+  if (!nmea || (*nmea != '$' && *nmea != '!'))
     return false; // doesn't start with $ or !
   else
     thisCheck += NMEA_HAS_DOLLAR;
-  // do checksum check -- first look if we even have one -- ignore all but last
-  // *
-  char *ast = nmea; // not strchr(nmea,'*'); for first *
-  while (*ast)
-    ast++; // go to the end
-  while (*ast != '*' && ast > nmea)
-    ast--; // then back to * if it's there
-  if (*ast != '*')
-    return false; // there is no asterisk
-  else {
-    uint16_t sum = parseHex(*(ast + 1)) * 16; // extract checksum
-    sum += parseHex(*(ast + 2));
-    char *p = nmea; // check checksum
-    for (char *p1 = p + 1; p1 < ast; p1++)
-      sum ^= *p1;
-    if (sum != 0)
-      return false; // bad checksum :(
-    else
-      thisCheck += NMEA_HAS_CHECKSUM;
-  }
+  // Share framing and checksum rules with the byte receiver. Recognition
+  // remains here so unknown proprietary replies are still valid NMEA frames.
+  nmea_sentence_t sentence = Adafruit_NMEA::validate(nmea, strlen(nmea));
+  if (sentence.status != NMEA_FRAME_VALID)
+    return false;
+  thisCheck += NMEA_HAS_CHECKSUM;
   // extract source of variable length
   char *p = nmea + 1;
   const char *src = tokenOnList(p, sources);
   if (src) {
-    strcpy(thisSource, src);
+    strcpy_P(thisSource, src);
     thisCheck += NMEA_HAS_SOURCE;
   } else
     return false;
-  p += strlen(src);
+  p += strlen_P(src);
+  size_t sentenceLength = sentence.address.length - strlen_P(src);
   // extract sentence id and check if parsed
   const char *snc = tokenOnList(p, sentences_parsed);
-  if (snc) {
-    strcpy(thisSentence, snc);
+  if (snc && strlen_P(snc) == sentenceLength) {
+    strcpy_P(thisSentence, snc);
     thisCheck += NMEA_HAS_SENTENCE_P + NMEA_HAS_SENTENCE;
   } else { // check if known
     snc = tokenOnList(p, sentences_known);
-    if (snc) {
-      strcpy(thisSentence, snc);
+    if (snc && strlen_P(snc) == sentenceLength) {
+      strcpy_P(thisSentence, snc);
       thisCheck += NMEA_HAS_SENTENCE;
       return false; // known but not parsed
     } else {
@@ -617,18 +630,17 @@ bool Adafruit_GPS::check(char *nmea) {
 /*!
     @brief Check if a token at the start of a string is on a list.
     @param token Pointer to the string
-    @param list A list of strings, with the final entry starting "ZZ"
-    @return Pointer to the found token, or NULL if it fails
+    @param list A table in program memory, with the final entry starting "ZZ"
+    @return Program-memory pointer to the found token, or NULL if it fails
 */
 /**************************************************************************/
-const char *Adafruit_GPS::tokenOnList(char *token, const char **list) {
-  int i = 0; // index in the list
-  while (strncmp(list[i], "ZZ", 2) &&
-         i < 1000) { // stop at terminator and don't crash without it
+const char *Adafruit_GPS::tokenOnList(char *token, const char list[][4]) {
+  for (int i = 0; i < 1000; i++) {
+    if (pgm_read_byte(list[i]) == 'Z' && pgm_read_byte(list[i] + 1) == 'Z')
+      break; // stop at terminator
     // test for a match on the sentence name
-    if (!strncmp((const char *)list[i], (const char *)token, strlen(list[i])))
+    if (!strncmp_P(token, list[i], strlen_P(list[i])))
       return list[i];
-    i++;
   }
   return NULL; // couldn't find a match
 }
@@ -660,8 +672,8 @@ bool Adafruit_GPS::onList(char *nmea, const char **list) {
     Works for either DDMM.mmmm,N (latitude) or DDDMM.mmmm,W (longitude) format.
     Insensitive to number of decimal places present. Only fills the variables
     if it succeeds and the variable pointer is not NULL. This allows calling
-    to fill only the variables of interest. Does rudimentary validation on
-    angle range.
+    to fill only the variables of interest. Validates the complete coordinate
+    and hemisphere fields, including minute and degree limits.
 
     Supersedes private functions parseLat(), parseLon(), parseLatDir(),
     parseLonDir(), all previously called from parse().
@@ -680,62 +692,108 @@ bool Adafruit_GPS::onList(char *nmea, const char **list) {
 bool Adafruit_GPS::parseCoord(char *pStart, nmea_float_t *angleDegrees,
                               nmea_float_t *angle, int32_t *angle_fixed,
                               char *dir) {
-  char *p = pStart;
-  if (!isEmpty(p)) {
-    // get the number in DDDMM.mmmm format and break into components
-    char degreebuff[10] = {0}; // Ensure string is terminated after strncpy
-    char *e = strchr(p, '.');
-    if (e == NULL || e - p > 6)
-      return false;                // no decimal point in range
-    strncpy(degreebuff, p, e - p); // get DDDMM
-    long dddmm = atol(degreebuff);
-    long degrees = (dddmm / 100);         // truncate the minutes
-    long minutes = dddmm - degrees * 100; // remove the degrees
-    p = e;                                // start from the decimal point
-    nmea_float_t decminutes = atof(e); // the fraction after the decimal point
-    p = strchr(p, ',') + 1;            // go to the next field
+  if (!pStart)
+    return false;
+  // Bound just the coordinate and hemisphere, stopping before the next field.
+  // Character comparisons avoid placing a delimiter string in AVR RAM.
+  char *end = pStart;
+  uint8_t commas = 0;
+  while (*end && *end != '*') {
+    if (*end == ',' && ++commas == 2)
+      break;
+    end++;
+  }
+  nmea_span_t remaining = {pStart, (size_t)(end - pStart)};
+  nmea_span_t value = Adafruit_NMEA::nextField(remaining);
+  nmea_span_t hemisphere = Adafruit_NMEA::nextField(remaining);
+  gnss_coordinate_t coordinate =
+      Adafruit_GNSS::parseCoordinate(value, hemisphere);
+  if (coordinate.status != NMEA_NUMBER_VALID)
+    return false;
 
-    // get the NSEW direction as a character
-    char nsew = 'X';
-    if (!isEmpty(p))
-      nsew = *p; // field is not empty
-    else
-      return false; // no direction provided
-
-    // set the various numerical formats to their values
-    long fixed = degrees * 10000000 + (minutes * 10000000) / 60 +
-                 (decminutes * 10000000) / 60;
-    nmea_float_t ang = degrees * 100 + minutes + decminutes;
-    nmea_float_t deg = fixed / (nmea_float_t)10000000.;
-    if (nsew == 'S' ||
-        nsew == 'W') { // fixed and deg are signed, but DDDMM.mmmm is not
-      fixed = -fixed;
-      deg = -deg;
-    }
-
-    // reject directions that are not NSEW
-    if (nsew != 'N' && nsew != 'S' && nsew != 'E' && nsew != 'W')
-      return false;
-
-    // reject angles that are out of range
-    if (nsew == 'N' || nsew == 'S')
-      if (abs(deg) > 90)
-        return false;
-    if (abs(deg) > 180)
-      return false;
-
-    // store in locations passed as args
-    if (angle != NULL)
-      *angle = ang;
-    if (angle_fixed != NULL)
-      *angle_fixed = fixed;
-    if (angleDegrees != NULL)
-      *angleDegrees = deg;
-    if (dir != NULL)
-      *dir = nsew;
-  } else
-    return false; // no number
+  setCoordinate(coordinate, angleDegrees, angle, angle_fixed, dir);
   return true;
+}
+
+/**************************************************************************/
+/*!
+    @brief Convert exact components into the legacy coordinate representations.
+    @param coordinate Validated coordinate components.
+    @param angleDegrees Optional signed decimal degrees output.
+    @param angle Optional unsigned degrees/minutes output.
+    @param angle_fixed Optional signed E7 output.
+    @param dir Optional hemisphere output.
+*/
+/**************************************************************************/
+void Adafruit_GPS::setCoordinate(const gnss_coordinate_t &coordinate,
+                                 nmea_float_t *angleDegrees,
+                                 nmea_float_t *angle, int32_t *angle_fixed,
+                                 char *dir) {
+  // Derive convenience floats only after exact fixed-point conversion. Keep
+  // their available precision instead of rebuilding them from the E7 value.
+  nmea_float_t minutes = coordinate.minutes + coordinate.fractionalMinutes /
+                                                  (nmea_float_t)1000000000.0;
+  nmea_float_t degrees = coordinate.degrees + minutes / 60;
+  if (coordinate.hemisphere == 'S' || coordinate.hemisphere == 'W')
+    degrees = -degrees;
+  if (angle)
+    *angle = coordinate.degrees * 100 + minutes;
+  if (angle_fixed)
+    *angle_fixed = coordinate.degreesE7;
+  if (angleDegrees)
+    *angleDegrees = degrees;
+  if (dir)
+    *dir = coordinate.hemisphere;
+}
+
+/**************************************************************************/
+/*!
+    @brief Apply one validated shared position result to legacy GPS state.
+    @param type Sentence type without its talker prefix.
+    @param fields Bounded fields from the already checked frame.
+    @return Shared validation status; rejected sentences leave data unchanged.
+
+    Empty fields preserve previous values and timestamps. GGA quality and
+    RMC/GLL validity remain independent, and only a positive fix refreshes
+    lastFix. Exact components are converted only at the legacy float boundary.
+*/
+/**************************************************************************/
+gnss_sentence_status_t Adafruit_GPS::updatePosition(nmea_span_t type,
+                                                    nmea_span_t fields) {
+  gnss_position_t position = Adafruit_GNSS::parsePosition(type, fields);
+  if (position.validation.status != GNSS_SENTENCE_VALID)
+    return position.validation.status;
+  if (position.latitude.status == NMEA_NUMBER_VALID) {
+    setCoordinate(position.latitude, &latitudeDegrees, &latitude,
+                  &latitude_fixed, &lat);
+    newDataValue(NMEA_LAT, latitudeDegrees);
+  }
+  if (position.longitude.status == NMEA_NUMBER_VALID) {
+    setCoordinate(position.longitude, &longitudeDegrees, &longitude,
+                  &longitude_fixed, &lon);
+    newDataValue(NMEA_LON, longitudeDegrees);
+  }
+  if (position.time.status == NMEA_NUMBER_VALID) {
+    hour = position.time.hour;
+    minute = position.time.minute;
+    seconds = position.time.second;
+    milliseconds = position.time.millisecond;
+    lastTime = sentTime;
+  }
+  if (position.date.status == NMEA_NUMBER_VALID) {
+    day = position.date.day;
+    month = position.date.month;
+    year = position.date.year;
+    lastDate = sentTime;
+  }
+  if (position.fixStatus == NMEA_NUMBER_VALID) {
+    fix = position.fix;
+    if (fix)
+      lastFix = sentTime;
+  }
+  if (position.fixQualityStatus == NMEA_NUMBER_VALID)
+    fixquality = position.fixQuality;
+  return GNSS_SENTENCE_VALID;
 }
 
 /**************************************************************************/
@@ -750,81 +808,30 @@ bool Adafruit_GPS::parseCoord(char *pStart, nmea_float_t *angleDegrees,
 /**************************************************************************/
 char *Adafruit_GPS::parseStr(char *buff, char *p, int n) {
   char *e = strchr(p, ',');
-  int len = 0;
-  if (e) {
-    len = min(int(e - p), n - 1);
-    strncpy(buff, p, len); // copy up to the comma
-    buff[len] = 0;
-  } else {
+  if (!e) {
     e = strchr(p, '*');
-    if (e) {
-      len = min(int(e - p), n - 1);
-      strncpy(buff, p, len); // or up to the *
-      buff[e - p] = 0;
-    } else {
-      len = min((int)strlen(p), n - 1);
-      strncpy(buff, p, len); // or to the end or max capacity
-    }
   }
+  int len;
+  if (e) {
+    len = min((int)(e - p), n - 1);
+  } else {
+    len = min((int)strlen(p), n - 1);
+  }
+  memcpy(buff, p, len);
+  buff[len] = 0;
   return buff;
-}
-
-/**************************************************************************/
-/*!
-    @brief Parse a part of an NMEA string for time. Independent of number
-    of decimal places after the '.'
-    @param p Pointer to the location of the token in the NMEA string
-    @return true if successful, false otherwise
-*/
-/**************************************************************************/
-bool Adafruit_GPS::parseTime(char *p) {
-  if (!isEmpty(p)) { // get time
-    uint32_t time = atol(p);
-    hour = time / 10000;
-    minute = (time % 10000) / 100;
-    seconds = (time % 100);
-    char *dec = strchr(p, '.');
-    char *comstar = min(strchr(p, ','), strchr(p, '*'));
-    if (dec != NULL && comstar != NULL && dec < comstar)
-      milliseconds = atof(dec) * 1000;
-    else
-      milliseconds = 0;
-    lastTime = sentTime;
-    return true;
-  }
-  return false;
-}
-
-/**************************************************************************/
-/*!
-    @brief Parse a part of an NMEA string for whether there is a fix
-    @param p Pointer to the location of the token in the NMEA string
-    @return True if we parsed it, false if it has invalid data
-*/
-/**************************************************************************/
-bool Adafruit_GPS::parseFix(char *p) {
-  if (!isEmpty(p)) {
-    if (p[0] == 'A') {
-      fix = true;
-      lastFix = sentTime;
-    } else if (p[0] == 'V')
-      fix = false;
-    else
-      return false;
-    return true;
-  }
-  return false;
 }
 
 /**************************************************************************/
 /*!
     @brief Parse a part of an NMEA string for antenna that is used
     @param p Pointer to the location of the token in the NMEA string
-    @return 3=external 2=internal 1=there was an antenna short or problem
+    @return True if the antenna status was recognized, false otherwise
 */
 /**************************************************************************/
 bool Adafruit_GPS::parseAntenna(char *p) {
-  if (!isEmpty(p)) {
+  if (!isEmpty(p) && p[0] != '\0' &&
+      (p[1] == ',' || p[1] == '*' || p[1] == '\0')) {
     if (p[0] == '3') {
       antenna = 3;
     } else if (p[0] == '2') {
@@ -848,7 +855,7 @@ bool Adafruit_GPS::parseAntenna(char *p) {
 */
 /**************************************************************************/
 bool Adafruit_GPS::isEmpty(char *pStart) {
-  if (',' != *pStart && '*' != *pStart && pStart != NULL)
+  if (pStart != NULL && ',' != *pStart && '*' != *pStart)
     return false;
   else
     return true;

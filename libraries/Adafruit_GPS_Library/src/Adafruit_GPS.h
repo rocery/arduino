@@ -60,6 +60,7 @@
 #ifdef USE_SW_SERIAL
 #include <SoftwareSerial.h>
 #endif
+#include <Adafruit_GNSS.h>
 #include <Adafruit_PMTK.h>
 #include <NMEA_data.h>
 #include <SPI.h>
@@ -101,11 +102,13 @@ public:
   size_t write(uint8_t);
   char read(void);
   void sendCommand(const char *);
+  void sendCommand(const __FlashStringHelper *);
   bool newNMEAreceived();
   void pause(bool b);
   char *lastNMEA(void);
+  gnss_position_t lastPosition() const;
   bool waitForSentence(const char *wait, uint8_t max = MAXWAITSENTENCE,
-                       bool usingInterrupts = false);
+                       bool usingInterrupts = false, uint32_t timeout = 10000);
   bool LOCUS_StartLogger(void);
   bool LOCUS_StopLogger(void);
   bool LOCUS_ReadStatus(void);
@@ -201,7 +204,7 @@ public:
   uint8_t fixquality;    ///< Fix quality (0, 1, 2 = Invalid, GPS, DGPS)
   uint8_t fixquality_3d; ///< 3D fix quality (1, 3, 3 = Nofix, 2D fix, 3D fix)
   uint8_t satellites;    ///< Number of satellites in use
-  uint8_t antenna;       ///< Antenna that is used (from PGTOP)
+  uint8_t antenna;       ///< 1=problem, 2=internal, 3=external (PGTOP or PCD)
 
   uint16_t LOCUS_serial;  ///< Log serial number
   uint16_t LOCUS_records; ///< Log number of data record
@@ -243,33 +246,22 @@ private:
   // NMEA_data.cpp
   void data_init();
   // NMEA_parse.cpp
-  const char *tokenOnList(char *token, const char **list);
+  const char *tokenOnList(char *token, const char list[][4]);
   bool parseCoord(char *p, nmea_float_t *angleDegrees = NULL,
                   nmea_float_t *angle = NULL, int32_t *angle_fixed = NULL,
                   char *dir = NULL);
   char *parseStr(char *buff, char *p, int n);
-  bool parseTime(char *);
-  bool parseFix(char *);
+  void setCoordinate(const gnss_coordinate_t &coordinate,
+                     nmea_float_t *angleDegrees, nmea_float_t *angle,
+                     int32_t *angle_fixed, char *dir);
+  gnss_sentence_status_t updatePosition(nmea_span_t type, nmea_span_t fields);
   bool parseAntenna(char *);
   bool isEmpty(char *pStart);
 
-  // used by check() for validity tests, room for future expansion
-  const char *sources[7] = {"II", "WI", "GP", "PG",
-                            "GN", "P",  "ZZZ"}; ///< valid source ids
-#ifdef NMEA_EXTENSIONS
-  const char *sentences_parsed[21] = {"GGA", "GLL", "GSA", "RMC", "DBT", "HDM",
-                                      "HDT", "MDA", "MTW", "MWV", "RMB", "TOP",
-                                      "TXT", "VHW", "VLW", "VPW", "VWR", "WCV",
-                                      "XTE", "ZZZ"}; ///< parseable sentence ids
-  const char *sentences_known[15] = {
-      "APB", "DPT", "GSV", "HDG", "MWD", "ROT",
-      "RPM", "RSA", "VDR", "VTG", "ZDA", "ZZZ"}; ///< known, but not parseable
-#else // make the lists short to save memory
-  const char *sentences_parsed[6] = {"GGA", "GLL", "GSA", "RMC",
-                                     "TOP", "ZZZ"}; ///< parseable sentence ids
-  const char *sentences_known[4] = {"DBT", "HDM", "HDT",
-                                    "ZZZ"}; ///< known, but not parseable
-#endif
+  // Shared flash tables avoid RAM copies of both the IDs and their pointers.
+  static const char PROGMEM sources[][4];          ///< valid source ids
+  static const char PROGMEM sentences_parsed[][4]; ///< parseable sentence ids
+  static const char PROGMEM sentences_known[][4];  ///< known, but not parseable
 
   // Make all of these times far in the past by setting them near the middle of
   // the millis() range. Timing assumes that sentences are parsed promptly.
@@ -278,8 +270,6 @@ private:
   uint32_t lastFix = 2000000000L;  ///< millis() when last fix received
   uint32_t lastTime = 2000000000L; ///< millis() when last time received
   uint32_t lastDate = 2000000000L; ///< millis() when last date received
-  uint32_t recvdTime =
-      2000000000L; ///< millis() when last full sentence received
   uint32_t sentTime = 2000000000L; ///< millis() when first character of last
                                    ///< full sentence received
   bool paused;
@@ -296,8 +286,6 @@ private:
   int8_t gpsSPI_cs = -1;
   SPISettings gpsSPI_settings =
       SPISettings(1000000, MSBFIRST, SPI_MODE0); // default
-  char _spibuffer[GPS_MAX_SPI_TRANSFER]; // for when we write data, we need to
-                                         // read it too!
   uint8_t _i2caddr;
   char _i2cbuffer[GPS_MAX_I2C_TRANSFER];
   int8_t _buff_max = -1, _buff_idx = 0;
@@ -306,11 +294,11 @@ private:
   volatile char line1[MAXLINELENGTH]; ///< We double buffer: read one line in
                                       ///< and leave one for the main program
   volatile char line2[MAXLINELENGTH]; ///< Second buffer
-  volatile uint8_t lineidx = 0; ///< our index into filling the current line
-  volatile char *currentline;   ///< Pointer to current line buffer
-  volatile char *lastline;      ///< Pointer to previous line buffer
-  volatile bool recvdflag;      ///< Received flag
-  volatile bool inStandbyMode;  ///< In standby flag
+  Adafruit_GNSS receiver{line1, line2, MAXLINELENGTH}; ///< Shared GNSS receiver
+  const char *volatile lastline =
+      (const char *)line2;     ///< Completed line published by read()
+  volatile bool recvdflag;     ///< Received flag
+  volatile bool inStandbyMode; ///< In standby flag
 };
 /**************************************************************************/
 

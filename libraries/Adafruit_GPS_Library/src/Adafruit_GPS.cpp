@@ -159,9 +159,9 @@ void Adafruit_GPS::common_init(void) {
   gpsSPI = NULL;
   recvdflag = false;
   paused = false;
-  lineidx = 0;
-  currentline = line1;
-  lastline = line2;
+  // Reset clears both buffers without swapping them. Keep lastline pointing
+  // at the completed buffer, which may be either line1 or line2 by now.
+  receiver.reset();
 
   hour = minute = seconds = year = month = day = fixquality = fixquality_3d =
       satellites = antenna = 0; // uint8_t
@@ -277,8 +277,7 @@ size_t Adafruit_GPS::write(uint8_t c) {
 */
 /**************************************************************************/
 char Adafruit_GPS::read(void) {
-  static uint32_t firstChar = 0; // first character received in current sentence
-  uint32_t tStart = millis();    // as close as we can get to time char was sent
+  uint32_t tStart = millis(); // as close as we can get to time char was sent
   char c = 0;
 
   if (paused || noComms)
@@ -308,8 +307,8 @@ char Adafruit_GPS::read(void) {
       _buff_idx++;
     } else {
       // refill the buffer!
-      if (gpsI2C->requestFrom((uint8_t)0x10, (uint8_t)GPS_MAX_I2C_TRANSFER,
-                              (uint8_t) true) == GPS_MAX_I2C_TRANSFER) {
+      if (gpsI2C->requestFrom((uint8_t)_i2caddr, (uint8_t)GPS_MAX_I2C_TRANSFER,
+                              true) == GPS_MAX_I2C_TRANSFER) {
         // got data!
         _buff_max = 0;
         char curr_char = 0;
@@ -351,36 +350,15 @@ char Adafruit_GPS::read(void) {
   }
   // Serial.print(c);
 
-  currentline[lineidx] = c;
-  lineidx = lineidx + 1;
-  if (lineidx >= MAXLINELENGTH)
-    lineidx = MAXLINELENGTH -
-              1; // ensure there is someplace to put the next received character
-
-  if (c == '\n') {
-    currentline[lineidx] = 0;
-
-    if (currentline == line1) {
-      currentline = line2;
-      lastline = line1;
-    } else {
-      currentline = line1;
-      lastline = line2;
-    }
-
-    // Serial.println("----");
-    // Serial.println((char *)lastline);
-    // Serial.println("----");
-    lineidx = 0;
+  nmea_frame_status_t status = receiver.feed((uint8_t)c, tStart);
+  if (c == '\n' && status != NMEA_FRAME_INCOMPLETE &&
+      status != NMEA_FRAME_OVERFLOW) {
+    // Publish only after the buffer and timestamp are ready. Keep read() as
+    // the sole framer owner so interrupt-driven sketches consume lastline.
+    lastline = receiver.lastText().data;
+    sentTime = receiver.sentenceStartedAt();
     recvdflag = true;
-    recvdTime = millis(); // time we got the end of the string
-    sentTime = firstChar;
-    firstChar = 0; // there are no characters yet
-    return c;      // wait until next character to set time
   }
-
-  if (firstChar == 0)
-    firstChar = tStart;
   return c;
 }
 
@@ -391,6 +369,14 @@ char Adafruit_GPS::read(void) {
 */
 /**************************************************************************/
 void Adafruit_GPS::sendCommand(const char *str) { println(str); }
+
+/**************************************************************************/
+/*!
+    @brief Send a command stored in flash
+    @param str Command wrapped in F()
+*/
+/**************************************************************************/
+void Adafruit_GPS::sendCommand(const __FlashStringHelper *str) { println(str); }
 
 /**************************************************************************/
 /*!
@@ -421,18 +407,58 @@ char *Adafruit_GPS::lastNMEA(void) {
 
 /**************************************************************************/
 /*!
-    @brief Wait for a specified sentence from the device
-    @param wait4me Pointer to a string holding the desired response
-    @param max How long to wait, default is MAXWAITSENTENCE
-    @param usingInterrupts True if using interrupts to read from the GPS
-   (default is false)
-    @return True if we got what we wanted, false otherwise
+    @brief Decode the latest received sentence with exact coordinate precision.
+    @return Independent GGA/RMC/GLL position data and per-field status.
+
+    Call after read() completes a line. This does not acknowledge the receive
+    flag, update legacy GPS fields, or merge data from earlier sentences. Use
+    lastNMEA() to acknowledge the line and parse() to update legacy fields.
+    Parsing a caller-supplied string does not replace the received sentence.
+
+    Check validation and each field's status; a valid fix flag does not imply
+    populated coordinates. Exact components can be passed to
+    Adafruit_GNSS::formatCoordinate() even when nmea_float_t is float.
+    No stored fix or extra receive buffer is added. The result owns its values
+    and survives subsequent input. Calls must be synchronized with read(),
+    including when read() runs in an interrupt.
+
+    Before reception or after common_init(), returns INVALID_FRAME. Invalid
+    complete lines return INVALID_FRAME; valid non-position sentences return
+    UNSUPPORTED. Partial or oversized input preserves the last complete line.
 */
 /**************************************************************************/
+gnss_position_t Adafruit_GPS::lastPosition() const {
+  return receiver.lastPosition();
+}
+
+/**************************************************************************/
+/*!
+ * @brief Wait for a specified sentence from the device
+ * @param wait4me
+ * Pointer to a string holding the desired response
+ * @param max Sentence limit
+ * (default MAXWAITSENTENCE)
+ * @param usingInterrupts True if interrupts read
+ * the GPS (default false)
+ * @param timeout Time limit in milliseconds (default
+ * 10000)
+ * @return True on a valid matching frame, false on NULL prefix or either limit.
+ *
+ * Matching remains a text-prefix comparison, but the complete NMEA frame must
+ * have valid syntax and checksum. Unknown proprietary addresses are allowed;
+ * no GPS sentence whitelist or command-result interpretation is applied.
+ * Every completed line, including invalid and nonmatching lines, counts toward
+ * max. The accepted raw reply remains available through lastNMEA().
+ */
+/**************************************************************************/
 bool Adafruit_GPS::waitForSentence(const char *wait4me, uint8_t max,
-                                   bool usingInterrupts) {
+                                   bool usingInterrupts, uint32_t timeout) {
+  if (!wait4me)
+    return false;
   uint8_t i = 0;
-  while (i < max) {
+  uint32_t start = millis();
+  // A silent GPS, including an I2C device that NAKs, never advances i.
+  while (i < max && (uint32_t)(millis() - start) < timeout) {
     if (!usingInterrupts)
       read();
 
@@ -440,9 +466,18 @@ bool Adafruit_GPS::waitForSentence(const char *wait4me, uint8_t max,
       char *nmea = lastNMEA();
       i++;
 
-      if (strStartsWith(nmea, wait4me))
-        return true;
+      if (strStartsWith(nmea, wait4me)) {
+        // read() publishes a complete LF-terminated receive buffer. Bound the
+        // whole line, including any embedded NUL, so a valid-looking prefix
+        // cannot hide corrupt bytes from checksum/framing validation.
+        const char *end = (const char *)memchr(nmea, '\n', MAXLINELENGTH);
+        if (end &&
+            Adafruit_NMEA::validate(nmea, (size_t)(end - nmea) + 1).status ==
+                NMEA_FRAME_VALID)
+          return true;
+      }
     }
+    yield();
   }
 
   return false;
@@ -545,15 +580,21 @@ bool Adafruit_GPS::standby(void) {
 
 /**************************************************************************/
 /*!
-    @brief Wake the sensor up
-    @return True if woken up, false if not in standby or failed to wake
-*/
+ * @brief Wake the sensor up
+ * @return True if woken up, false if not in
+ * standby or failed to wake
+ * @note A failed wakeup preserves standby state
+ * for retries.
+ */
 /**************************************************************************/
 bool Adafruit_GPS::wakeup(void) {
   if (inStandbyMode) {
-    inStandbyMode = false;
     sendCommand(""); // send byte to wake it up
-    return waitForSentence(PMTK_AWAKE);
+    if (waitForSentence(PMTK_AWAKE)) {
+      inStandbyMode = false;
+      return true;
+    }
+    return false;
   } else {
     return false; // Returns false if not in standby mode, nothing to wakeup
   }

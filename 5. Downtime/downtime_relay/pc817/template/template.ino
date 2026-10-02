@@ -21,7 +21,7 @@
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
 
-const int DEVICE_ID = 196;
+const int DEVICE_ID = 199;
 const String LOCATION = "Mesin 43 - Kerupuk";
 const String PRODUCTION = "Kerupuk";
 
@@ -110,15 +110,14 @@ bool setupWiFi() {
 }
 
 bool connectWiFi() {
-    setupWiFi();
-    if (wifiMulti.run() != WL_CONNECTED) {
-      return false;
-    }
-    return true;
+  setupWiFi();
+  if (wifiMulti.run() != WL_CONNECTED) {
+    return false;
+  }
+  return true;
 }
 
-void setup()
-{
+void setup() {
   Serial.begin(115200);
   setupPin_PC817();
   pinMode(LED_PIN, OUTPUT);
@@ -134,11 +133,9 @@ void setup()
   } else {
     blinkLED(1, 500);
   }
-
 }
 
-void loop()
-{
+void loop() {
   // Baca semua input PC817
   readPin_PC817();
 
