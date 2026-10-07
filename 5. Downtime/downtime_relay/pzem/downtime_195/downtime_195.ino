@@ -57,7 +57,7 @@ const unsigned int RESET_COUNTER_LIMIT = 480;
 const unsigned long WIFI_RETRY_TIMEOUT = 500;
 const int WIFI_RETRY_LIMIT = 15;
 
-const float VOLTAGE_THRESHOLD = 180.0;
+float VOLTAGE_THRESHOLD = 180.0;
 
 // Lama voltase harus hilang terus-menerus sebelum mesin dinyatakan OFF
 const unsigned long OFF_CONFIRM_DURATION = 120000; // 2 menit

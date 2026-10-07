@@ -57,7 +57,7 @@ const unsigned int RESET_COUNTER_LIMIT = 480;
 const unsigned long WIFI_RETRY_TIMEOUT = 500;
 const int WIFI_RETRY_LIMIT = 15;
 
-const float VOLTAGE_THRESHOLD = 180.0;
+float VOLTAGE_THRESHOLD = 180.0;
 
 // Lama voltase harus hilang terus-menerus sebelum mesin dinyatakan OFF
 const unsigned long OFF_CONFIRM_DURATION = 120000; // 2 menit
@@ -221,6 +221,11 @@ bool sendLogData() {
 
   Serial.println("[SEND] Log Data: " + postData);
   return sendHTTPRequest(API_LOG_ENDPOINT, postData);
+}
+
+void getThresholdFromServer() {
+  // GET /molding_api/getConfig.php?ip=192.168.7.195
+  // Parse response dan set VOLTAGE_THRESHOLD
 }
 
 // ============================================
