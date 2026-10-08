@@ -224,8 +224,10 @@ bool sendLogData() {
 }
 
 void getThresholdFromServer() {
-  // GET /molding_api/getConfig.php?ip=192.168.7.195
-  // Parse response dan set VOLTAGE_THRESHOLD
+  // http://192.168.10.223/molding_api/getVoltageThreshold.php?ip=192.168.7.195
+  // Result: {"voltage_threshold":20}
+  // VOLTAGE_THRESHOLD = voltage_threshold
+
 }
 
 // ============================================
