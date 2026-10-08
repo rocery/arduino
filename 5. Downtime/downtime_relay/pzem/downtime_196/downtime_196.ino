@@ -1,11 +1,8 @@
 /*
   V 0.9.5
-  Update Terakhir : 19-08-2026
+  Update Terakhir : 08-10-2026
   Last Change Log {
-    1. Sensor PZEM dipasang di sisi output AC relay (bukan input mesin langsung)
-    2. Mesin dianggap OFF hanya jika voltase tidak terdeteksi >= 2 menit berturut-turut
-    3. Transisi OFF -> ON tetap dilaporkan segera (tanpa debounce), karena relay bisa on/off < 1 detik
-    4. Proses pengiriman data (saveStatus + createFile) tidak diubah
+    1. Add Voltage Threshold Config from Server
   }
 
   Komponen:
@@ -20,6 +17,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <SoftwareSerial.h>
+#include <ArduinoJson.h>
 
 // ============================================
 // CONFIGURATION SECTION
@@ -34,7 +32,7 @@
 #define DEVICE_ID 196
 
 const char* WIFI_NETWORKS[3][2] = {
-  { "STTB2", "Si4nt4r321" },
+  { "STTB11", "Si4nt4r321" },
   { "STTB4", "siantar123" },
   { "MT3", "siantar321" }
 };
@@ -49,15 +47,17 @@ IPAddress SECONDARY_DNS(8, 8, 4, 4);
 const char* API_HOST = "192.168.7.223";
 const char* API_STATUS_ENDPOINT = "/molding_api/saveStatus.php";
 const char* API_LOG_ENDPOINT = "/molding_api/createFile.php";
+const String API_VOLTAGE_THRESHOLD = "/molding_api/getVoltageThreshold.php?ip=";
 const int API_PORT = 80;
 
 const unsigned long PZEM_READ_INTERVAL = 100;
 const unsigned long DATA_SEND_INTERVAL = 15000;
 const unsigned int RESET_COUNTER_LIMIT = 480;
 const unsigned long WIFI_RETRY_TIMEOUT = 500;
+const unsigned int GET_THRESHOLD_LIMIT = 8;
 const int WIFI_RETRY_LIMIT = 15;
 
-const float VOLTAGE_THRESHOLD = 180.0;
+float VOLTAGE_THRESHOLD = 20.0;
 
 // Lama voltase harus hilang terus-menerus sebelum mesin dinyatakan OFF
 const unsigned long OFF_CONFIRM_DURATION = 120000; // 2 menit
@@ -223,6 +223,57 @@ bool sendLogData() {
   return sendHTTPRequest(API_LOG_ENDPOINT, postData);
 }
 
+void getThresholdFromServer() {
+  // example api: http://192.168.10.223/molding_api/getVoltageThreshold.php?ip=192.168.7.195
+  // return api: {"voltage_threshold":20}
+  // result: VOLTAGE_THRESHOLD = voltage_threshold
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("[CONFIG] WiFi not connected, skipping threshold update");
+    return;
+  }
+
+  HTTPClient http;
+  WiFiClient client;
+
+  String url = String("http://") + API_HOST + API_VOLTAGE_THRESHOLD + deviceIP;
+  http.begin(client, url);
+  http.setTimeout(5000);
+
+  int httpCode = http.GET();
+
+  Serial.print("[CONFIG] GET ");
+  Serial.print(url);
+  Serial.print(" - Response: ");
+  Serial.println(httpCode);
+
+  if (httpCode == HTTP_CODE_OK) {
+    String payload = http.getString();
+    Serial.print("[CONFIG] Response: ");
+    Serial.println(payload);
+
+    StaticJsonDocument<200> doc;
+    DeserializationError error = deserializeJson(doc, payload);
+
+    if (!error) {
+      if (doc.containsKey("voltage_threshold")) {
+        VOLTAGE_THRESHOLD = doc["voltage_threshold"].as<float>();
+        Serial.print("[CONFIG] Updated VOLTAGE_THRESHOLD: ");
+        Serial.println(VOLTAGE_THRESHOLD);
+      } else {
+        Serial.println("[ERROR] 'voltage_threshold' key not found in JSON");
+      }
+    } else {
+      Serial.print("[ERROR] JSON parsing error: ");
+      Serial.println(error.c_str());
+    }
+  } else {
+    Serial.print("[ERROR] HTTP GET failed with code: ");
+    Serial.println(httpCode);
+  }
+
+  http.end();
+}
+
 // ============================================
 // FUNCTION: Detect Machine State Change
 // ============================================
@@ -365,6 +416,8 @@ void setup() {
     Serial.println("[WARNING] Proceeding without WiFi");
   }
 
+  getThresholdFromServer();
+
   delay(1000);
 }
 
@@ -430,6 +483,11 @@ void loop() {
       Serial.println(" successful sends");
       delay(1000);
       ESP.reset();
+    }
+
+    if (sendDataCounter % GET_THRESHOLD_LIMIT == 0) {
+      getThresholdFromServer();
+      delay(1000);
     }
   }
 }
