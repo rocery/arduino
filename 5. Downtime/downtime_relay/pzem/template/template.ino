@@ -1,8 +1,8 @@
 /*
-  V 0.9.5
-  Update Terakhir : 08-10-2026
+  V 0.9.6
+  Update Terakhir : 09-10-2026
   Last Change Log {
-    1. Add Voltage Threshold Config from Server
+    1. Add Voltage Threshold and Off Confirm Duration Config from Server
   }
 
   Komponen:
@@ -222,6 +222,11 @@ bool sendLogData() {
   Serial.println("[SEND] Log Data: " + postData);
   return sendHTTPRequest(API_LOG_ENDPOINT, postData);
 }
+
+// ============================================
+// FUNCTION: Get Voltage Threshold from Server
+// and off_confirm_duration
+// ============================================
 
 void getThresholdFromServer() {
   // example api: http://192.168.10.223/molding_api/getVoltageThreshold.php?ip=192.168.7.195
