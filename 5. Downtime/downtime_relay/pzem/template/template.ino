@@ -57,10 +57,10 @@ const unsigned long WIFI_RETRY_TIMEOUT = 500;
 const unsigned int GET_THRESHOLD_LIMIT = 8;
 const int WIFI_RETRY_LIMIT = 15;
 
+// Batas voltase mesin dinyatakan 'OFF'
 float VOLTAGE_THRESHOLD = 20.0;
-
 // Lama voltase harus hilang terus-menerus sebelum mesin dinyatakan OFF
-const unsigned long OFF_CONFIRM_DURATION = 120000; // 2 menit
+long OFF_CONFIRM_DURATION = 120000; // 2 menit
 
 // ============================================
 // GLOBAL VARIABLES
@@ -225,8 +225,7 @@ bool sendLogData() {
 
 void getThresholdFromServer() {
   // example api: http://192.168.10.223/molding_api/getVoltageThreshold.php?ip=192.168.7.195
-  // return api: {"voltage_threshold":20}
-  // result: VOLTAGE_THRESHOLD = voltage_threshold
+  // return api: {"voltage_threshold":20, "off_confirm_duration":120000}
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("[CONFIG] WiFi not connected, skipping threshold update");
     return;
@@ -255,12 +254,16 @@ void getThresholdFromServer() {
     DeserializationError error = deserializeJson(doc, payload);
 
     if (!error) {
-      if (doc.containsKey("voltage_threshold")) {
+      if (doc.containsKey("voltage_threshold") && doc.containsKey("off_confirm_duration")) {
         VOLTAGE_THRESHOLD = doc["voltage_threshold"].as<float>();
+        OFF_CONFIRM_DURATION = doc["off_confirm_duration"].as<long>();
         Serial.print("[CONFIG] Updated VOLTAGE_THRESHOLD: ");
         Serial.println(VOLTAGE_THRESHOLD);
+        Serial.print("[CONFIG] Updated OFF_CONFIRM_DURATION: ");
+        Serial.println(OFF_CONFIRM_DURATION);
       } else {
         Serial.println("[ERROR] 'voltage_threshold' key not found in JSON");
+        Serial.println("[ERROR] 'off_confirm_duration' key not found in JSON");
       }
     } else {
       Serial.print("[ERROR] JSON parsing error: ");
