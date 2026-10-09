@@ -224,8 +224,7 @@ bool sendLogData() {
 }
 
 // ============================================
-// FUNCTION: Get Voltage Threshold from Server
-// and off_confirm_duration
+// FUNCTION: Get Voltage Threshold from Server and off_confirm_duration
 // ============================================
 
 void getThresholdFromServer() {
