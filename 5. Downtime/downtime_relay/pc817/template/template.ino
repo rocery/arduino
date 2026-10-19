@@ -48,10 +48,8 @@ const char* ssid_c_biskuit_mie = "MT3";
 const char* password_c_biskuit_mie = "siantar321";
 const char* ssid_a_kerupuk = "STTB4";
 const char* password_a_kerupuk = "siantar123";
-const char* ssid_b_kerupuk = "MT1";
+const char* ssid_b_kerupuk = "MT3";
 const char* password_b_kerupuk = "siantar321";
-const char* ssid_c_kerupuk = "Amano2";
-const char* password_c_kerupuk = "Si4nt4r321";
 const char* ssid_it = "STTB11";
 const char* password_it = "Si4nt4r321";
 
@@ -95,7 +93,6 @@ bool setupWiFi() {
   } else if (PRODUCTION == "Kerupuk") {
     wifiMulti.addAP(ssid_a_kerupuk, password_a_kerupuk);
     wifiMulti.addAP(ssid_b_kerupuk, password_b_kerupuk);
-    wifiMulti.addAP(ssid_c_kerupuk, password_c_kerupuk);
   } else {
     return false;
   }

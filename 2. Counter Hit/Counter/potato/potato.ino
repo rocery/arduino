@@ -20,6 +20,9 @@
   Semua fungsi Serial.print() pada program ini sebenarnya bisa dihapus/di-comment,
   masih dipertahankan untuk fungsi debuging. Akan di-comment/dihapus pada saat final
   program sudah tercapai demi menghemat resource pada ESP32.
+
+  ToDos:
+  1. Send data setiap kali counter bertambah
 */
 
 // == Deklarasi semua Library yang digunakan ==
@@ -179,6 +182,27 @@ void updateRTC() {
 }
 
 void sendLogData() {
+  /* Mengirim data ke local server
+     Ganti isi variabel api sesuai dengan form php
+  */
+  String api = "http://192.168.7.223/counter_hit_api/saveCounter.php";
+  HTTPClient http;
+  http.begin(api);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  int httpResponseCode = http.POST(postData);
+
+  if (httpResponseCode > 0) {
+    String response = http.getString();
+    Serial.println(response);
+  } else {
+    String response = http.getString();
+    Serial.println(response);
+    Serial.print("Error on sending POST");
+  }
+  http.end();
+}
+
+void sendLogDataCounter() {
   /* Mengirim data ke local server
      Ganti isi variabel api sesuai dengan form php
   */
