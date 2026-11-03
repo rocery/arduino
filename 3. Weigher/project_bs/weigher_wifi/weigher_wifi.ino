@@ -38,16 +38,16 @@ IPAddress dns1(192, 168, 15, 250);
 
 const char* SERVER_HOST = "192.168.7.223";
 const uint16_t DATA_PORT = 5001;
-const char* DATA_PATH = "/iot/api/weigher/save_weigher.php";
+const char* DATA_PATH = "/weigher/save_weigher.php";
 const uint16_t LOG_PORT = 5001;
 const char* LOG_PATH = "/weigher/upload_log_weigher";
 const char* NTP_SERVER_1 = "192.168.7.223";
 const char* NTP_SERVER_2 = "pool.ntp.org";
 const long GMT_OFFSET = 7 * 3600;
 
-const int LOADCELL_DOUT_PIN = 26;
-const int LOADCELL_SCK_PIN = 27;
-const uint8_t BTN[4] = { 32, 33, 25, 13 };
+const int LOADCELL_DOUT_PIN = 27;
+const int LOADCELL_SCK_PIN = 14;
+const uint8_t BTN[4] = { 32, 33, 25, 26 };
 #define SD_CS 5
 
 const float MIN_WEIGHT_KG = 0.1f;
